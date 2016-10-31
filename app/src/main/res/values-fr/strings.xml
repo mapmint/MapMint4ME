@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MapMint4ME</string>
+    <string name="add">Ajouter</string>
+    <string name="edit">Éditer</string>
+    <string name="home">Accueil</string>
+    <string name="insert">Ajouter</string>
+    <string name="save">Enregistrer</string>
+    <string name="table">Table</string>
+    <string name="view">Voir</string>
+    <string name="views_header">Vous trouverez ci-dessous la liste des éléments que vous pouvez consulter.</string>
+    <string name="take_picture">Prendre une photo</string>
+    <string name="use_gps">Utiliser la position GPS</string>
+    <string name="cancel">Annuler</string>
+    <string name="image">Image</string>
+    <string name="import_success">Import réalisé avec succès</string>
+    <string name="import_download_start">Téléchargement du fichier ...</string>
+    <string name="import_download_end">Fichier téléchargé</string>
+    <string name="import_failure">L\'import a échoué</string>
+    <string name="choose_picture">Choisissez une image</string>
+    <string name="mm_import">Importer</string>
+    <string name="export">Exporter</string>
+    <string name="import_never">Jamais importé</string>
+    <string name="export_never">Jamais exporté</string>
+    <string name="none">Aucun</string>
+    <string name="new_server">Hôte MapMint</string>
+    <string name="warning">Attention</string>
+    <string name="warning_no_list">Pour pouvoir éditer ou consulter vos données en mode déconnecté vous devez au préalable télécharger les données. Pour ce faire, vous pouvez utiliser le bouton \"Importer\" et suivre les instructions, ensuite seulement vous pourrez revenir ici.</string>
+    <string name="back">Retour</string>
+    <string name="server_name">Nom du serveur</string>
+    <string name="server_url">URL du serveur</string>
+    <string name="server_login">Nom d\'utilisateur</string>
+    <string name="server_password">Mot de passe</string>
+    <string name="server_add">Ajouter un serveur</string>
+    <string name="mm_no_db_found">Pour être en mesure d\'éditer ou de consulter les données sur le terrain, vous devez au préalable avoir télécharger les données nécessaires. Pour ce faire, utilisez le bouton \"Importer\" ci-dessous et suivez les instructions, ensuite revenez ici.</string>
+    <string name="mm4me_welcome_txt">Vous utilisez l\'application MapMint pour la surveillance et l\'évaluation appelée MapMint4ME.</string>
+    <string name="welcome">Bienvenue</string>
+</resources>
