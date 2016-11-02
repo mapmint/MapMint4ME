@@ -1,16 +1,19 @@
     $(function(){
-        console.log('run');
+        if(MM4ME_DEBUG)
+            console.log('run');
 
         updateBreadcrumbs(["home","mm_import"]);
 
         var list=JSON.parse(window.Android.displayTableFromDb("servers.db","SELECT count(*) as a FROM mm4me_servers",[]));
-        console.log(JSON.stringify(list));
+        if(MM4ME_DEBUG)
+            console.log(JSON.stringify(list));
         if(list[0]["a"]==0){
             $.ajax({
                 method: "GET",
                 url: 'content/noserver.html',
                 success: function(data){
-                    console.log('Display warning message on the UI !');
+                    if(MM4ME_DEBUG)
+                        console.log('Display warning message on the UI !');
                     $(".mm4me_content").html(data);
                 },
                 error: function(){
@@ -26,9 +29,11 @@
             new RegExp("\\[id\\]","g"),
             new RegExp("\\[time\\]","g")
         ];
-        console.log(JSON.stringify(list));
+        if(MM4ME_DEBUG)
+            console.log(JSON.stringify(list));
         for(var i=0;i<list.length;i++){
-                console.log(JSON.stringify(list[i]));
+                if(MM4ME_DEBUG)
+                    console.log(JSON.stringify(list[i]));
                 $(".media-list").append($("#servers_list_template")[0].innerHTML.
                                             replace(regs[1],list[i]["id"]).
                                             replace(regs[0],list[i]["name"]).
@@ -49,46 +54,54 @@
                 url: url,
                 dataType: "xml",
                 success: function(data){
-                    console.log(JSON.stringify($(data)));
-                    console.log(JSON.stringify($(data).find("ExecuteResponse").find("ProcessAccepted")));
-                    console.log(JSON.stringify($(data).find("ExceptionText")));
-                    console.log(JSON.stringify($(data).find("ProcessStarted")));
+                    try{
                     if($(data).find("ExceptionText").length){
                         myRoot.parent().append('<div class="alert alert-danger">'+$(data).find("ExceptionText").text()+'</div>');
-                        console.log("error should be displayed: "+$(data).find("ExceptionText").text());
+                        if(MM4ME_DEBUG)
+                            console.log("error should be displayed: "+$(data).find("ExceptionText").text());
                         return false;
                     }
                     if($(data).find("ProcessSucceeded").length){
-                        console.log('SUCCESS!');
+                        if(MM4ME_DEBUG)
+                            console.log('SUCCESS!');
                         myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
                         myRoot.find('.progress-bar').css("width","100%").attr('aria-valuenow', 100).html("100%");
                         var curl=$(data).find("Reference").attr("href");
-                        console.log(curl);
+                        if(MM4ME_DEBUG)
+                            console.log(curl);
                         myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
                         var downloadedFile=window.Android.downloadFile(curl);
                         myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+downloadedFile);
-                        console.log(downloadedFile);
+                        if(MM4ME_DEBUG)
+                            console.log(downloadedFile);
                         if(window.Android.copyFile(downloadedFile,"local.db"))
                             myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
                         else
                             myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
-                        console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'");
-                        console.log(window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[]));
+                        if(MM4ME_DEBUG){
+                            console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'");
+                            console.log(window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[]));
+                        }
                         return;
                     }
                     if(!$(data).find("ProcessAccepted").length){
                         var percentCompleted=parseInt($(data).find("ProcessStarted").attr("percentCompleted"));
-                        console.log(percentCompleted);
+                        if(MM4ME_DEBUG)
+                            console.log(percentCompleted);
                         myRoot.find('.progress-bar').css("width",percentCompleted+"%").attr('aria-valuenow', percentCompleted).html(percentCompleted+"%");
                         myRoot.find('.progress-bar').parent().next().html($(data).find("ProcessStarted").text());
                         if(percentCompleted<100)
                             setTimeout(function() { ping(myRoot, url,origin_url); }, 2000);
                     }else
                         setTimeout(function() { ping(myRoot, url,origin_url); }, 2000);
-                    console.log("timeout set");
+                        if(MM4ME_DEBUG)
+                            console.log("timeout set");
+                    }catch(e){
+                        alert(e);
+                    }
                 },
                 error: function(){
-                    alert("error !");
+                    window.Android.showToast("PING FAILED !");
                 }
             });
         }
@@ -100,9 +113,11 @@
                 url: curl,
                 dataType: "xml",
                 success: function(data){
-                    console.log(data);
+                    if(MM4ME_DEBUG)
+                        console.log(data);
                     var statusLocation=$(data).find("ExecuteResponse").attr("statusLocation");
-                    console.log(statusLocation);
+                    if(MM4ME_DEBUG)
+                        console.log(statusLocation);
                     ping(elem.parent().parent(),statusLocation,url);
                     disconnect(url);
                 },
@@ -114,17 +129,20 @@
 
         function authenticate(url,login,passwd,func){
             var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
-            console.log(curl);
+            if(MM4ME_DEBUG)
+                console.log(curl);
             $.ajax({
                 method: "GET",
                 url: curl,
                 success: function(data){
-                    console.log(data);
+                    if(MM4ME_DEBUG)
+                        console.log(data);
                     if(func)
                         func();
                 },
                 error: function(){
-                    console.log("unable to login!");
+                    if(MM4ME_DEBUG)
+                        console.log("unable to login!");
                     disconnect(url);
                     var hasBeenShown=false;
                     var xml=arguments[0].responseText;
@@ -150,12 +168,16 @@
                 method: "GET",
                 url: curl,
                 success: function(data){
-                    console.log(data);
-                    console.log("** Your are no more connected!");
+                    if(MM4ME_DEBUG){
+                        console.log(data);
+                        console.log("** Your are no more connected!");
+                    }
                 },
                 error: function(){
-                    console.log(curl);
-                    console.log("unable to disconnect!");
+                    if(MM4ME_DEBUG){
+                        console.log(curl);
+                        console.log("unable to disconnect!");
+                    }
                 }
             });
         }

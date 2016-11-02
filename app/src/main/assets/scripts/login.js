@@ -8,7 +8,7 @@ $(function(){
     $('.btn').last().find('a').first().html(window.Android.translate("cancel"));
     $(".form-signin").find("button").first().click(function(){
             $(this).append(' <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></i>');
-            var url=$("#inputUrl").val()+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.cLogin&DataInputs=login="+$("#inputLogin").val()+";password="+$("#inputPassword").val()+"&RawDataOutput=Result";
+            var url=$("#inputUrl").val()+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+$("#inputLogin").val()+";password="+$("#inputPassword").val()+"&RawDataOutput=Result";
             console.log(url);
             var closure=$(this);
             $.ajax({

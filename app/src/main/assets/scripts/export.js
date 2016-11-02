@@ -117,9 +117,9 @@
                 url: curl,
                 dataType: "xml",
                 success: function(data){
-                    console.log(data);
+                    //console.log(data);
                     var statusLocation=$(data).find("ExecuteResponse").attr("statusLocation");
-                    console.log(statusLocation);
+                    //console.log(statusLocation);
                     ping(elem.parent().parent(),statusLocation,url);
                     //disconnect(url);
                 },
