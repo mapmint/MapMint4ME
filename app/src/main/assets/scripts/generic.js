@@ -13,6 +13,11 @@ var toRunOnLoad={};
 var valuesOnLoad=[];
 var definedSqlTypes=[];
 var changingFields=[];
+var lang=window.Android.getLang();
+var langUrl=null;
+if(lang=="fr"){
+    langUrl="file:///android_asset/localisation/French.json";
+}
 
 /*****************************************************************************
  * List all available table for a given theme
@@ -73,10 +78,21 @@ function displayTablesTree(func){
         $('#tree').treeview({
             data: allThemes,
             onNodeSelected: function(event, data) {
-                try{
-                    func(data["myId"],data["myName"],data["myTitle"],true);
-                }catch(e){
-                    window.Android.showToast(e);
+                if(data["myId"]){
+                    try{
+                        func(data["myId"],data["myName"],data["myTitle"],true);
+                    }catch(e){
+                        console.log(JSON.stringify(data));
+                        console.log(e);
+                        window.Android.showToast(e);
+                        exit();
+                    }
+                }
+                else{
+                    $('#tree').treeview('toggleNodeExpanded',[$("#tree").treeview('getSelected')[0], { silent: true }]);
+                    $('#tree').treeview('toggleNodeSelected',[$("#tree").treeview('getSelected')[0], { silent: true }]);
+                    //console.log(JSON.stringify(data));
+                    //$(this).open();
                 }
             },
             showTags: true
@@ -137,12 +153,16 @@ function loadNewPicture(cid,id,picture){
  *****************************************************************************/
 function fetchDependencies(obj,cid,changingField){
     var list1=null;
+    //console.log(cid+" "+JSON.stringify(obj));
+
     for(var key in changingField){
         for(var i=0;i<changingField[key]["dep"].length;i++){
             for(var ckey in changingField[key]["dep"][i]){
                 var req="select * from mm4me_edition_fields where mm4me_edition_fields.edition>0 and name='"+ckey+"' and eid="+obj["eid"]+" order by mm4me_edition_fields.id asc";
                 list1=JSON.parse(window.Android.displayTable(req,[]));
                 changingField[key]["dep"][i][ckey]["values"]=[];
+                if(list1.length==0)
+                    return;
                 changingField[key]["dep"][i][ckey]["id"]=list1[0]["id"];
                 for(var j=0;j<changingField[key]["dep"][i][ckey]["options"].length;j++){
                     var creq=list1[0]["value"];
@@ -160,9 +180,10 @@ function fetchDependencies(obj,cid,changingField){
 
         }
     }
-    //console.log(cid+" "+JSON.stringify(changingField));
+    console.log(cid+" "+JSON.stringify(changingField));
 }
 
+var View_template=null;
 
 /*****************************************************************************
  * Display an HTML part containing the input corresponding to a given type.
@@ -170,15 +191,16 @@ function fetchDependencies(obj,cid,changingField){
 function printCurrentType(obj,cid){
     if(definedSqlTypes.length==0){
         definedSqlTypes=JSON.parse(window.Android.displayTable("select id,code from mm4me_ftypes where ftype='e' order by name",[]));
-        console.log(JSON.stringify(definedSqlTypes));
     }
+
     for(var i in definedSqlTypes){
         if(definedSqlTypes[i]["id"]==obj["ftype"]){
+            //console.log(JSON.stringify(definedSqlTypes[i]));
             if(definedSqlTypes[i]["code"]=="bytea"){
                 var tmpStr="";
                 tmpStr+='<div class="dropdown">'+
                         '   <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">'+
-                        '      '+
+                        '      '+ window.Android.translate("file_create") +
                         '     <span class="caret"></span>'+
                         '   </button>'+
                         '   <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">'+
@@ -188,10 +210,12 @@ function printCurrentType(obj,cid){
                         '     <li><a href="#" onclick="window.Android.queryCamera('+obj["id"]+','+cid+');"><i class="glyphicon glyphicon-camera"></i> '+window.Android.translate("take_picture")+'</a></li>'+
                         '   </ul>'+
                         '</div> <div id="value_'+obj["id"]+'"></div>';
+                console.log(tmpStr);
                 return tmpStr;
             }
             if(definedSqlTypes[i]["code"]=="geometry"){
-                return '<a href="#" onclick="window.Android.getGPS();"><i class="glyphicon glyphicon-map-marker"></i>'+window.Android.translate("use_gps")+'</a>';
+                return '<button class="btn btn-default" href="#" onclick="requireGPSPosition(\'field_'+obj["id"]+'\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("use_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
             }
             if(definedSqlTypes[i]["code"]=="tbl_linked"){
                 var tmp=obj["value"].split(';');
@@ -216,6 +240,7 @@ function printCurrentType(obj,cid){
             }
             if(definedSqlTypes[i]["code"]=="link"){
                     var strReturn;
+                    if(!View_template)
                     $.ajax({
                         async: false,
                         method: "GET",
@@ -225,6 +250,7 @@ function printCurrentType(obj,cid){
                         },
                         success: function(data){
                             console.log("**** \n\n Load View Template");
+                            View_template=data;
                             var tmp=obj["value"].split(";");
                             var refs=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.name=\""+tmp[1]+"\" and mm4me_tables.id=mm4me_views.ptid",[]));
                             var reg=new RegExp("\\[id\\]","g");
@@ -244,6 +270,26 @@ function printCurrentType(obj,cid){
                             strReturn=data.replace(reg,refs["0"]["tid"]);
                         }
                     });
+                    else{
+                        var tmp=obj["value"].split(";");
+                        var refs=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.name=\""+tmp[1]+"\" and mm4me_tables.id=mm4me_views.ptid",[]));
+                        var reg=new RegExp("\\[id\\]","g");
+                        if(!valuesOnLoad[cid])
+                            valuesOnLoad[cid]=[];
+                        valuesOnLoad[cid].push(refs);
+                        if(!toRunOnLoad[cid])
+                            toRunOnLoad[cid]=[];
+                        toRunOnLoad[cid].push(function(){
+                            prefix="_"+arguments[0]["0"]["id"];
+                            //if(!mainTable[arguments[0]["0"]["id"]])
+                            //mainTable[arguments[0]["0"]["id"]]=arguments[0]["0"]["tid"];
+                            //console.log(arguments[0]["0"]["tid"]+" "+arguments[0]["0"]["name"]+" "+arguments[0]["0"]["title"]);
+                            listInnerTable(arguments[0]["0"]["tid"],arguments[0]["0"]["id"],arguments[0]["0"]["name"],arguments[0]["0"]["title"],false,prefix,tmp[0]+"="+arguments[1]["local_id"]);
+                        });
+                        refTables[refs["0"]["tid"]]={"oid":cid,"col":tmp[0],"vid":refs["0"]["id"],"name":refs["0"]["table"],"name":refs["0"]["title"]};
+                        strReturn=View_template.replace(reg,refs["0"]["tid"]);
+
+                    }
                     //console.log(strReturn);
                     return strReturn;
             }
@@ -281,7 +327,8 @@ function printCurrentType(obj,cid){
                             lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
                     }
                     changingFields.push(lobj);
-                    fetchDependencies(obj,cid,changingFields[changingFields.length-1]);
+                    var tmpCnt=changingFields.length-1;
+                    setTimeout(function(){fetchDependencies(obj,cid,changingFields[tmpCnt])},1);
                 }catch(e){
                     window.Android.showToast("  **** "+obj["name"]+" "+e);
                 }
@@ -360,7 +407,7 @@ function runInsertQuery(obj,mid,func){
                     if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
                     if(MM4ME_DEBUG)
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
-                    queryAttr.push(editSchema[mid][i][j]["name"]);
+                    queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
                     queryValues.push($(this).val());
                     queryValues0.push("?");
                     queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
@@ -439,7 +486,7 @@ function runUpdateQuery(obj,mid,func){
                     if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
                     if(MM4ME_DEBUG)
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
-                    query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"]+"=?";
+                    query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+"=?";
                     queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
                     queryValues.push($(this).val());
                     //query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"]+"="+JSON.stringify($(this).val(),null);
@@ -579,8 +626,6 @@ function listTable(id,name,title,init,prefix){
             runUpdateQuery($(this).parent().parent(),mainTable[id],editTableReact);
         });
         $(".breadcrumb").children().last().remove();
-        $(".breadcrumb").append('<li><a href="view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> '+window.Android.translate('view')+'</a></li>');
-        $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> '+tblTitle+'</a></li>');
     //$('.mm4me_edition').hide();
 
     var list=window.Android.displayTable("SELECT id,name,value,alias,width,class from mm4me_view_fields where vid="+id+" order by id asc",[]);
@@ -597,7 +642,7 @@ function listTable(id,name,title,init,prefix){
         columns.push({"title":list[i]["alias"],"width":list[i]["width"]});
         if(sqlColumns!="")
             sqlColumns+=", ";
-        sqlColumns+=cleanupTableName(list[i]["value"])+" as "+list[i]["name"];
+        sqlColumns+=cleanupTableName(list[i]["value"]).replace(/wkb_geometry/g,"geometry")+" as "+list[i]["name"];
         columnNames.push(list[i]["name"]);
         if(list[i]["class"]>0){
             orderColumn=list[i]["name"];
@@ -636,14 +681,22 @@ function listTable(id,name,title,init,prefix){
     var localName="exampleTable"+(!prefix?"":prefix);
     ((function(localName,mid){
     if(init){
-        $('#'+localName).DataTable( {
+        $(".breadcrumb").append('<li><a href="view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> '+window.Android.translate('view')+'</a></li>');
+        $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> '+tblTitle+'</a></li>');
+
+        var options={
             data: dataSet,
             columns: columns,
             "scrollX": true,
             scrollY:        '50vh',
             scrollCollapse: true,
             select: true
-        } );
+        };
+        if(langUrl!=null)
+            options["language"]={
+                url: langUrl
+            };
+        $('#'+localName).DataTable( options );
         $('#'+localName+' tbody').on('click', 'tr', function () {
             var id = this.id;
             var index = $.inArray(id, selected);
@@ -670,6 +723,14 @@ function listTable(id,name,title,init,prefix){
     }
     })(localName,mainTable[id]));
 
+    setTimeout(function() { updateChangingFields(changingFields) }, 1500);
+    $('.mm4me_listing').show();
+    $('.mm4me_content').hide();
+}
+
+function updateChangingFields(changingFields){
+    console.log(JSON.stringify(changingFields));
+    try{
     for(var i=0;i<changingFields.length;i++){
         for(var key in changingFields[i]){
             var localFunc=function(changingField){
@@ -707,10 +768,11 @@ function listTable(id,name,title,init,prefix){
             $("select[name=field_"+key+"]").change();
         }
     }
-    $('.mm4me_listing').show();
-    $('.mm4me_content').hide();
+    }catch(e){
+        console.log(e);
+        setTimeout(function() { updateChangingFields(changingFields) }, 500);
+    }
 }
-
 /*****************************************************************************
  * Display the content of a table referencing the current edited table.
  *****************************************************************************/
@@ -805,7 +867,7 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
 
     if(!detectInit){
 
-    $('#'+localName).DataTable( {
+        var options={
             data: dataSet,
             columns: columns,
             "scrollX": true,
@@ -817,7 +879,13 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
                     $(row).addClass('selected');
                 }
             }
-        } );
+        };
+        if(langUrl!=null)
+            options["language"]={
+                url: langUrl
+            };
+
+        $('#'+localName).DataTable( options );
         $('#'+localName+' tbody').on('click', 'tr', function () {
             var id = this.id;
             var index = $.inArray(id, selected);
@@ -863,7 +931,7 @@ function displayEditForm(cid,selectedId,basic){
     for(var i in editSchema[cid]){
         for(var j in editSchema[cid][i]){
             if(editSchema[cid][i][j]["name"].indexOf("unamed")<0)
-                fields.push(editSchema[cid][i][j]["name"]+" AS \""+editSchema[cid][i][j]["id"]+"\"");
+                fields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
         }
     }
     var ccol=getPKey(cleanupTableName(allTables[cid].name));
@@ -891,6 +959,14 @@ function displayEditForm(cid,selectedId,basic){
                     }
                 }
             });
+                if($(".btn_field_"+j+"_lat").length>0){
+                    //alert(editValues[i][j]);
+                    $(".btn_field_"+j+"_lat").html(editValues[i][j]);
+                    $(".btn_field_"+j+"_long").html("");
+                    $(".btn_field_"+j+"_source").html("");
+                    $("input[name='field_"+j+"']").val("POINT"+editValues[i][j]);
+
+                }
             }
             //$(".swagEditor").summernote();
         }
@@ -942,6 +1018,9 @@ function editOnlyTableReact(tid){
         var ccol=getPKey(cleanupTableName(allTables[mid].name));
         var list=JSON.parse(window.Android.displayTable("select max("+ccol+") as val from "+cleanupTableName(allTables[mid].name),[]));
         $(".require-select").show();
+        $(".mm-act-add").removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
+            runUpdateQuery($(this).parent().parent(),mainTable[id],editOnlyTableReact);
+        });
         displayEditForm(mid,list[0].val,false);
     }
 }
@@ -976,7 +1055,7 @@ function listEdit(id,name,title,init,prefix){
     }
 
     var aCnt=0;
-    $('.mm4me_edition').find('ul').find('a').each(function () {
+    $('.mm4me_edition').find('ul').first().find('a').each(function () {
         if(aCnt>0)
             $(this).parent().addClass('require-select');
         aCnt+=1;
@@ -995,7 +1074,9 @@ function listEdit(id,name,title,init,prefix){
     $(".breadcrumb").append('<li><a href="edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> '+window.Android.translate('edit')+'</a></li>');
     $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> '+tblTitle+'</a></li>');
 
-    for(var i=0;i<changingFields.length;i++){
+    setTimeout(function() { updateChangingFields(changingFields) }, 1500);
+
+    /*for(var i=0;i<changingFields.length;i++){
         for(var key in changingFields[i]){
             var localFunc=function(changingField){
                 return function(){
@@ -1026,7 +1107,7 @@ function listEdit(id,name,title,init,prefix){
             $("select[name=field_"+key+"]").change(localFunc(changingFields[i][key]["dep"]));
             $("select[name=field_"+key+"]").change();
         }
-    }
+    }*/
     $('.mm4me_listing').show();
     $('.mm4me_content').hide();
 
@@ -1046,4 +1127,70 @@ function displayNoListing(){
             window.Android.showToast("error !");
         }
     });
+}
+
+
+function authenticate(url,login,passwd,func){
+    var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
+    if(MM4ME_DEBUG)
+        console.log(curl);
+    $.ajax({
+        method: "GET",
+        url: curl,
+        success: function(data){
+            if(MM4ME_DEBUG)
+                console.log(data);
+            if(func)
+                func();
+        },
+        error: function(){
+            if(MM4ME_DEBUG)
+                console.log("unable to login!");
+            disconnect(url);
+            var hasBeenShown=false;
+            var xml=arguments[0].responseText;
+            $(xml).find("ows\\:ExceptionText").each(function(){
+                window.Android.showToast($(this).text());
+                hasBeenShown=true;
+            });
+            if(!hasBeenShown){
+                window.Android.showToast(JSON.stringify(arguments));
+            }
+
+        }
+    });
+}
+
+function disconnect(url){
+    var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogOut&DataInputs=&RawDataOutput=Result";
+    $.ajax({
+        method: "GET",
+        url: curl,
+        success: function(data){
+            if(MM4ME_DEBUG){
+                console.log(data);
+                console.log("** Your are no more connected!");
+            }
+        },
+        error: function(){
+            if(MM4ME_DEBUG){
+                console.log(curl);
+                console.log("unable to disconnect!");
+            }
+        }
+    });
+}
+
+function requireGPSPosition(elem){
+    var position=JSON.parse(window.Android.getGPS());
+    //elem=$("#"+elem);
+    if(position.lat){
+        $(".btn_"+elem+"_lat").html(position.lat);
+        $(".btn_"+elem+"_long").html(position.lon);
+        $(".btn_"+elem+"_source").html(position.source);
+        $("input[name='"+elem+"']").val("POINT("+position.lon+" "+position.lat+")");
+    }else{
+
+    }
+    console.log(JSON.stringify(position));
 }

@@ -14,7 +14,7 @@
     <string name="cancel">Annuler</string>
     <string name="image">Image</string>
     <string name="import_success">Import réalisé avec succès</string>
-    <string name="import_download_start">Téléchargement du fichier ...</string>
+    <string name="import_download_start">Téléchargement du fichier &#8320;</string>
     <string name="import_download_end">Fichier téléchargé</string>
     <string name="import_failure">L\'import a échoué</string>
     <string name="choose_picture">Choisissez une image</string>
@@ -35,4 +35,13 @@
     <string name="mm_no_db_found">Pour être en mesure d\'éditer ou de consulter les données sur le terrain, vous devez au préalable avoir télécharger les données nécessaires. Pour ce faire, utilisez le bouton \"Importer\" ci-dessous et suivez les instructions, ensuite revenez ici.</string>
     <string name="mm4me_welcome_txt">Vous utilisez l\'application MapMint pour la surveillance et l\'évaluation appelée MapMint4ME.</string>
     <string name="welcome">Bienvenue</string>
+    <string name="export_success">L\'export s\'est réalisé avec succès</string>
+    <string name="upload_start">Émission de vos données enregistrées &#8320;</string>
+    <string name="file_create">Importer un fichier</string>
+    <string name="nolisting_intro_p">Pour être en mesure de consulter vos données sur le terrain, vous devez au préalable les télécharger depuis le serveur. Pour ce faire, veuillez utiliser le boutton \"Importer\" présenté ci-dessous et suivre les instuctions puis revenez ici.</string>
+    <string name="import_intro_p">Avant d\'aller sur le terrain pour saisir de nouvelles données, assurez-vous d\'avoir téléchargé les dernières versions des interfaces de saisie de la base de données en utilisant l\'outil \"Importer\". Ensuite, vous pouvez commencer à saisir vos données dans l\'application MapMint4ME.</string>
+    <string name="export_intro_p">Une fois votre mission accomplie, c\'est à dire que vous êtes rentré avec vos données saisie sur le terrain. Vous pouvez alors utiliser cet outil pour envoyer vos données sur votre serveur MapMint.</string>
+    <string name="gps_unknown">Inconnu</string>
+    <string name="noserver_intro_p">Vous n\'avez configurer aucun serveur MapMint, veuillez en ajouter un.</string>
+    <string name="noserver_btn">Ajouter un serveur</string>
 </resources>

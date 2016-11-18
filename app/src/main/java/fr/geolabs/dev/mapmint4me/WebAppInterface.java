@@ -1,5 +1,6 @@
 package fr.geolabs.dev.mapmint4me;
 
+import android.*;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
@@ -8,13 +9,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Gravity;
@@ -53,7 +57,7 @@ import java.util.regex.Pattern;
 
 public class WebAppInterface {
     private boolean mCenter = false;
-    Context mContext;
+    private Context mContext;
 
     /**
      * Instantiate the interface and set the context
@@ -105,7 +109,7 @@ public class WebAppInterface {
         //BigTextStyle myStyle = new NotificationCompat.BigTextStyle().bigText(msg);
         //mBuilder.setStyle(myStyle);
         mBuilder.setContentIntent(resultPendingIntent);
-        int mNotificationId = 001;
+        int mNotificationId = 1;
         NotificationManager mNotifyMgr =
                 (NotificationManager) mContext.getSystemService(mContext.NOTIFICATION_SERVICE);
         Notification notification = mBuilder.build();
@@ -116,6 +120,13 @@ public class WebAppInterface {
 
     @JavascriptInterface
     public String getGPS() throws Exception {
+
+        int permissionCheck = ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(((MapMint4ME) mContext), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_READ_MEDIA);
+        }
+
         boolean hasPosition = false;
         // flag for GPS status
         boolean isGPSEnabled = false;
@@ -126,7 +137,7 @@ public class WebAppInterface {
         Location location = null; // location
 
         // The minimum distance to change Updates in meters
-        final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+        final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
 
         // The minimum time between updates in milliseconds
         final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
@@ -142,11 +153,12 @@ public class WebAppInterface {
         isNetworkEnabled = myLocationManager
                 .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
+        String source = null;
         if (!isGPSEnabled && !isNetworkEnabled) {
             return getGPSMin();// no network provider is enabled
         } else {
             // First get location from Network Provider
-            if (isNetworkEnabled) {
+            if (!isGPSEnabled && isNetworkEnabled) {
                 myLocationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
                             @Override
@@ -165,6 +177,7 @@ public class WebAppInterface {
                             public void onLocationChanged(final Location location) {
                             }
                         });
+                source = "Network";
                 Log.d("Network", "Network");
                 if (myLocationManager != null) {
                     location = myLocationManager
@@ -194,6 +207,7 @@ public class WebAppInterface {
                                     }
                                 });
                         Log.d("GPS Enabled", "GPS Enabled");
+                        source = "GPS";
                         if (myLocationManager != null) {
                             location = myLocationManager
                                     .getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -207,6 +221,7 @@ public class WebAppInterface {
         if (location != null && hasPosition) {
             json.put("lat", location.getLatitude());
             json.put("lon", location.getLongitude());
+            json.put("source", source);
         } else {
             return getGPSMin();
         }
@@ -223,7 +238,9 @@ public class WebAppInterface {
         if (location != null) {
             json.put("lat", location.getLatitude());
             json.put("lon", location.getLongitude());
+
         }
+        json.put("source", "other");
         return (json.toString());
     }
 
@@ -241,11 +258,16 @@ public class WebAppInterface {
     @JavascriptInterface
     public String getMailAccount() {
         Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
-        //Account[] accounts = AccountManager.get(mContext).getAccounts();
-        Account[] accounts = AccountManager.get(mContext).getAccountsByType("com.google");
-        for (Account account : accounts) {
-            if (emailPattern.matcher(account.name).matches()) {
-                return account.name;
+        int permissionCheck = ContextCompat.checkSelfPermission(((MapMint4ME) mContext), android.Manifest.permission.GET_ACCOUNTS);
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(((MapMint4ME) mContext), new String[]{android.Manifest.permission.GET_ACCOUNTS}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
+        } else {
+            Account[] accounts = AccountManager.get(mContext).getAccountsByType("com.google");
+            for (Account account : accounts) {
+                if (emailPattern.matcher(account.name).matches()) {
+                    return account.name;
+                }
             }
         }
         return null;
@@ -259,12 +281,15 @@ public class WebAppInterface {
         return mContext.getString(mContext.getResources().getIdentifier(text, "string", mContext.getPackageName()));
     }
 
+    private LocalDB db = null;
+
     /**
      * Set mTop to true/false from the web page
      */
     @JavascriptInterface
     public String displayTable(String table, String[] fields) {
-        LocalDB db = new LocalDB(mContext);
+        if(db==null)
+         db = new LocalDB(mContext);
         return db.getRows(table, fields).toString();
     }
 
@@ -273,17 +298,20 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public long executeQuery(String query, String[] values, int[] types) {
-        LocalDB db = new LocalDB(mContext);
+        if(db==null)
+         db = new LocalDB(mContext);
         return db.execute(query, values, types);
     }
 
+    private LocalDB dbs = null;
     /**
      * Set mTop to true/false from the web page
      */
     @JavascriptInterface
     public String displayTableFromDb(String dbName, String table, String[] fields) {
-        LocalDB db = new LocalDB(mContext, dbName);
-        return db.getRows(table, fields).toString();
+        if(dbs==null)
+         dbs = new LocalDB(mContext, dbName);
+        return dbs.getRows(table, fields).toString();
     }
 
     /**
@@ -291,8 +319,9 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public long executeQueryFromDb(String dbName, String query, String[] values, int[] types) {
-        LocalDB db = new LocalDB(mContext, dbName);
-        return db.execute(query, values, types);
+        if(dbs==null)
+            dbs = new LocalDB(mContext, dbName);
+        return dbs.execute(query, values, types);
     }
 
     /**

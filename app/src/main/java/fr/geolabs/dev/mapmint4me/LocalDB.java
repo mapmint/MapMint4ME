@@ -57,9 +57,11 @@ class DatabaseContext extends ContextWrapper {
 			try {
 				String[] dirFiles = this.getBaseContext().getAssets().list("data");//new File(this.getBaseContext().getFilesDir()+File.separator+".."+File.separator+"app_webview");
 				for (String strFile : dirFiles) {
-					Log.w(DEBUG_CONTEXT, " CREATE FILE ?? <***> " + strFile +" "+name);
+                    if (Log.isLoggable(DEBUG_CONTEXT, Log.WARN))
+					    Log.w(DEBUG_CONTEXT, " CREATE FILE ?? <***> " + strFile +" "+name);
 					if(name.equals(strFile)) {
-						Log.w(DEBUG_CONTEXT, " CREATE FILE <***> " + strFile);
+                        if (Log.isLoggable(DEBUG_CONTEXT, Log.WARN))
+						    Log.w(DEBUG_CONTEXT, " CREATE FILE <***> " + strFile);
 						InputStream in = this.getBaseContext().getAssets().open("data/" + strFile);
 						new File(dbfile).createNewFile();
 						FileOutputStream out = new FileOutputStream(dbfile);
@@ -77,20 +79,13 @@ class DatabaseContext extends ContextWrapper {
 					}
 				}
 			} catch (IOException e) {
-				Log.w(DEBUG_CONTEXT, result.getAbsolutePath() + " cannot be created! "+e);
+				if (Log.isLoggable(DEBUG_CONTEXT, Log.WARN)) {
+					Log.w(DEBUG_CONTEXT, result.getAbsolutePath() + " cannot be created! " + e);
+				}
 			}
-		}else {
-			Log.w(DEBUG_CONTEXT,result.getAbsolutePath() + " exists!");
 		}
 
 		result.setWritable(true);
-
-
-		if (Log.isLoggable(DEBUG_CONTEXT, Log.WARN))
-		{
-			Log.w(DEBUG_CONTEXT,
-					"getDatabasePath(" + name + ") = " + result.getAbsolutePath());
-		}
 
 		return result;
 	}
@@ -106,12 +101,6 @@ class DatabaseContext extends ContextWrapper {
 	public SQLiteDatabase openOrCreateDatabase(String name, int mode, SQLiteDatabase.CursorFactory factory)
 	{
 		SQLiteDatabase result = SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name), factory);
-		// SQLiteDatabase result = super.openOrCreateDatabase(name, mode, factory);
-		if (Log.isLoggable(DEBUG_CONTEXT, Log.WARN))
-		{
-			Log.w(DEBUG_CONTEXT,
-					"openOrCreateDatabase(" + name + ",,) = " + result.getPath());
-		}
 		return result;
 	}
 }
@@ -180,10 +169,15 @@ public class LocalDB extends SQLiteOpenHelper {
                 /*Log.w("LocalDB",
                         "TYPE : > " + types[i] + " < ! ");*/
                 switch (types[i]) {
-                    case 5:
+					case 18:
+						Log.w("LocalDB",
+								"TYPE : > " + types[i] + " < ! ");
+						stmt.bindBlob(i+1, values[i].getBytes());
+						break;
+					case 5:
                         Uri uri=Uri.parse(values[i]);
                         Log.w("LocalDB",
-                                "TYPE : > " + types[i] + " < ! ");
+                                "TYPE : > " + types[i] + " >< "+ uri +" < ! ");
                         InputStream inputStream = mContext.getContentResolver().openInputStream(uri);
                         int nRead;
                         ByteArrayOutputStream tmpStream = new ByteArrayOutputStream( );
@@ -244,8 +238,8 @@ public class LocalDB extends SQLiteOpenHelper {
                                     "try field : <"+ fields[j] +"> " + cursor.getString(j) + " < ! ");*/
 							ljson.put(fields[j], cursor.getString(j));
 						}catch (Exception e) {
-                            /*Log.w("LocalDB",
-                                    "ERROR field : > " + e.getMessage() + " < ! ");*/
+                            Log.w("LocalDB",
+                                    "ERROR field ("+fields[j]+"): > " + e.getMessage() + " < ! ");
 
 							try {
 								byte[] fileContent = cursor.getBlob(j);
@@ -280,6 +274,17 @@ public class LocalDB extends SQLiteOpenHelper {
 							}catch (Exception e1) {
 								Log.w("LocalDB",
 										"ERROR " + e1 + " ! ");
+								try{
+									byte[] value= cursor.getBlob(j);
+									String tmp=new String(value);
+									String content=tmp.replace("POINT","").replace(" ",",");
+									ljson.put(fields[j], content);
+									Log.w("LocalDB",
+											" ****** OK" + content + " ! ");
+								}catch(Exception e2){
+									Log.w("LocalDB",
+											"ERROR " + e2 + " ! ");
+								}
 							}
 						}
 					}

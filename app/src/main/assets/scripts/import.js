@@ -3,7 +3,8 @@
             console.log('run');
 
         updateBreadcrumbs(["home","mm_import"]);
-
+        $(".mm4me_content").find("p").first().html(window.Android.translate("import_intro_p"));
+        $(".mm4me_content").find(".btn-success").first().html(window.Android.translate("noserver_btn"));
         var list=JSON.parse(window.Android.displayTableFromDb("servers.db","SELECT count(*) as a FROM mm4me_servers",[]));
         if(MM4ME_DEBUG)
             console.log(JSON.stringify(list));
@@ -78,9 +79,9 @@
                             myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
                         else
                             myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
+                        window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[])
                         if(MM4ME_DEBUG){
                             console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'");
-                            console.log(window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[]));
                         }
                         return;
                     }
@@ -123,61 +124,6 @@
                 },
                 error: function(){
                     alert("error !");
-                }
-            });
-        }
-
-        function authenticate(url,login,passwd,func){
-            var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
-            if(MM4ME_DEBUG)
-                console.log(curl);
-            $.ajax({
-                method: "GET",
-                url: curl,
-                success: function(data){
-                    if(MM4ME_DEBUG)
-                        console.log(data);
-                    if(func)
-                        func();
-                },
-                error: function(){
-                    if(MM4ME_DEBUG)
-                        console.log("unable to login!");
-                    disconnect(url);
-                    var hasBeenShown=false;
-                    var xml=arguments[0].responseText;
-                    $(xml).find("ows\\:ExceptionText").each(function(){
-                        window.Android.showToast($(this).text());
-                        hasBeenShown=true;
-                    });
-                    if(!hasBeenShown){
-                        /*closure.parent().parent().parent().append('<div class="alert alert-danger alert-dismissible" role="alert">'+
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
-                            '<strong>Error!</strong> '+arguments[0].responseText+
-                            '</div>');*/
-                        window.Android.showToast(arguments[0].responseText);
-                    }
-
-                }
-            });
-        }
-
-        function disconnect(url){
-            var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogOut&DataInputs=&RawDataOutput=Result";
-            $.ajax({
-                method: "GET",
-                url: curl,
-                success: function(data){
-                    if(MM4ME_DEBUG){
-                        console.log(data);
-                        console.log("** Your are no more connected!");
-                    }
-                },
-                error: function(){
-                    if(MM4ME_DEBUG){
-                        console.log(curl);
-                        console.log("unable to disconnect!");
-                    }
                 }
             });
         }
