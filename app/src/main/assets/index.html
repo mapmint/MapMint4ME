@@ -74,6 +74,12 @@
 
 body { padding-top: 70px; }
 
+.breadcrumb>li+li.pull-right:before {
+    padding: 0 5px;
+    color: #ccc;
+    content: " ";
+}
+
     </style>
 </head>
 
@@ -107,6 +113,8 @@ body { padding-top: 70px; }
                             <li><a href="import.html"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span> Import</a></li>
                             <li><a href="view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> View</a></li>
                             <li><a href="export.html"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span> Export</a></li>
+                            <li><a href="map.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Map</a></li>
+
                         </ul>
                     </li>
                     <li><a href="about.html"><span class="glyphicon glyphicon-copyright-mark" aria-hidden="true"></span> About</a></li>
@@ -142,7 +150,8 @@ body { padding-top: 70px; }
     }
 
     $(function() {
-
+        ajaxSetup();
+        getCurrentStatus();
         var tmp=document.location+"";
         tmp=tmp.split("/");
         $.ajax({

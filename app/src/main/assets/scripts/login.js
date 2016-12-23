@@ -16,6 +16,7 @@ $(function(){
                 url: url,
                 success: function(data){
                     window.Android.executeQueryFromDb("servers.db","INSERT INTO mm4me_servers (name,url,login,password) values (?,?,?,?)",[$("#inputServer").val(),$("#inputUrl").val(),$("#inputLogin").val(),$("#inputPassword").val()],[1,1,1,1]);
+                    disconnect($("#inputUrl").val());
                     document.location="file:///android_asset/import.html";
                 },
                 error: function(){

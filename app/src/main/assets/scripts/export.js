@@ -2,6 +2,9 @@
         console.log('run');
 
         updateBreadcrumbs(["home","export"]);
+        addStatusControl();
+        getCurrentStatus();
+
         $(".mm4me_content").find("p").first().html(window.Android.translate("export_intro_p"));
 
         var list=JSON.parse(window.Android.displayTableFromDb("servers.db","SELECT count(*) as a FROM mm4me_servers",[]));
@@ -35,7 +38,7 @@
                     var closure=a;
                     return function(){
                         var closure1=$(this);
-                        authenticate(closure["url"],closure["login"],closure["password"],function(){
+                        var body=function(){
                             console.log(closure["url"]);
                             var curl=closure["url"]+"?request=Execute&service=wps&version=1.0.0&Identifier=upload.saveOnServer&DataInputs=file=upload";
                             closure1.parent().parent().find('.progress-bar').parent().next().html(window.Android.translate("upload_start"));
@@ -43,8 +46,9 @@
                                 console.log(closure["url"]);
                                 replaySqliteHistory(closure1,closure["url"]);
                             }else
-                                alert('error !')
-                        });
+                            alert('error !')
+                        };
+                        authenticate(closure["url"],closure["login"],closure["password"],body);
                     }
                 };
                 $(".media-list").find("button").last().click(cmd(list[i]));
@@ -63,6 +67,7 @@
                     if($(data).find("ExceptionText").length){
                         myRoot.parent().append('<div class="alert alert-danger">'+$(data).find("ExceptionText").text()+'</div>');
                         console.log("error should be displayed: "+$(data).find("ExceptionText").text());
+                        disconnect(url);
                         return false;
                     }
                     if($(data).find("ProcessSucceeded").length){
@@ -83,6 +88,7 @@
                                     window.Android.executeQuery(sqlQueries[i],[],[]);
                                 }
                                 myRoot.find('.progress-bar').parent().next().html(window.Android.translate("export_success"));
+                                disconnect(url);
                             },
                             error: function(){
                                 alert("error !");
@@ -116,6 +122,7 @@
 
         function replaySqliteHistory(elem,url){
             var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.replaySqliteHistory&DataInputs=&ResponseDocument=Result@asReference=true;Log@asReference=true&storeExecuteResponse=true&status=true";
+            console.log(curl);
             $.ajax({
                 method: "GET",
                 url: curl,
@@ -123,7 +130,7 @@
                 success: function(data){
                     //console.log(data);
                     var statusLocation=$(data).find("ExecuteResponse").attr("statusLocation");
-                    //console.log(statusLocation);
+                    console.log(statusLocation);
                     ping(elem.parent().parent(),statusLocation,url);
                     //disconnect(url);
                 },

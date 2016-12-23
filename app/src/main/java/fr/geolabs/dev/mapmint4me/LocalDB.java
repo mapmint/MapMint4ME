@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -226,6 +227,7 @@ public class LocalDB extends SQLiteOpenHelper {
 		JSONArray obj = new JSONArray();
         SQLiteDatabase db = this.getReadableDatabase();
 		try {
+            Log.w("LocalDB","Run: "+query);
 			Cursor cursor = db.rawQuery(query,values);
 			int i = 0;
 			if (cursor.moveToFirst()) {
@@ -299,6 +301,26 @@ public class LocalDB extends SQLiteOpenHelper {
 			return null;
 		}
 		return obj.toString();
+	}
+
+	public String getTile(String xyz){
+		//JSONObject obj = new JSONObject();
+		String[] tmp=xyz.split(",");
+		String query="SELECT data from tiles where tileset='mmTiles' and grid = 'g' and x="+tmp[0]+" and y="+tmp[1]+" and z="+tmp[2];
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(query,null);
+		int i = 0;
+		if (cursor.moveToFirst()) {
+		    do {
+			    String[] fields=cursor.getColumnNames();
+				byte[] fileContent = cursor.getBlob(0);
+				byte[] bytesContent = Arrays.copyOfRange(fileContent, 0, fileContent.length);
+				return Base64.encodeToString(bytesContent,Base64.DEFAULT);
+            }
+			while (cursor.moveToNext());
+        }
+		db.close();
+		return null;
 	}
 
 }

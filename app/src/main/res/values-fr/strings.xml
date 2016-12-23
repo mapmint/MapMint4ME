@@ -44,4 +44,6 @@
     <string name="gps_unknown">Inconnu</string>
     <string name="noserver_intro_p">Vous n\'avez configurer aucun serveur MapMint, veuillez en ajouter un.</string>
     <string name="noserver_btn">Ajouter un serveur</string>
+    <string name="map">Carte</string>
+    <string name="no_gps">Pas de position GPS</string>
 </resources>

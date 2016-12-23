@@ -4,7 +4,7 @@
 
         updateBreadcrumbs(["home","mm_import"]);
         $(".mm4me_content").find("p").first().html(window.Android.translate("import_intro_p"));
-        $(".mm4me_content").find(".btn-success").first().html(window.Android.translate("noserver_btn"));
+        $(".mm4me_content").find(".btn-success").first().html('<i class="glyphicon glyphicon-plus"></i> '+window.Android.translate("noserver_btn"));
         var list=JSON.parse(window.Android.displayTableFromDb("servers.db","SELECT count(*) as a FROM mm4me_servers",[]));
         if(MM4ME_DEBUG)
             console.log(JSON.stringify(list));
@@ -16,6 +16,8 @@
                     if(MM4ME_DEBUG)
                         console.log('Display warning message on the UI !');
                     $(".mm4me_content").html(data);
+                    $("p").first().html(window.Android.translate("noserver_intro_p"));
+                    $(".btn-success").first().html('<i class="glyphicon glyphicon-plus"></i> '+window.Android.translate("noserver_btn"));
                 },
                 error: function(){
                     alert("error !");
@@ -57,6 +59,7 @@
                 success: function(data){
                     try{
                     if($(data).find("ExceptionText").length){
+                        disconnect(url);
                         myRoot.parent().append('<div class="alert alert-danger">'+$(data).find("ExceptionText").text()+'</div>');
                         if(MM4ME_DEBUG)
                             console.log("error should be displayed: "+$(data).find("ExceptionText").text());
@@ -67,22 +70,31 @@
                             console.log('SUCCESS!');
                         myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
                         myRoot.find('.progress-bar').css("width","100%").attr('aria-valuenow', 100).html("100%");
-                        var curl=$(data).find("Reference").attr("href");
-                        if(MM4ME_DEBUG)
-                            console.log(curl);
-                        myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
-                        var downloadedFile=window.Android.downloadFile(curl);
-                        myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+downloadedFile);
-                        if(MM4ME_DEBUG)
-                            console.log(downloadedFile);
-                        if(window.Android.copyFile(downloadedFile,"local.db"))
-                            myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
-                        else
-                            myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
+                        var dbs=["local.db","edit.db","tiles.db"];
+                        var lcnt0=0;
+                        $(data).find("Reference").each(function(){
+                            var curl=$(this).attr("href");
+                            //if(MM4ME_DEBUG)
+                                console.log(curl);
+                            myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
+                            var downloadedFile=window.Android.downloadFile(curl);
+                            myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+downloadedFile);
+                            //if(MM4ME_DEBUG)
+                                console.log(downloadedFile);
+                            if(lcnt0!=2){
+                               if(!window.Android.copyFile(downloadedFile,dbs[lcnt0])){
+                                    myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
+                                    return ;
+                                }
+                            }
+                            console.log(dbs[lcnt0]);
+                            lcnt0+=1;
+                        });
                         window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[])
                         if(MM4ME_DEBUG){
                             console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'");
                         }
+                        disconnect(url);
                         return;
                     }
                     if(!$(data).find("ProcessAccepted").length){
@@ -108,7 +120,7 @@
         }
 
         function createSqliteDB4ME(elem,url){
-            var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=&ResponseDocument=Result@asReference=true&storeExecuteResponse=true&status=true";
+            var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true&storeExecuteResponse=true&status=true";
             $.ajax({
                 method: "GET",
                 url: curl,

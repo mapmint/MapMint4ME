@@ -10,9 +10,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -21,11 +24,13 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Display;
 import android.view.Gravity;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -119,12 +124,135 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
+    public boolean getInternetStatus() {
+        return ((MapMint4ME) mContext).isInternetActivated();
+    }
+
+    @JavascriptInterface
+    public String getFullGPS() throws Exception {
+
+        int permissionCheck = ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(((MapMint4ME) mContext), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
+        }
+
+        boolean hasPosition = false;
+        // flag for GPS status
+        boolean isGPSEnabled = false;
+
+        // flag for network status
+        boolean isNetworkEnabled = false;
+
+        Location location = null; // location
+
+        // The minimum distance to change Updates in meters
+        final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
+
+        // The minimum time between updates in milliseconds
+        final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+
+        LocationManager myLocationManager;
+        myLocationManager = ((MapMint4ME) mContext).getLocationManager();
+
+        // getting GPS status
+        isGPSEnabled = myLocationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        // getting network status
+        isNetworkEnabled = myLocationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        String source = null;
+        JSONArray jsonArray = new JSONArray();
+        if (isNetworkEnabled) {
+            myLocationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {
+                        }
+
+                        @Override
+                        public void onProviderEnabled(String provider) {
+                        }
+
+                        @Override
+                        public void onProviderDisabled(String provider) {
+                        }
+
+                        @Override
+                        public void onLocationChanged(final Location location) {
+                        }
+                    });
+            source = "Network";
+            Log.d("Network", "Network");
+            if (myLocationManager != null) {
+                location = myLocationManager
+                        .getLastKnownLocation(myLocationManager.NETWORK_PROVIDER);
+                hasPosition = true;
+                JSONObject json = new JSONObject();
+                if (location != null && hasPosition) {
+                    json.put("lat", location.getLatitude());
+                    json.put("lon", location.getLongitude());
+                    json.put("source", source);
+                    jsonArray.put(jsonArray.length(), json);
+                }
+            }
+        }
+        if (isGPSEnabled) {
+            myLocationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {
+                        }
+
+                        @Override
+                        public void onProviderEnabled(String provider) {
+                        }
+
+                        @Override
+                        public void onProviderDisabled(String provider) {
+                        }
+
+                        @Override
+                        public void onLocationChanged(final Location location) {
+                        }
+                    });
+            Log.d("GPS Enabled", "GPS Enabled");
+            source = "GPS";
+            if (myLocationManager != null) {
+                location = myLocationManager
+                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                hasPosition = true;
+            }
+            JSONObject json = new JSONObject();
+            if (location != null && hasPosition) {
+                json.put("lat", location.getLatitude());
+                json.put("lon", location.getLongitude());
+                json.put("source", source);
+                jsonArray.put(jsonArray.length(), json);
+            }
+        }
+
+        JSONObject json = new JSONObject();
+        ((MapMint4ME) mContext).startLocationUpdates();
+        Location location1 = ((MapMint4ME) mContext).getLastLocation();
+        if (location1 != null) {
+            json.put("lat", location1.getLatitude());
+            json.put("lon", location1.getLongitude());
+            json.put("source", "other");
+            jsonArray.put(jsonArray.length(), json);
+        }
+        return (jsonArray.toString());
+    }
+
+    @JavascriptInterface
     public String getGPS() throws Exception {
 
         int permissionCheck = ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.ACCESS_FINE_LOCATION);
 
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(((MapMint4ME) mContext), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_READ_MEDIA);
+            ActivityCompat.requestPermissions(((MapMint4ME) mContext), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
         }
 
         boolean hasPosition = false;
@@ -278,7 +406,11 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public String translate(String text) {
-        return mContext.getString(mContext.getResources().getIdentifier(text, "string", mContext.getPackageName()));
+        try {
+            return mContext.getString(mContext.getResources().getIdentifier(text, "string", mContext.getPackageName()));
+        } catch (Exception e) {
+            return e.toString();
+        }
     }
 
     private LocalDB db = null;
@@ -288,8 +420,8 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public String displayTable(String table, String[] fields) {
-        if(db==null)
-         db = new LocalDB(mContext);
+        if (db == null)
+            db = new LocalDB(mContext);
         return db.getRows(table, fields).toString();
     }
 
@@ -298,20 +430,30 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public long executeQuery(String query, String[] values, int[] types) {
-        if(db==null)
-         db = new LocalDB(mContext);
+        if (db == null)
+            db = new LocalDB(mContext);
         return db.execute(query, values, types);
     }
 
     private LocalDB dbs = null;
+
     /**
      * Set mTop to true/false from the web page
      */
     @JavascriptInterface
     public String displayTableFromDb(String dbName, String table, String[] fields) {
-        if(dbs==null)
-         dbs = new LocalDB(mContext, dbName);
-        return dbs.getRows(table, fields).toString();
+        if (dbs == null)
+            dbs = new LocalDB(mContext, dbName);
+        return dbs.getRows(table, fields);
+    }
+
+    private LocalDB dbt = null;
+
+    @JavascriptInterface
+    public String displayTile(String xyz) {
+        if (dbt == null)
+            dbt = new LocalDB(mContext, "tiles.db");
+        return dbt.getTile(xyz);
     }
 
     /**
@@ -319,7 +461,7 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public long executeQueryFromDb(String dbName, String query, String[] values, int[] types) {
-        if(dbs==null)
+        if (dbs == null)
             dbs = new LocalDB(mContext, dbName);
         return dbs.execute(query, values, types);
     }
@@ -337,6 +479,13 @@ public class WebAppInterface {
         ((MapMint4ME) mContext).invokePickupImage(id, cid);
     }
 
+    @JavascriptInterface
+    public int getHeight() {
+        Display display = ((MapMint4ME) mContext).getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        return size.y;
+    }
 
     @JavascriptInterface
     public String downloadFile(String url) {
@@ -369,6 +518,22 @@ public class WebAppInterface {
             showToast("Error: " + exceptionAsString);
         }
         return null;
+    }
+
+    @JavascriptInterface
+    public String getGNStatus() throws JSONException {
+        JSONObject json = new JSONObject();
+        ConnectivityManager connectivityManager
+            = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        json.put("net",(activeNetworkInfo!=null&&activeNetworkInfo.isConnected()));
+        try{
+            json.put("gps",getFullGPS());
+        }
+        catch(Exception e){
+            Log.d("BUG GPS!", e.toString());
+        }
+        return json.toString();
     }
 
     @JavascriptInterface
@@ -519,7 +684,6 @@ public class WebAppInterface {
             StringWriter sw = new StringWriter();
             new Throwable("").printStackTrace(new PrintWriter(sw));
             String stackTrace = sw.toString();
-
             Log.w("WebAppInterface", e.getStackTrace().toString());
             return false;
         }

@@ -16,6 +16,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -68,8 +70,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+import static java.lang.Thread.sleep;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -146,6 +151,9 @@ public class MapMint4ME extends Activity implements
         return CookieManager.getInstance();
     }
 
+    private ScheduledThreadPoolExecutor mDialogDaemon;
+    private WebAppInterface mWebAppInterface;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -191,7 +199,8 @@ public class MapMint4ME extends Activity implements
             //webSettings.setGeolocationDatabasePath(databasePath);
             WebChromeClient webChromeClient = new WebChromeClass();
             myWebView.setWebChromeClient(webChromeClient);
-            myWebView.addJavascriptInterface(new WebAppInterface(this), "Android");
+            mWebAppInterface=new WebAppInterface(this);
+            myWebView.addJavascriptInterface(mWebAppInterface, "Android");
             myWebView.addJavascriptInterface(new LocalStorageJavaScriptInterface(this.getApplicationContext()), "LocalStorage");
             boolean isLang = Locale.getDefault().getLanguage().equals("fr");
             String filename;
@@ -201,11 +210,48 @@ public class MapMint4ME extends Activity implements
             else*/
             filename = "index.html";
             myWebView.loadUrl("file:///android_asset/" + filename);
+            if (mDialogDaemon != null) {
+                mDialogDaemon.shutdown();
+                mDialogDaemon = null;
+            }
+            /*mDialogDaemon = new ScheduledThreadPoolExecutor(1);
+            // This process will execute immediately, then execute every 3 seconds.
+            mDialogDaemon.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Check Internet access
+                            Log.d(TAG, "******** CALL THREAD TO CHECK WIFI / GPS ********");
+                            ConnectivityManager connectivityManager
+                                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+                            mInternetActivated=activeNetworkInfo != null && activeNetworkInfo.isConnected();
+                            String res = null;
+                            try {
+                                res = mWebAppInterface.getFullGPS();
+                            }catch(Exception e) {
+                                Log.d(TAG, "javascript:updateStatus("+res+","+mInternetActivated+");");
+                            }
+                            myWebView.loadUrl("javascript:updateStatus("+res+","+mInternetActivated+");");
+                            Log.d(TAG, "javascript:updateStatus("+res+","+mInternetActivated+");");
+                        }
+                    });
+                }
+            }, 0L, 10000L, TimeUnit.MILLISECONDS);*/
+
         }
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    public boolean mInternetActivated=false;
+
+    public boolean isInternetActivated(){
+        return mInternetActivated;
     }
 
     @Override
@@ -215,13 +261,7 @@ public class MapMint4ME extends Activity implements
 
     protected void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
@@ -231,13 +271,7 @@ public class MapMint4ME extends Activity implements
     @Override
     public void onConnected(Bundle connectionHint) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
             return;
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -554,12 +588,12 @@ public class MapMint4ME extends Activity implements
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_READ_MEDIA:
                 if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Log.d(TAG, "Allowed to access the data!!");
+                    Log.d(TAG, "Allowed to access the media!!");
                 }
                 break;
             case MY_PERMISSIONS_REQUEST_GPS:
                 if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Log.d(TAG, "Allowed to access the data!!");
+                    Log.d(TAG, "Allowed to access the gps!!");
                 }
                 break;
             default:

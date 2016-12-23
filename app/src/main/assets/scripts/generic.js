@@ -19,6 +19,23 @@ if(lang=="fr"){
     langUrl="file:///android_asset/localisation/French.json";
 }
 
+
+
+function updateStatus(gps,internet){
+    if(internet){
+        $('.glyphicon-signal').css('color','#00EE00');
+    }else
+        $('.glyphicon-signal').css('color','#EE0000');
+    $('#gpsMenu1').next().html("");
+    if(gps.length==0){
+        $('#gpsMenu1').css('color','#EE0000');
+        $('#gpsMenu1').next().html('<li > <i class="glyphicon glyphicon-remove" style="color: #EE0000"></i> '+window.Android.translate("no_gps")+'</li>');
+    }else{
+        $('#gpsMenu1').css('color','#00EE00');
+        for(var i=0;i<gps.length;i++)
+            $('#gpsMenu1').next().append('<li> <i class="glyphicon glyphicon-ok" style="color: #'+(gps[i].source=="GPS"?"298836":gps[i].source=="Network"?"5bb04b":"81d071")+'"></i> '+gps[i].source+'</li>');
+    }
+}
 /*****************************************************************************
  * List all available table for a given theme
  *****************************************************************************/
@@ -85,7 +102,7 @@ function displayTablesTree(func){
                         console.log(JSON.stringify(data));
                         console.log(e);
                         window.Android.showToast(e);
-                        exit();
+                        //exit();
                     }
                 }
                 else{
@@ -256,6 +273,7 @@ function printCurrentType(obj,cid){
                             var reg=new RegExp("\\[id\\]","g");
                             if(!valuesOnLoad[cid])
                                 valuesOnLoad[cid]=[];
+                            if(refs!=""){
                             valuesOnLoad[cid].push(refs);
                             if(!toRunOnLoad[cid])
                                 toRunOnLoad[cid]=[];
@@ -268,6 +286,7 @@ function printCurrentType(obj,cid){
                             });
                             refTables[refs["0"]["tid"]]={"oid":cid,"col":tmp[0],"vid":refs["0"]["id"],"name":refs["0"]["table"],"name":refs["0"]["title"]};
                             strReturn=data.replace(reg,refs["0"]["tid"]);
+                            }
                         }
                     });
                     else{
@@ -569,7 +588,7 @@ function listTable(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.id asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -777,7 +796,7 @@ function updateChangingFields(changingFields){
  * Display the content of a table referencing the current edited table.
  *****************************************************************************/
 function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
-    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" order by mm4me_editions.id asc",[]));
+    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" order by mm4me_editions.step asc",[]));
     var cnt=0;
     var detectInit=true;
     var tid=0;
@@ -1033,7 +1052,7 @@ function listEdit(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.id asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -1130,7 +1149,7 @@ function displayNoListing(){
 }
 
 
-function authenticate(url,login,passwd,func){
+function authenticate(url,login,passwd,func,func1){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
     if(MM4ME_DEBUG)
         console.log(curl);
@@ -1144,17 +1163,22 @@ function authenticate(url,login,passwd,func){
                 func();
         },
         error: function(){
-            if(MM4ME_DEBUG)
-                console.log("unable to login!");
-            disconnect(url);
-            var hasBeenShown=false;
-            var xml=arguments[0].responseText;
-            $(xml).find("ows\\:ExceptionText").each(function(){
-                window.Android.showToast($(this).text());
-                hasBeenShown=true;
-            });
-            if(!hasBeenShown){
-                window.Android.showToast(JSON.stringify(arguments));
+            if(func1){
+                func1();
+            }
+            else{
+                disconnect(url);
+                if(MM4ME_DEBUG)
+                    console.log("unable to login!");
+                var hasBeenShown=false;
+                var xml=arguments[0].responseText;
+                $(xml).find("ows\\:ExceptionText").each(function(){
+                    window.Android.showToast($(this).text());
+                    hasBeenShown=true;
+                });
+                if(!hasBeenShown){
+                    window.Android.showToast(JSON.stringify(arguments));
+                }
             }
 
         }
@@ -1163,6 +1187,7 @@ function authenticate(url,login,passwd,func){
 
 function disconnect(url){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogOut&DataInputs=&RawDataOutput=Result";
+    console.log(curl);
     $.ajax({
         method: "GET",
         url: curl,
@@ -1193,4 +1218,29 @@ function requireGPSPosition(elem){
 
     }
     console.log(JSON.stringify(position));
+}
+
+function ajaxSetup(){
+    $.ajaxSetup({
+      xhrFields: {
+        withCredentials: true
+      }
+    });
+}
+
+function getCurrentStatus(){
+    var tmp=JSON.parse(window.Android.getGNStatus());
+    tmp["gps"]=JSON.parse(tmp["gps"]);
+    updateStatus(tmp['gps'],tmp['net']);
+}
+
+function addStatusControl(){
+    $('.breadcrumb').append('<span class="pull-right"><i class="glyphicon glyphicon-signal"></i> /'+
+        '<span class="dropdown">'+
+        '<i class="glyphicon glyphicon-map-marker dropdown-toggle" id="gpsMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></i>'+
+        '<ul class="dropdown-menu pull-right" aria-labelledby="gpsMenu1">'+
+        '<li><a href="#">Not detected</a></li>'+
+        '</ul>'+
+        '</span>'+
+        '</span>');
 }
