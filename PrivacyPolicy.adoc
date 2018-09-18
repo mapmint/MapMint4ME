@@ -1,0 +1,78 @@
+:toc: macro
+:toc-title:
+:toclevels: 99
+
+toc::[]
+
+
+## License 
+
+The MapMint4ME software is released under the https://github.com/mapmint/mapmint/blob/master/LICENSE[MIT X11 license].
+
+All other artifacts (for example, the MapMint website and the documentation) are released under the https://creativecommons.org/licenses/by/4.0/[Creative Commons Attribution 4.0 International License].
+
+
+All our installers, programs, source code, and documentation are provided AS-IS with no warranty or conditions, and without any liability obligations. See the license text for details.
+
+## Communication Channels
+
+
+None of the downloadable MapMint4ME software transmits or communicates any information back to us and the software we have written does not have any mechanisms that might allow us to access or control your devices or systems.
+
+There is always the possibility that hackers can discover and exploit deficiencies or bugs in our software or in 3rd-party libraries to access or control your devices or systems.
+
+Our http://mapmint.com[website] does not knowingly contain 3rd party ads and does not collect personally identifiable information from the general public.
+
+## 3rd-party Software
+
+
+Our software uses a number of open-source 3rd-party libraries from well-known and/or reputable sources. We do not vet the security of those software libraries.
+
+Your security people may want to review the libraries and source code on https://github.com/mapmint[GitHub].
+
+## MapMint Communications
+
+
+When setting up your own webserver to run MapMint, if you do not configure the server and MapMint to use an SSL certificate, a determined observer can see all data communicated to and from that server.
+
+Only transmissions over an https:// connection are obscured from observers.
+
+The definition of an encrypted form is transmitted in plaintext (unencrypted) to the device. When a filled-in submission for an encrypted form is finalized, it is encrypted on the device and transmitted in encrypted form. While this may meet requirements for obscured transmission over unsecured http:// connections, unsecured connections still allow observers to alter the form definition to potentially remove the encryption, capture any filled-in forms, or potentially intercept and thereby prevent their transmission to your server.
+
+## MapMint Deployments to Other Hosting Services
+
+With all 3rd party hosting services, you should expect your data to be viewable by the support staff of the hosting service. Different services go to differing lengths to restrict access to, encrypt, and/or secure the data and communications within their data centers.
+
+The form definition and associated media files of an form are stored on the server in plaintext (unencrypted). 
+
+## MapMint Username Authentication
+
+When authenticating MapMint usernames and passwords, the MapMint use Cookie based authentication. It means that in case your MapMint server is not configured to use https:// then, the password will be sent in plaintext.
+
+A session identifier is stored on the server. If that session identifier value is stolen or revealed, it can allow others to log in and interact with the server as that user.
+
+MapMint4ME require to authenticate to MapMint4ME for downloading and uploading data back to the MapMint server.
+
+## Identifying Information Transmission and Storage
+
+During data submission from MapMint4ME, some identifying information is transmitted and stored on the server. MapMint require authentication (username / password) for submission, then the username that authenticated is written into the audit fields of the data tables storing the submission. So, you can definitely correlate this authenticated username with the submitted data.
+
+While interacting with a MapMint server, any actions that require authentication and that modify the server settings, set of form definitions, filters, exports, publishers, or data tables, will cause the authenticated username to be written into the audit fields of the database tables that are being updated. If these modifications result in delete actions being performed against a database table, then this authenticated username will be identified in the server log together with summary information on what was deleted.
+
+
+## MapMint Form Online
+
+MapMint Form does not use a secure connection (except in case your MapMint server is configured to use SSL). This means that your form definition data stored in the database are visible to a determined observer when submitted and downloaded from that site, as are any reported errors in the form.
+
+Furthermore, MapMint Form stores your submitted form in the database.
+
+## Websites
+
+Our websites under the mapmint.com domain can or do use cookies and can or do log all interactions. We also utilize security software, spam-blocking, and web-analytics tools (for example, Google Web Analytics) that may track visitors and their access patterns on our web properties.
+
+## Google Play Store
+
+Downloads from the Google Play store are compiled into aggregated usage statistics on our management portal.
+
+Crash reports you elect to send are provided to us as anonymous crash reports. By design, these do not contain survey field values or other device- or user- specific data.
+
