@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN"
+        "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -107,13 +108,13 @@ body { padding-top: 70px; }
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li >
-                        <a href="index.html" aria-haspopup="true" aria-expanded="true"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home <span class="caret"></span></a>
+                        <a href="./index.html" aria-haspopup="true" aria-expanded="true"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li><a href="edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</a></li>
-                            <li><a href="import.html"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span> Import</a></li>
-                            <li><a href="view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> View</a></li>
-                            <li><a href="export.html"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span> Export</a></li>
-                            <li><a href="map.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Map</a></li>
+                            <li><a href="./edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</a></li>
+                            <li><a href="./import.html"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span> Import</a></li>
+                            <li><a href="./view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> View</a></li>
+                            <li><a href="./export.html"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span> Export</a></li>
+                            <li><a href="./map.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Map</a></li>
 
                         </ul>
                     </li>
@@ -153,6 +154,8 @@ body { padding-top: 70px; }
         ajaxSetup();
         getCurrentStatus();
         var tmp=document.location+"";
+        while(!tmp[tmp.length-1])
+            tmp=document.location+"";
         tmp=tmp.split("/");
         $.ajax({
             method: "GET",
@@ -185,6 +188,7 @@ body { padding-top: 70px; }
             if($(this).attr("href")==tmp[tmp.length-1]){
                 $(this).parent().addClass("active");
                 var closure=$(this);
+                try{
                 $.ajax({
                     method: "GET",
                     url: './menus/'+closure.attr('href'),
@@ -194,6 +198,8 @@ body { padding-top: 70px; }
                         closure.parent().remove();
                     }
                 });
+                }catch(e){
+                }
             }
         });
     });

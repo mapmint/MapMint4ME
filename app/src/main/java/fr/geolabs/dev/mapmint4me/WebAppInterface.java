@@ -26,6 +26,7 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
@@ -63,6 +64,7 @@ import java.util.regex.Pattern;
 public class WebAppInterface {
     private boolean mCenter = false;
     private Context mContext;
+    private String errorMsg;
 
     /**
      * Instantiate the interface and set the context
@@ -442,8 +444,9 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public String displayTableFromDb(String dbName, String table, String[] fields) {
-        if (dbs == null)
-            dbs = new LocalDB(mContext, dbName);
+        if (dbs != null)
+            dbs.close();
+        dbs = new LocalDB(mContext, dbName);
         return dbs.getRows(table, fields);
     }
 
@@ -461,8 +464,9 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public long executeQueryFromDb(String dbName, String query, String[] values, int[] types) {
-        if (dbs == null)
-            dbs = new LocalDB(mContext, dbName);
+        if (dbs != null)
+            dbs.close();
+        dbs = new LocalDB(mContext, dbName);
         return dbs.execute(query, values, types);
     }
 
@@ -484,6 +488,8 @@ public class WebAppInterface {
         Display display = ((MapMint4ME) mContext).getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
+        Log.e("Width", "" + size.x);
+        Log.e("height", "" + size.y);
         return size.y;
     }
 
@@ -494,7 +500,6 @@ public class WebAppInterface {
         String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
 
         try {
-
             BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
             FileOutputStream fos = new FileOutputStream(fileName);
             BufferedOutputStream bout = new BufferedOutputStream(fos, 1024);
@@ -515,7 +520,7 @@ public class WebAppInterface {
             e.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
             Log.w("WebAppInterface", exceptionAsString);
-            showToast("Error: " + exceptionAsString);
+            //showToast("Error: " + exceptionAsString);
         }
         return null;
     }
@@ -562,6 +567,16 @@ public class WebAppInterface {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @JavascriptInterface
+    public Integer getCurrentAndroidOSersion(){
+        return android.os.Build.VERSION.SDK_INT;
+    }
+
+    @JavascriptInterface
+    public String getErrorMsg(){
+        return errorMsg;
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -685,6 +700,7 @@ public class WebAppInterface {
             new Throwable("").printStackTrace(new PrintWriter(sw));
             String stackTrace = sw.toString();
             Log.w("WebAppInterface", e.getStackTrace().toString());
+            errorMsg=e.getStackTrace().toString();
             return false;
         }
     }

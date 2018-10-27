@@ -177,6 +177,18 @@ public class MapMint4ME extends Activity implements
             setContentView(R.layout.activity_map_mint4_me);
             myLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             myWebView = (WebView) findViewById(R.id.webView);
+            myWebView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView webView, String webResourceRequest) {
+                    if (Uri.parse(webResourceRequest).getScheme().equals("file")) {
+                        webView.loadUrl(webResourceRequest);
+                    } else {
+                        // If the URI is not pointing to a local file, open with an ACTION_VIEW Intent
+                        webView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webResourceRequest)));
+                    }
+                    return true; // in both cases we handle the link manually
+                }
+            });
             //myWebView.setWebViewClient(new WebViewClient() { @Override public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error){ handler.proceed(); } });
             WebSettings webSettings = myWebView.getSettings();
             /*myWebView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
@@ -214,32 +226,6 @@ public class MapMint4ME extends Activity implements
                 mDialogDaemon.shutdown();
                 mDialogDaemon = null;
             }
-            /*mDialogDaemon = new ScheduledThreadPoolExecutor(1);
-            // This process will execute immediately, then execute every 3 seconds.
-            mDialogDaemon.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Check Internet access
-                            Log.d(TAG, "******** CALL THREAD TO CHECK WIFI / GPS ********");
-                            ConnectivityManager connectivityManager
-                                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-                            mInternetActivated=activeNetworkInfo != null && activeNetworkInfo.isConnected();
-                            String res = null;
-                            try {
-                                res = mWebAppInterface.getFullGPS();
-                            }catch(Exception e) {
-                                Log.d(TAG, "javascript:updateStatus("+res+","+mInternetActivated+");");
-                            }
-                            myWebView.loadUrl("javascript:updateStatus("+res+","+mInternetActivated+");");
-                            Log.d(TAG, "javascript:updateStatus("+res+","+mInternetActivated+");");
-                        }
-                    });
-                }
-            }, 0L, 10000L, TimeUnit.MILLISECONDS);*/
 
         }
 

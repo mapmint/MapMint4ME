@@ -1,4 +1,4 @@
-var MM4ME_DEBUG=false;
+var MM4ME_DEBUG=true;
 var EDITION_TYPE_FILE=5;
 var mainTable={};
 var mtable=null;
@@ -21,6 +21,9 @@ if(lang=="fr"){
 
 
 
+/*****************************************************************************
+ * Update status icon color depending on network and GPS availability
+ *****************************************************************************/
 function updateStatus(gps,internet){
     if(internet){
         $('.glyphicon-signal').css('color','#00EE00');
@@ -36,6 +39,7 @@ function updateStatus(gps,internet){
             $('#gpsMenu1').next().append('<li> <i class="glyphicon glyphicon-ok" style="color: #'+(gps[i].source=="GPS"?"298836":gps[i].source=="Network"?"5bb04b":"81d071")+'"></i> '+gps[i].source+'</li>');
     }
 }
+
 /*****************************************************************************
  * List all available table for a given theme
  *****************************************************************************/
@@ -231,8 +235,18 @@ function printCurrentType(obj,cid){
                 return tmpStr;
             }
             if(definedSqlTypes[i]["code"]=="geometry"){
+                console.log("CID: "+cid+" select type from mm4me_gc where f_table_schema||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
+                var geoType=getGeometryType("(select replace(name,'.','_') from mm4me_tables where id="+cid+")");
+                if(geoType=='POINT' || geoType=='MULTIPOINT' )
                 return '<button class="btn btn-default" href="#" onclick="requireGPSPosition(\'field_'+obj["id"]+'\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("use_gps")+'</button>'+
                     '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
+                else if(geoType=='LINESTRING' || geoType=='MULTILINESTRING' )
+                return '<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawl_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5></div>';
+                else if(geoType=='POLYGON' || geoType=='MULTIPOLYGON' )
+                return '<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'polygon\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawp_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5></div>';
+
             }
             if(definedSqlTypes[i]["code"]=="tbl_linked"){
                 var tmp=obj["value"].split(';');
@@ -562,6 +576,19 @@ function getPKey(tbl){
 }
 
 /*****************************************************************************
+ * Get the geometry type, stored in the mm4me_gc table
+ *****************************************************************************/
+function getGeometryType(tbl){
+    var req0="select type from mm4me_gc where f_table_schema||'_'||f_table_name = "+tbl+"";
+    if(MM4ME_DEBUG)
+        console.log(req0);
+    var list01=JSON.parse(window.Android.displayTable(req0,[]));
+    if(MM4ME_DEBUG)
+        console.log(JSON.stringify(list01[0]));
+    return list01[0]["type"];
+}
+
+/*****************************************************************************
  * The fucntion to call at the end of insert or update query
  *****************************************************************************/
 function editTableReact(tid){
@@ -747,6 +774,9 @@ function listTable(id,name,title,init,prefix){
     $('.mm4me_content').hide();
 }
 
+/*****************************************************************************
+ * Update a field depending on another field value (i.e region > department)
+ *****************************************************************************/
 function updateChangingFields(changingFields){
     console.log(JSON.stringify(changingFields));
     try{
@@ -932,6 +962,9 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
 
 }
 
+/*****************************************************************************
+ * Show the edit form
+ *****************************************************************************/
 function displayEditForm(cid,selectedId,basic){
     if(basic && !$("#exampleTable"+(cid==mtable?"":"_"+cid)).find(".selected").find('input[type=hidden]').first().val()){
         if(cid==mtable){
@@ -1026,7 +1059,7 @@ function displayEditForm(cid,selectedId,basic){
 }
 
 /*****************************************************************************
- * The fucntion to call at the end of insert or update query (edit only)
+ * The function to call at the end of insert or update query (edit only)
  *****************************************************************************/
 function editOnlyTableReact(tid){
     var mid=tid;
@@ -1132,6 +1165,9 @@ function listEdit(id,name,title,init,prefix){
 
 }
 
+/*****************************************************************************
+ * In case no server is configured
+ *****************************************************************************/
 function displayNoListing(){
     $.ajax({
         method: "GET",
@@ -1149,6 +1185,9 @@ function displayNoListing(){
 }
 
 
+/*****************************************************************************
+ * Authenticate a user
+ *****************************************************************************/
 function authenticate(url,login,passwd,func,func1){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
     if(MM4ME_DEBUG)
@@ -1159,8 +1198,10 @@ function authenticate(url,login,passwd,func,func1){
         success: function(data){
             if(MM4ME_DEBUG)
                 console.log(data);
-            if(func)
+            if(func){
+                console.log("Call func!")
                 func();
+            }
         },
         error: function(){
             if(func1){
@@ -1185,9 +1226,13 @@ function authenticate(url,login,passwd,func,func1){
     });
 }
 
+/*****************************************************************************
+ * Disconnect a user
+ *****************************************************************************/
 function disconnect(url){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogOut&DataInputs=&RawDataOutput=Result";
-    console.log(curl);
+    if(MM4ME_DEBUG)
+        console.log(curl);
     $.ajax({
         method: "GET",
         url: curl,
@@ -1206,6 +1251,137 @@ function disconnect(url){
     });
 }
 
+var geometries={"line":{"geom":null,"constructor": "ol.geom.Linestring"},"polygon":{"geom":null,"constructor":"ol.geom.Polygon","cline":null}};
+var stopTracking=false;
+var currentGeometry="line";
+var currentGeometryField="none";
+var map;
+var vectorLayer,vectorLayer1;
+var position;
+
+/*****************************************************************************
+ * Track modification of the GPS location
+ *****************************************************************************/
+function trackCurrentGPSPosition(){
+    console.log("## trackCurrentGPSPosition");
+    updateCurrentMapLocation();
+
+    var tmp0=geometries["origin"].getCoordinates();
+    if(geometries[currentGeometry]["geom"]!=null){
+        var tmp1=geometries[currentGeometry]["geom"].getCoordinates();
+        tmp0=tmp1[tmp1.length-1];
+    }
+    tmp=ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857');
+    console.log(JSON.stringify(tmp0));
+    console.log(JSON.stringify(tmp));
+    $("#currentPosition").html("<b>Position: "+position[0].lon.toFixed(6)+","+position[0].lat.toFixed(6)+"</b>");
+    if(tmp0[0]==tmp[0] && tmp0[1]==tmp[1]){
+        console.log(" !!!!!!!! Same position!!!!!!!! ");
+        if(!stopTracking)
+            setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+        return;
+    }
+
+    console.log(JSON.stringify(tmp0));
+    console.log(JSON.stringify(tmp));
+    if(geometries[currentGeometry]["geom"]==null){
+        //geometries[currentGeometry]=new geometries[currentGeometry]["constructor"]([tmp0,tmp]);
+        if(currentGeometry=="line")
+            geometries[currentGeometry]["geom"]=new ol.geom.LineString([tmp0,tmp]);
+        else
+            geometries[currentGeometry]["geom"]=new ol.geom.LineString([tmp0,tmp]);
+    }else{
+        if(currentGeometry=="line"){
+            tmpCoordinates=geometries[currentGeometry]["geom"].getCoordinates();
+            tmpCoordinates.push(tmp);
+            geometries[currentGeometry]["geom"]=new ol.geom.LineString(tmpCoordinates);
+        }
+        else{
+            if(geometries[currentGeometry]["cline"]==null)
+                tmpCoordinates=geometries[currentGeometry]["geom"].getCoordinates();
+            else
+                tmpCoordinates=geometries[currentGeometry]["cline"].getCoordinates();
+            console.log(JSON.stringify(tmpCoordinates));
+            tmpCoordinates.push(tmp);
+            console.log(JSON.stringify(tmpCoordinates));
+            if(tmpCoordinates.length>2){
+                geometries[currentGeometry]["cline"]=new ol.geom.LineString(tmpCoordinates);
+                tmpCoordinates.push(tmpCoordinates[0]);
+                console.log(JSON.stringify(tmpCoordinates));
+                geometries[currentGeometry]["geom"]=new ol.geom.Polygon();
+                console.log(JSON.stringify(tmpCoordinates));
+                geometries[currentGeometry]["geom"].appendLinearRing(new ol.geom.LinearRing(tmpCoordinates));
+                console.log(JSON.stringify(tmpCoordinates));
+            }
+        }
+
+    }
+    console.log(JSON.stringify(tmp0));
+    console.log(JSON.stringify(tmp));
+    try{
+    console.log(JSON.stringify(geometries[currentGeometry]["geom"].getCoordinates()));
+    var feature=new ol.Feature({geometry: geometries[currentGeometry]["geom"],"name":"myFeature"});
+    vectorLayer1.getSource().clear();
+    vectorLayer1.getSource().addFeatures([feature]);
+    var wkt=new ol.format.WKT();
+    var tmpGeometry=geometries[currentGeometry]["geom"].clone().transform('EPSG:3857', 'EPSG:4326');
+    console.log(wkt.writeGeometry(tmpGeometry));
+    $("input[name='"+currentGeometryField+"']").val(wkt.writeGeometry(tmpGeometry));
+    }catch(e){
+    console.log(e);
+    }
+    console.log(JSON.stringify(tmp0));
+    console.log(JSON.stringify(tmp));
+    if(!stopTracking)
+        setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+    console.log(JSON.stringify(tmp0));
+    console.log(JSON.stringify(tmp));
+}
+
+/*****************************************************************************
+ * Start tracking GPS location
+ *****************************************************************************/
+function trackGPSPosition(elem,ltype){
+    currentGeometry=ltype;
+    currentGeometryField=elem;
+    geometries[ltype]["geom"]=null;
+    geometries[ltype]["cline"]=null;
+    if(!$("#map").length)
+    $.ajax({
+        method: "GET",
+        url: './map-modal.html',
+        error: function(){
+        },
+        success: function(data){
+            console.log(data);
+            $("body").append(data);
+            $("#map").css("height",($(window).height()-220)+"px");
+            $('#myModal').modal();
+            $('#myModal').on('shown.bs.modal', function () {
+                initMapToLocation();
+                geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857'));
+                setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+            });
+            $('#myModal').on('hide.bs.modal', function () {
+                console.log("HIDE");
+                stopTracking=true;
+            });
+        }
+    });
+    else{
+        stopTracking=false;
+        $('#myModal').modal();
+        vectorLayer1.getSource().clear();
+        updateCurrentMapLocation();
+        geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857'));
+        setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+    }
+}
+
+
+/*****************************************************************************
+ * Store the current GPS location in the edit form
+ *****************************************************************************/
 function requireGPSPosition(elem){
     var position=JSON.parse(window.Android.getGPS());
     //elem=$("#"+elem);
@@ -1220,6 +1396,9 @@ function requireGPSPosition(elem){
     console.log(JSON.stringify(position));
 }
 
+/*****************************************************************************
+ * Ajax setup to ensure seting "withCredentials" to true
+ *****************************************************************************/
 function ajaxSetup(){
     $.ajaxSetup({
       xhrFields: {
@@ -1228,12 +1407,18 @@ function ajaxSetup(){
     });
 }
 
+/*****************************************************************************
+ * Get the current Network and GPS availability
+ *****************************************************************************/
 function getCurrentStatus(){
     var tmp=JSON.parse(window.Android.getGNStatus());
     tmp["gps"]=JSON.parse(tmp["gps"]);
     updateStatus(tmp['gps'],tmp['net']);
 }
 
+/*****************************************************************************
+ * Display the status icons
+ *****************************************************************************/
 function addStatusControl(){
     $('.breadcrumb').append('<span class="pull-right"><i class="glyphicon glyphicon-signal"></i> /'+
         '<span class="dropdown">'+
@@ -1243,4 +1428,145 @@ function addStatusControl(){
         '</ul>'+
         '</span>'+
         '</span>');
+}
+
+/*****************************************************************************
+ * Initialize the map and show the current GPS location
+ *****************************************************************************/
+function initMapToLocation(){
+    if(map)
+        return;
+    var osmSource = new ol.source.OSM();
+    var localTiles = new ol.source.XYZ({
+        tileLoadFunction:
+        function(imageTile, src) {
+            imageTile.getImage().src = "data:image/jpeg;base64,"+window.Android.displayTile(src);console.log("imageTile src set ! ("+src+")");
+        },
+        attributions: [
+            ol.source.OSM.ATTRIBUTION
+        ],
+        url: "{x},{-y},{z}",
+        minZoom: 13,
+        maxZoom: 19
+    });
+
+    var tmp=JSON.parse(window.Android.getGNStatus());
+    var layers=[new ol.layer.Tile({source: localTiles})];
+    console.log(JSON.stringify(tmp));
+    if(tmp["net"])
+        layers=[new ol.layer.Tile({
+            source: osmSource
+        })];
+    map = new ol.Map({
+        layers: layers,
+        target: 'map',
+        controls: ol.control.defaults({
+            attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+		    collapsible: true
+            })
+        }),
+        view: new ol.View({
+            center: ol.proj.transform(
+		[0,0], 'EPSG:4326', 'EPSG:3857'),
+            zoom: 14,
+            maxZoom: 22,
+            minZoom: 1
+        })
+    });
+
+    var bstyle = function (feature, resolution) {
+
+        /*var iconFont = 'glyphicon';
+          var iconFontText = '\e062';*/
+        //var iconFont = 'glyphicon';
+        var iconFont = 'Glyphicons Halflings';
+        var iconFontText = '\ue062';
+        var iconSize = 24;
+        var opacity=0.4;
+        var col = 'rgba(0,255,0,0.6)';
+        if(feature.get("source")=="GPS")
+            col = 'rgba(41,136,54,0.5)';//#298836
+        else if(feature.get("source")=="Network"){
+            col = 'rgba(91,176,75,0.4)';//#5bb04b
+            iconSize = 32;
+            opacity=0.2;
+        }
+        else if(feature.get("source")=="other"){
+            col='rgba(129,208,113,0.5)';//#81d071
+            iconSize = 36;
+            opacity=0.2;
+        }
+        else
+            col='rgba(166,63,39,0.5)'; //#a63f27 //"#EE0000";
+        var styles = [];
+
+        var styleIcon = new ol.style.Style({
+            text: new ol.style.Text({
+                font: 'Normal ' + iconSize + 'px ' + iconFont,
+                text: iconFontText,
+                fill: new ol.style.Fill({ color: col })
+            })
+        });
+        styles.push(styleIcon);
+
+        //console.log(feature.get("type"));
+        return styles;
+        /*return function (feature, resolution) {
+          styles.styleIcon.getText().setText(feature.get("iconCode"));
+          return styles;
+          };*/
+    };
+    position=JSON.parse(window.Android.getFullGPS());
+    console.log(JSON.stringify(position));
+    if(position.length==0){
+        position=[{lon:3.5,lat:43.5,source:"none"}];
+    }
+    var iconFeatures = [];
+    for(var i=0;i<position.length;i++){
+        iconFeatures.push(new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.transform([position[i].lon,position[i].lat],
+                                                          'EPSG:4326',
+                                            			  'EPSG:3857')),
+            source: position[i].source
+        }));
+    }
+    var vectorSource = new ol.source.Vector({
+        features: iconFeatures //add an array of features
+    });
+    //console.log([position.lat, position.lon]);
+    //console.log(ol.proj.transform([position.lat, position.lon], 'EPSG:4326','EPSG:3857'));
+    vectorLayer = new ol.layer.Vector({
+        source: vectorSource,
+        style: bstyle
+    });
+    vectorLayer1 = new ol.layer.Vector({
+            source: new ol.source.Vector()
+    });
+    map.addLayer(vectorLayer);
+    map.addLayer(vectorLayer1);
+    console.log(JSON.stringify(position));
+    map.getView().setCenter(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326', 'EPSG:3857'))
+    console.log(JSON.stringify(position));
+}
+
+/*****************************************************************************
+ * Update the current loction of the map depending on the GPS location
+ *****************************************************************************/
+function updateCurrentMapLocation(){
+    position=JSON.parse(window.Android.getFullGPS());
+    console.log(JSON.stringify(position));
+    if(position.length==0){
+        position=[{lon:3.5,lat:43.5,source:"none"}];
+    }
+    var iconFeatures = [];
+    for(var i=0;i<position.length;i++){
+        iconFeatures.push(new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.transform([/*3.5,43.5*/position[i].lon,position[i].lat], 'EPSG:4326',
+							  'EPSG:3857')),
+            source: position[i].source
+        }));
+    }
+    vectorLayer.getSource().clear();
+    vectorLayer.getSource().addFeatures(iconFeatures);
+    map.getView().setCenter(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326', 'EPSG:3857'))
 }

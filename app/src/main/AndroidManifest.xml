@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fr.geolabs.dev.mapmint4me">
+    package="fr.geolabs.dev.mapmint4me"
+    android:installLocation="auto">
 
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -20,7 +21,7 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
-    <supports-screens android:anyDensity="false"/>
+    <supports-screens android:anyDensity="true"/>
     <permission android:name="fr.meteolib.android.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
     <uses-permission android:name="fr.meteolib.android.permission.C2D_MESSAGE" />

@@ -1,0 +1,32 @@
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <link rel="stylesheet" href="css/ol.css" type="text/css">
+    <script src="js/polyfill.min.js"></script>
+    <script src="js/ol.js"></script>
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header" style="padding:5px 5px;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4><span class="glyphicon glyphicon-globe"></span> Offline Mapping</h4>
+            </div>
+            <div class="modal-body" >
+                <div id="extentList"></div>
+                <div id="map"></div>
+                <script type="text/template" id="extentListItem_template">
+                    <div class="radio">
+                        <label><input type="radio" name="optradio" value="[VALUE]">[NAME] ([SIZE])</label>
+                    </div>
+                </script>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                <button type="submit" class="btn btn-primary btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Run</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+

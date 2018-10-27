@@ -11,6 +11,8 @@
     <string name="views_header">You can find bellow the list of elements you are able to view.</string>
     <string name="take_picture">Take a picture</string>
     <string name="use_gps">Use GPS position</string>
+    <string name="drawl_gps">Track GPS position (line)</string>
+    <string name="drawp_gps">Track GPS position (polygon)</string>
     <string name="cancel">Cancel</string>
     <string name="image">Image</string>
     <string name="import_success">Import success</string>

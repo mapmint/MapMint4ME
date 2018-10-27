@@ -226,8 +226,9 @@ public class LocalDB extends SQLiteOpenHelper {
 		//JSONObject obj = new JSONObject();
 		JSONArray obj = new JSONArray();
         SQLiteDatabase db = this.getReadableDatabase();
+		Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
 		try {
-            Log.w("LocalDB","Run: "+query);
+            Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
 			Cursor cursor = db.rawQuery(query,values);
 			int i = 0;
 			if (cursor.moveToFirst()) {

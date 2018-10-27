@@ -11,6 +11,8 @@
     <string name="views_header">Vous trouverez ci-dessous la liste des éléments que vous pouvez consulter.</string>
     <string name="take_picture">Prendre une photo</string>
     <string name="use_gps">Utiliser la position GPS</string>
+    <string name="drawl_gps">Trace GPS (ligne)</string>
+    <string name="drawp_gps">Trace GPS (polygone)</string>
     <string name="cancel">Annuler</string>
     <string name="image">Image</string>
     <string name="import_success">Import réalisé avec succès</string>
