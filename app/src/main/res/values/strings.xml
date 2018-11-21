@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">MapMint4ME</string>
-
     <string name="table">Table</string>
     <string name="save">Save</string>
     <string name="insert">Insert</string>
@@ -42,8 +41,8 @@
     <string name="view_on_map">View on map</string>
     <string name="file_create">Import a file</string>
     <string name="nolisting_intro_p">In order to view your data in the field, you must first ensure that you have downloaded your data and forms using the \"Import\" module (see below and follow associated instructions before returning here).</string>
-    <string name="import_intro_p">Before going to the field to collect data, please ensure that you have downloaded the latest version of the Data and related Templates. Once complete, you will be able to start recording your data.
-	    <string name="export_intro_p">Once you have completed your field data collection, you can use the Export button below to post your data back to the MapMint server.</string>
+    <string name="import_intro_p">Before going to the field to collect data, please ensure that you have downloaded the latest version of the Data and related Templates. Once complete, you will be able to start recording your data.</string>
+    <string name="export_intro_p">Once you have completed your field data collection, you can use the Export button below to post your data back to the MapMint server.</string>
     <string name="gps_unknown">Unknown</string>
     <string name="noserver_intro_p">You have not configured any MapMint Server, please configure one.</string>
     <string name="noserver_btn">Add a server</string>
