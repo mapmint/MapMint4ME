@@ -45,6 +45,7 @@ $(function(){
                     var curl=closure["url"]+"?request=Execute&service=wps&version=1.0.0&Identifier=upload.saveOnServer&DataInputs=file=upload";
                     closure1.parent().parent().find('.progress-bar').parent().next().html(window.Android.translate("upload_start"));
                     var e;
+                    window.Android.showToast(window.Android.translate("upload_start"));
                     if(e=window.Android.uploadFile(curl,"file","local.db")){
                         console.log(closure["url"]);
                         replaySqliteHistory(closure1,closure["url"]);

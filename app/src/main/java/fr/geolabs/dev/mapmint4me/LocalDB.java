@@ -14,6 +14,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +30,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
+
+import static android.database.Cursor.FIELD_TYPE_BLOB;
+import static android.database.Cursor.FIELD_TYPE_FLOAT;
+import static android.database.Cursor.FIELD_TYPE_INTEGER;
+import static android.database.Cursor.FIELD_TYPE_NULL;
+import static android.database.Cursor.FIELD_TYPE_STRING;
 
 class DatabaseContext extends ContextWrapper {
 
@@ -222,13 +230,139 @@ public class LocalDB extends SQLiteOpenHelper {
         }
     }
 
+
+    public String rebuildChunk(String query, String[]values){
+        //JSONObject obj = new JSONObject();
+        JSONArray obj = new JSONArray();
+        Toast toast;
+        SQLiteDatabase db = getReadableDatabase();
+        Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
+        try {
+            FileOutputStream f = null;
+            File toStore = null;
+            Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
+            //toast = Toast.makeText(mContext, "** ("+this.getDatabaseName()+ ") Run: "+query+" ", Toast.LENGTH_LONG);
+            //toast.show();
+            String[] queries=query.split(" UNION ");
+            for(int i=0;i<queries.length;i++) {
+                Cursor cursor = db.rawQuery(queries[i], values);
+                JSONObject ljson = new JSONObject();
+                if (cursor.moveToFirst()) {
+                    do {
+                        String[] fields = cursor.getColumnNames();
+                        for (int j = 0; j < fields.length; j++) {
+                            if (cursor.getType(j) == FIELD_TYPE_BLOB) {
+                                try {
+                                    byte[] fileContent = cursor.getBlob(j);
+                                    /*if(fileContent.length>512) */
+                                    if (i == 0) {
+                                        byte[] bytesName = Arrays.copyOfRange(fileContent, 0, 512);
+                                        //byte[] bytesContent = Arrays.copyOfRange(fileContent, 512, fileContent.length);
+                                        for (int a = 0; a < 512; a++) {
+                                            if (bytesName[a] == 0) {
+                                                bytesName = Arrays.copyOfRange(fileContent, 0, a);
+                                                break;
+                                            }
+                                        }
+
+
+                                        String filename = new String(bytesName);
+                                        String[] separated = filename.split("/");
+
+                                    /*toast = Toast.makeText(mContext, "bytesName " + filename, Toast.LENGTH_LONG);
+                                    toast.show();*/
+
+                                        toStore = new File(mContext.getFilesDir(), separated[separated.length - 1]);
+                                        f = new FileOutputStream(toStore);
+                                        byte[] bytesContent = Arrays.copyOfRange(fileContent, 512, fileContent.length);
+                                        f.write(bytesContent);
+                                        //f.flush();
+                                    /*int cnt = 0;
+                                    while (cnt * 1024 < fileContent.length - 512) {
+                                        if (((cnt + 1) * 1024) + 512 <= fileContent.length) {
+                                            byte[] bytesContent = Arrays.copyOfRange(fileContent, (cnt * 1024) + 512, ((cnt + 1) * 1024) + 512);
+                                            f.write(bytesContent);
+                                        } else {
+                                            byte[] bytesContent = Arrays.copyOfRange(fileContent, (cnt * 1024) + 512, fileContent.length);
+                                            f.write(bytesContent);
+                                        }
+                                        f.flush();
+                                        cnt++;
+                                    }
+
+
+                                    /*toast = Toast.makeText(mContext, "bytesName " + filename, Toast.LENGTH_LONG);
+                                    toast.show();*/
+
+                                        Log.w("LocalDB",
+                                                "BLOB red : > " + separated[separated.length - 1] + " < ! ");
+                                        //toast = Toast.makeText(mContext, "BLOB red : > " + separated[separated.length-1] + " < ! ", Toast.LENGTH_LONG);
+                                        //toast.show();
+                                        String value = "";
+                                        if ((separated[separated.length - 1]).length() > 12) {
+                                            String dfname = separated[separated.length - 1].substring(0, 12);
+                                            //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            //value += "<pre>"+filename+"</pre><img src='file:///" + filename  + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                            value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                            //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
+                                        } else {
+                                            //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            //value += "<img src='file:///" + filename /*mContext.getFilesDir() + "/" + separated[separated.length - 1]*/ + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
+                                        }
+                                        ljson.put(fields[j], value);
+                                        obj.put(i, ljson);
+                                    } else
+                                        /*if(i+1==queries.length)*/{
+                                        byte[] bytesContent = Arrays.copyOfRange(fileContent, 0, fileContent.length);
+                                        f.write(bytesContent);
+                                        //f.flush();
+                                    }
+
+                                } catch (Exception e1) {
+                                    toast = Toast.makeText(mContext, "ERROR 1 " + e1 + " ! ", Toast.LENGTH_LONG);
+                                    toast.show();
+                                }
+
+                            }
+                        }
+                        //obj.put(i, ljson);
+                        //i += 1;
+                    } while (cursor.moveToNext());
+                }
+            }
+            if(f!=null)
+                try {
+                    f.flush();
+                    f.close();
+                }catch(Exception e){
+                    toast = Toast.makeText(mContext, "ERROR closing file before closing db: " + e + " ! ", Toast.LENGTH_LONG);
+                    toast.show();
+                }
+            db.close();
+
+        }catch (Exception e) {
+            Log.w("MapMin4ME", e);
+            toast = Toast.makeText(mContext, "ERROR closing file final: " + e + " ! ", Toast.LENGTH_LONG);
+            toast.show();
+            //db.close();
+            return null;
+        }
+
+        return obj.toString();
+    }
+
 	public String getRows(String query, String[]values){
 		//JSONObject obj = new JSONObject();
 		JSONArray obj = new JSONArray();
         SQLiteDatabase db = this.getReadableDatabase();
 		Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
 		try {
+			Toast toast;
             Log.w("LocalDB","** ("+this.getDatabaseName()+ ") Run: "+query+" ");
+            //toast = Toast.makeText(mContext, "** ("+this.getDatabaseName()+ ") Run: "+query+" ", Toast.LENGTH_LONG);
+            //toast.show();
 			Cursor cursor = db.rawQuery(query,values);
 			int i = 0;
 			if (cursor.moveToFirst()) {
@@ -236,13 +370,130 @@ public class LocalDB extends SQLiteOpenHelper {
 					String[] fields=cursor.getColumnNames();
 					JSONObject ljson = new JSONObject();
 					for (int j = 0; j < fields.length; j++) {
+					    if(cursor.getType(j)==FIELD_TYPE_STRING || cursor.getType(j)==FIELD_TYPE_INTEGER || cursor.getType(j)==FIELD_TYPE_FLOAT){
+                            ljson.put(fields[j], cursor.getString(j));
+                        }else
+                            if(cursor.getType(j)!=FIELD_TYPE_NULL){
+                            try {
+                                byte[] fileContent = cursor.getBlob(j);
+                                if(fileContent.length>512) {
+                                    byte[] bytesName = Arrays.copyOfRange(fileContent, 0, 512);
+                                    //byte[] bytesContent = Arrays.copyOfRange(fileContent, 512, fileContent.length);
+                                    for (int a = 0; a < 512; a++) {
+                                        if (bytesName[a] == 0) {
+                                            bytesName = Arrays.copyOfRange(fileContent, 0, a);
+                                            break;
+                                        }
+                                    }
+
+
+                                    String filename = new String(bytesName);
+                                    String[] separated = filename.split("/");
+
+                                    /*toast = Toast.makeText(mContext, "bytesName " + filename, Toast.LENGTH_LONG);
+                                    toast.show();*/
+
+                                    File toStore = new File(mContext.getFilesDir(), separated[separated.length - 1]);
+                                    FileOutputStream f = new FileOutputStream(toStore);
+                                    int cnt=0;
+                                    while( cnt*1024<fileContent.length-512) {
+                                        if(((cnt+1)*1024)+512<=fileContent.length) {
+                                            byte[] bytesContent = Arrays.copyOfRange(fileContent, (cnt * 1024) + 512, ((cnt + 1) * 1024) + 512);
+                                            f.write(bytesContent);
+                                        }else {
+                                            byte[] bytesContent = Arrays.copyOfRange(fileContent, (cnt * 1024) + 512, fileContent.length);
+                                            f.write(bytesContent);
+                                        }
+                                        f.flush();
+                                        cnt++;
+                                    }
+                                    f.close();
+
+                                    /*toast = Toast.makeText(mContext, "bytesName " + filename, Toast.LENGTH_LONG);
+                                    toast.show();*/
+
+                                    Log.w("LocalDB",
+                                            "BLOB red : > " + separated[separated.length - 1] + " < ! ");
+                                    //toast = Toast.makeText(mContext, "BLOB red : > " + separated[separated.length-1] + " < ! ", Toast.LENGTH_LONG);
+                                    //toast.show();
+                                    String value = "";
+                                    if ((separated[separated.length - 1]).length() > 12) {
+                                        String dfname = separated[separated.length - 1].substring(0, 12);
+                                        //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                        //value += "<pre>"+filename+"</pre><img src='file:///" + filename  + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                        value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                        //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
+                                    } else {
+                                        //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                        //value += "<img src='file:///" + filename /*mContext.getFilesDir() + "/" + separated[separated.length - 1]*/ + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                        value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                        //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
+                                    }
+                                    ljson.put(fields[j], value);
+                                }
+                                else{
+                                    try{
+                                        //byte[] value= cursor.getBlob(j);
+                                        String tmp=new String(fileContent);
+                                        String content=null;
+                                        Log.w("LocalDB",
+                                                " ****** OK GEOMETRY 1: " + tmp + " " + tmp.contains("POINT") + " ! ");
+                                        if(tmp.contains("POINT"))
+                                            content=tmp.replace("POINT","").replace(" ",",");
+                                        else
+                                            content=tmp;
+                                        ljson.put(fields[j], content);
+                                        //String content=tmp.replace("POINT","").replace(" ",",");
+                                        ljson.put(fields[j], content);
+                                        Log.w("LocalDB",
+                                                " ****** OK GEOMETRY 2: " + content + " ! ");
+                                    }catch(Exception e2){
+                                        toast = Toast.makeText(mContext, "ERROR 2 " + e2 + " ! ", Toast.LENGTH_LONG);
+                                        toast.show();
+                                        Log.w("LocalDB",
+                                                "ERROR 2 " + e2 + " ! ");
+                                    }
+                                }
+                            }catch (Exception e1) {
+                                Log.w("LocalDB",
+                                        "ERROR 1 " + e1 + " ! ");
+                                //toast = Toast.makeText(mContext, "ERROR 1 " + e1 + " ! ", Toast.LENGTH_LONG);
+                                //toast.show();
+
+                                try{
+                                    byte[] value= cursor.getBlob(j);
+                                    String tmp=new String(value);
+                                    String content=null;
+                                    Log.w("LocalDB",
+                                            " ****** OK GEOMETRY 1: " + tmp + " " + tmp.contains("POINT") + " ! ");
+                                    if(tmp.contains("POINT"))
+                                        content=tmp.replace("POINT","").replace(" ",",");
+                                    else
+                                        content=tmp;
+                                    ljson.put(fields[j], content);
+                                    Log.w("LocalDB",
+                                            " ****** OK GEOMETRY 2: " + content + " " + tmp.contains("POINT") + " ! ");
+                                }catch(Exception e2){
+                                    toast = Toast.makeText(mContext, "ERROR 2 " + e2 + " ! ", Toast.LENGTH_LONG);
+                                    toast.show();
+                                    Log.w("LocalDB",
+                                            "ERROR 2 2 " + e2 + " ! ");
+                                }
+                            }
+
+                        }
+                        /*
 						try {
-                            /*Log.w("LocalDB",
-                                    "try field : <"+ fields[j] +"> " + cursor.getString(j) + " < ! ");*/
+                            toast = Toast.makeText(mContext, "** ("+fields[j]+ ") Run: "+cursor.getType(j)+" ", Toast.LENGTH_LONG);
+                            toast.show();
+                            //toast = Toast.makeText(mContext, "TRY field ("+fields[j]+"): > " + j + " < ! ", Toast.LENGTH_LONG);
+                            //toast.show();
 							ljson.put(fields[j], cursor.getString(j));
 						}catch (Exception e) {
                             Log.w("LocalDB",
-                                    "ERROR field ("+fields[j]+"): > " + e.getMessage() + " < ! ");
+                                    "ERROR 0 field ("+fields[j]+"): > " + e.getMessage() + " < ! ");
+							//toast = Toast.makeText(mContext, "ERROR field ("+fields[j]+"): > " + e.getMessage() + " < ! ", Toast.LENGTH_LONG);
+							//toast.show();
 
 							try {
 								byte[] fileContent = cursor.getBlob(j);
@@ -254,6 +505,9 @@ public class LocalDB extends SQLiteOpenHelper {
 										break;
 									}
 								}
+								//toast = Toast.makeText(mContext, "bytesName", Toast.LENGTH_LONG);
+								//toast.show();
+
 								String filename=new String(bytesName);
 								String[] separated = filename.split("/");
 
@@ -265,31 +519,40 @@ public class LocalDB extends SQLiteOpenHelper {
 
 								Log.w("LocalDB",
 										"BLOB red : > " + separated[separated.length-1] + " < ! ");
+								//toast = Toast.makeText(mContext, "BLOB red : > " + separated[separated.length-1] + " < ! ", Toast.LENGTH_LONG);
+								//toast.show();
 								String value="";
 								if((separated[separated.length-1]).length()>12) {
 									String dfname = separated[separated.length - 1].substring(0, 12);
-									value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
+									value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+									//value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
 									ljson.put(fields[j], value);
 								}else {
-									value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
+									value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+									//value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
 									ljson.put(fields[j], value);
 								}
 							}catch (Exception e1) {
 								Log.w("LocalDB",
-										"ERROR " + e1 + " ! ");
+										"ERROR 1 " + e1 + " ! ");
+								toast = Toast.makeText(mContext, "ERROR 1 " + e1 + " ! ", Toast.LENGTH_LONG);
+								toast.show();
+
 								try{
 									byte[] value= cursor.getBlob(j);
 									String tmp=new String(value);
 									String content=tmp.replace("POINT","").replace(" ",",");
 									ljson.put(fields[j], content);
 									Log.w("LocalDB",
-											" ****** OK" + content + " ! ");
+											" ****** OK GEOMETRY: " + content + " ! ");
 								}catch(Exception e2){
+									toast = Toast.makeText(mContext, "ERROR 2 " + e2 + " ! ", Toast.LENGTH_LONG);
+									toast.show();
 									Log.w("LocalDB",
-											"ERROR " + e2 + " ! ");
+											"ERROR 2 " + e2 + " ! ");
 								}
 							}
-						}
+						}*/
 					}
 					obj.put(i,ljson);
 					i += 1;

@@ -20,6 +20,22 @@ if(lang=="fr"){
 }
 
 
+function loadWelcome(){
+    $.ajax({
+        method: "GET",
+        url: "./content/welcome.html",
+        success: function(ldata){
+            $("body").html(ldata);
+            $("body").css("margin","0");
+            $("body").css("padding","0");
+            //$('#myCarousel').css("height",($(window).height()-50)+"px");
+            //$("#myCarousel").css("margin","0");
+            $('.item').css("background-color","#333");
+            $('.carousel-caption').css("color","#fff");
+            $('.item').css("height",($(window).height())+"px");
+        }
+    });
+}
 
 /*****************************************************************************
  * Update status icon color depending on network and GPS availability
@@ -44,6 +60,7 @@ function updateStatus(gps,internet){
  * List all available table for a given theme
  *****************************************************************************/
 function fetchTableForTheme(obj,id){
+    var hasTable=false;
     var tables=JSON.parse(window.Android.displayTable(
         "SELECT mm4me_tables.id as tid,mm4me_views.id as id,"+
             "mm4me_tables.name as name, "+
@@ -66,7 +83,9 @@ function fetchTableForTheme(obj,id){
             "selectable": true,
             "tags": [ ""+list1[0]["nb"] ]
         });
+        hasTable=true;
     }
+    return tables.length>0;
 }
 
 /*****************************************************************************
@@ -93,7 +112,11 @@ function displayTablesTree(func){
         for(var i=0;i<themes_0.length;i++){
             allThemes.push({text: themes_0[i]["name"]});
             fetchThemes(allThemes[allThemes.length-1],themes_0[i]["id"]);
-            fetchTableForTheme(allThemes[allThemes.length-1],themes_0[i]["id"]);
+            var hasTable=fetchTableForTheme(allThemes[allThemes.length-1],themes_0[i]["id"]);
+            if(!hasTable){
+                console.log("should remove!");
+                allThemes.pop(allThemes[allThemes.length-1]);
+            }
         }
         $(".mm4me_content").append('<div id="tree"></div>');
         $('#tree').treeview({
@@ -127,6 +150,7 @@ function displayTablesTree(func){
         }
     }
     catch(e){
+        console.log(e);
         displayNoListing();
     }
 }
@@ -163,7 +187,7 @@ function loadNewPicture(cid,id,picture){
     $(".tab-pane").each(function(){
         if($(this).is(":visible"))
          $(this).find("#value_"+id)
-                .html('<img class="img-responsive" src="'+picture+'" title="'+
+                .html('<pre>'+picture+'</pre><img class="img-responsive" src="'+picture+'" title="'+
                         window.Android.translate('image')+'" width="100%" />');
     });
 }
@@ -205,6 +229,7 @@ function fetchDependencies(obj,cid,changingField){
 }
 
 var View_template=null;
+var currentTypes=[];
 
 /*****************************************************************************
  * Display an HTML part containing the input corresponding to a given type.
@@ -219,7 +244,9 @@ function printCurrentType(obj,cid){
             //console.log(JSON.stringify(definedSqlTypes[i]));
             if(definedSqlTypes[i]["code"]=="bytea"){
                 var tmpStr="";
-                tmpStr+='<div class="dropdown">'+
+                var res='<input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).prev().css(\'color\',\'#83C849\');$(this).next().show();$(this).next().next().show();}else {$(this).prev().css(\'color\',\'#ff0000\');$(this).next().hide();$(this).next().next().hide();}"/>';
+                tmpStr+=res+
+                        '<div class="dropdown">'+
                         '   <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">'+
                         '      '+ window.Android.translate("file_create") +
                         '     <span class="caret"></span>'+
@@ -230,22 +257,24 @@ function printCurrentType(obj,cid){
                         '     <li role="separator" class="divider"></li>'+
                         '     <li><a href="#" onclick="window.Android.queryCamera('+obj["id"]+','+cid+');"><i class="glyphicon glyphicon-camera"></i> '+window.Android.translate("take_picture")+'</a></li>'+
                         '   </ul>'+
-                        '</div> <div id="value_'+obj["id"]+'"></div>';
+                        '</div> <div id="value_'+obj["id"]+'"></div><script>currentTypes.push(\''+obj["id"]+'_display\');</script>';
                 console.log(tmpStr);
                 return tmpStr;
             }
             if(definedSqlTypes[i]["code"]=="geometry"){
                 console.log("CID: "+cid+" select type from mm4me_gc where f_table_schema||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
                 var geoType=getGeometryType("(select replace(name,'.','_') from mm4me_tables where id="+cid+")");
+                var viewb='<button id="field_'+obj["id"]+'_map" style="display:none" class="btn btn-default" href="#" onclick=""><i class="glyphicon glyphicon-globe"></i> '+window.Android.translate("view_on_map")+'</button>';
+                var res='<script>currentTypes.push(\''+obj["id"]+'_display\');</script> <input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).next().show();$(this).next().next().show();}else {$(this).next().hide();$(this).next().next().hide();}"/>';
                 if(geoType=='POINT' || geoType=='MULTIPOINT' )
-                return '<button class="btn btn-default" href="#" onclick="requireGPSPosition(\'field_'+obj["id"]+'\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("use_gps")+'</button>'+
-                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
+                return res+'<button class="btn btn-default" href="#" onclick="requireGPSPosition(\'field_'+obj["id"]+'\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("use_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
                 else if(geoType=='LINESTRING' || geoType=='MULTILINESTRING' )
-                return '<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawl_gps")+'</button>'+
-                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5></div>';
+                return res+'<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawl_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" />'+viewb+'</div>';
                 else if(geoType=='POLYGON' || geoType=='MULTIPOLYGON' )
-                return '<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'polygon\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawp_gps")+'</button>'+
-                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5></div>';
+                return res+'<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'polygon\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawp_gps")+'</button>'+
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" />'+viewb+'</div>';
 
             }
             if(definedSqlTypes[i]["code"]=="tbl_linked"){
@@ -387,6 +416,25 @@ function printCurrentType(obj,cid){
     return null;
 }
 
+function printOptionalCheckbox(obj,cid){
+    if(definedSqlTypes.length==0){
+        definedSqlTypes=JSON.parse(window.Android.displayTable("select id,code from mm4me_ftypes where ftype='e' order by name",[]));
+    }
+
+    var res=' <i class="glyphicon glyphicon-eye-close" onclick="if($(this).hasClass(\'glyphicon-eye-close\')) {$(this).parent().parent().next().show();$(this).removeClass(\'glyphicon-eye-close\').addClass(\'glyphicon-eye-open\');}else {$(this).parent().parent().next().hide();$(this).removeClass(\'glyphicon-eye-open\').addClass(\'glyphicon-eye-close\');}"></i> <input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).parent().parent().next().show();}else {$(this).parent().parent().next().hide();}"/>';
+    for(var i in definedSqlTypes){
+        if(definedSqlTypes[i]["id"]==obj["ftype"]){
+            if(definedSqlTypes[i]["code"]=="bytea"){
+                var tmpStr="";
+                return res;
+            }
+            else if(definedSqlTypes[i]["code"]=="geometry"){
+                return res
+            }
+        }
+    }
+    return '';
+}
 /*****************************************************************************
  * Create HTML part to display the line containing both the title and the
  * corresponding input for a given table's field.
@@ -414,6 +462,11 @@ function printEditionFields(obj,myRoot,cid,mid){
         '<div class="row btn-group" >'+
         '<button class="btn btn-default mm-act-'+(cid.indexOf('_')<0?'save':'add')+'">'+window.Android.translate((cid.indexOf('_')<0?'save':'add'))+'</button>'+
         '</div>');
+    console.log(JSON.stringify(currentTypes));
+    for(i in currentTypes){
+        console.log(currentTypes[i]);
+        $("#edition_form_"+cid).find("#"+currentTypes[i]).change();
+    }
     myRoot.show();
 }
 
@@ -432,26 +485,29 @@ function runInsertQuery(obj,mid,func){
         if(MM4ME_DEBUG)
             console.log($(this).attr("name")+" <> "+$(this).val());
         try{
-        var cid=$(this).attr("name").replace(/field_/g,"");
-        var found=false;
-        for(var i in editSchema[mid]){
-            for(var j in editSchema[mid][i]){
-                if(editSchema[mid][i][j]["id"]==cid){
-                    if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
-                    if(MM4ME_DEBUG)
-                        console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
-                    queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
-                    queryValues.push($(this).val());
-                    queryValues0.push("?");
-                    queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
+
+            var cid=$(this).attr("name").replace(/field_/g,"");
+            console.log(!$("#"+cid+"_display").length || ($("#"+cid+"_display").length && $("#"+cid+"_display").is(":checked")));
+            var found=false;
+            if((!$("#"+cid+"_display").length || ($("#"+cid+"_display").length && $("#"+cid+"_display").is(":checked"))))
+                for(var i in editSchema[mid]){
+                    for(var j in editSchema[mid][i]){
+                        if(editSchema[mid][i][j]["id"]==cid){
+                            if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
+                            if(MM4ME_DEBUG)
+                                console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
+                            queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
+                            queryValues.push($(this).val());
+                            queryValues0.push("?");
+                            queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
+                            }
+                            found=true;
+                            break;
+                        }
                     }
-                    found=true;
-                    break;
+                    if(found)
+                        break;
                 }
-            }
-            if(found)
-                break;
-        }
         }catch(e){
             console.log(e);
         }
@@ -463,7 +519,7 @@ function runInsertQuery(obj,mid,func){
 
     for(var i in editSchema[mid]){
         for(var j in editSchema[mid][i]){
-            if(editSchema[mid][i][j]["ftype"]==EDITION_TYPE_FILE){
+            if(editSchema[mid][i][j]["ftype"]==EDITION_TYPE_FILE && $("#"+editSchema[mid][i][j]["id"]+"_display").length && $("#"+editSchema[mid][i][j]["id"]+"_display").is(":checked") ){
                 queryAttr.push(editSchema[mid][i][j]["name"]);
                 queryValues0.push("?");
                 queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
@@ -490,7 +546,11 @@ function runInsertQuery(obj,mid,func){
     }
     var res=window.Android.executeQuery(req,queryValues,queryTypes);
     window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,"+osubquery+")",[cleanupTableName(allTables[mid].name),req],[1,1]);
-    func(mid);
+    try{
+        func(mid);
+    }catch(e){
+        window.Android.notify("Error: "+e);
+    }
 
 }
 
@@ -512,11 +572,14 @@ function runUpdateQuery(obj,mid,func){
             console.log($(this).attr("name")+" <> "+$(this).val());
         try{
         var cid=$(this).attr("name").replace(/field_/g,"");
+        console.log($(this).parent().is(":visible"));
         var found=false;
+        if($(this).parent().is(":visible") || $(this).is(":visible"))
         for(var i in editSchema[mid]){
             for(var j in editSchema[mid][i]){
                 if(editSchema[mid][i][j]["id"]==cid){
                     if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
+                    console.log(JSON.stringify(editSchema[mid][i][j]));
                     if(MM4ME_DEBUG)
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
                     query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+"=?";
@@ -540,7 +603,7 @@ function runUpdateQuery(obj,mid,func){
     });
     for(var i in editSchema[mid]){
         for(var j in editSchema[mid][i]){
-            if(editSchema[mid][i][j]["ftype"]==EDITION_TYPE_FILE){
+            if(editSchema[mid][i][j]["ftype"]==EDITION_TYPE_FILE && $(obj).find("#value_"+editSchema[mid][i][j]["id"]).find("img").length && $("#"+editSchema[mid][i][j]["id"]+"_display").length && $("#"+editSchema[mid][i][j]["id"]+"_display").is(":checked") ){
                 //queryAttr.push(editSchema[mid][i][j]["name"]);
                 query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"]+"=?";
                 queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
@@ -822,6 +885,7 @@ function updateChangingFields(changingFields){
         setTimeout(function() { updateChangingFields(changingFields) }, 500);
     }
 }
+
 /*****************************************************************************
  * Display the content of a table referencing the current edited table.
  *****************************************************************************/
@@ -980,21 +1044,74 @@ function displayEditForm(cid,selectedId,basic){
         return;
     }
     var fields=[]
+    var sizedFields=[];
+    var sizedFieldsAlias=[];
+    var notSizedFields=[];
     for(var i in editSchema[cid]){
         for(var j in editSchema[cid][i]){
+            console.log(JSON.stringify(editSchema[cid][i][j]));
+            if(editSchema[cid][i][j]["ftype"]=="5"){
+                sizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
+                sizedFieldsAlias.push(editSchema[cid][i][j]["id"]);
+            }
+            else
+                notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
             if(editSchema[cid][i][j]["name"].indexOf("unamed")<0)
                 fields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
         }
     }
     var ccol=getPKey(cleanupTableName(allTables[cid].name));
     /* $("#exampleTable"+(cid==mtable?"":"_"+cid)).find(".selected").find('input[type=hidden]').first().val() */
-    var editValues=window.Android.displayTable("select "+ccol+" as local_id,"+fields.join(", ")+" from "+cleanupTableName(allTables[cid].name)+" where "+ccol+"="+selectedId,[]);
-    editValues=JSON.parse(editValues);
+    var editValues;
+    if(sizedFields.length>0){
+        for(var i=0;i<sizedFields.length;i++){
+            var hasElement=JSON.parse(window.Android.displayTable("select count("+sizedFields[i]+") as cnt, length("+sizedFields[i]+") as len from "+cleanupTableName(allTables[cid].name)+" where length("+sizedFields[i]+") > 1000000 and "+ccol+"="+selectedId,[]));
+            console.log(JSON.stringify(hasElement[0]));
+            if(hasElement[0]["cnt"]!="0"){
+                var nbIteration=parseInt(hasElement[0]["len"])/1000000;
+                var zfields=[]
+                var len=0;
+                var query="";
+                var len1=parseInt(hasElement[0]["len"]);
+                for(var j=0;j<len1;j+=1000000){
+                    if((j+1000000)<=len1)
+                        zfields.push("substr("+sizedFields[i]+","+(j+1)+","+1000000+") as mm_chunk");
+                    else
+                        zfields.push("substr("+sizedFields[i]+","+(j+1)+","+((len1-(j+1)))+") as mm_chunk");
+
+                    len+=1;
+                    if(query!="")
+                        query+=" UNION ";
+                    query+=" SELECT "+zfields[zfields.length-1]+" from "+cleanupTableName(allTables[cid].name)+" WHERE "+ccol+"="+selectedId+" ";
+                }
+                var chunks=null;
+                try{
+                    console.log(query);
+                    chunks=JSON.parse(window.Android.rebuildChunk(query,[]));
+                }catch(e){
+                    alert("RebuildChunk "+e);
+                }
+                editValues=window.Android.displayTable("select "+ccol+" as local_id,"+notSizedFields.join(", ")+" from "+cleanupTableName(allTables[cid].name)+" where "+ccol+"="+selectedId,[]);
+                editValues=JSON.parse(editValues);
+                editValues[0][sizedFieldsAlias[i]]=chunks[0]["mm_chunk"];
+            }
+            else{
+                editValues=window.Android.displayTable("select "+ccol+" as local_id,"+fields.join(", ")+" from "+cleanupTableName(allTables[cid].name)+" where "+ccol+"="+selectedId,[]);
+                editValues=JSON.parse(editValues);
+            }
+        }
+    }else{
+        editValues=window.Android.displayTable("select "+ccol+" as local_id,"+fields.join(", ")+" from "+cleanupTableName(allTables[cid].name)+" where "+ccol+"="+selectedId,[]);
+        editValues=JSON.parse(editValues);
+
+    }
 
     for(var i in editValues){
         referenceIds[cid]=editValues[i]["local_id"];
         for(var j in editValues[i]){
             if($("#value_"+j).length){
+                console.log("#value_"+j);
+                console.log(editValues[i][j]);
                 $("#value_"+j).html(editValues[i][j]);
             }
             else{
@@ -1011,6 +1128,15 @@ function displayEditForm(cid,selectedId,basic){
                     }
                 }
             });
+            if($("#field_"+j+"_map").length>0){
+                $("#field_"+j+"_map").show();
+                $("#field_"+j+"_map").off('click');
+                $("#field_"+j+"_map").on('click',function(){
+                    console.log("Display table with a selected feature");
+                    console.log($(this).prev().val());
+                    showElementOnMap($(this).prev().val());
+                });
+            }
                 if($(".btn_field_"+j+"_lat").length>0){
                     //alert(editValues[i][j]);
                     $(".btn_field_"+j+"_lat").html(editValues[i][j]);
@@ -1064,7 +1190,7 @@ function displayEditForm(cid,selectedId,basic){
 function editOnlyTableReact(tid){
     var mid=tid;
     if(MM4ME_DEBUG)
-        console.log("editTableReact("+mid+')');
+        console.log("editOnlyTableReact("+mid+')');
     if(mid==mtable){
         $('.mm4me_listing').find('ul').first().find('a').first().click();
         var ccol=getPKey(cleanupTableName(allTables[mid].name));
@@ -1105,6 +1231,8 @@ function listEdit(id,name,title,init,prefix){
         $(".mm4me_edition").find("ul").first().append('<li role="presentation" id="edition_link_'+cid+'"><a data-toggle="tab" href="#edition_form_'+cid+'">'+list[i]["name"]+'</a></li>');
         printEditionFields(list[i],$("#edition_form_edit"),cid,mainTable[id]);
     }
+    if(list.length==1)
+        $(".mm4me_edition").find("ul").first().hide();
 
     var aCnt=0;
     $('.mm4me_edition').find('ul').first().find('a').each(function () {
@@ -1255,7 +1383,7 @@ var geometries={"line":{"geom":null,"constructor": "ol.geom.Linestring"},"polygo
 var stopTracking=false;
 var currentGeometry="line";
 var currentGeometryField="none";
-var map;
+var map=null;
 var vectorLayer,vectorLayer1;
 var position;
 
@@ -1271,10 +1399,10 @@ function trackCurrentGPSPosition(){
         var tmp1=geometries[currentGeometry]["geom"].getCoordinates();
         tmp0=tmp1[tmp1.length-1];
     }
-    tmp=ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857');
+    tmp=ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857');
     console.log(JSON.stringify(tmp0));
     console.log(JSON.stringify(tmp));
-    $("#currentPosition").html("<b>Position: "+position[0].lon.toFixed(6)+","+position[0].lat.toFixed(6)+"</b>");
+    $("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
     if(tmp0[0]==tmp[0] && tmp0[1]==tmp[1]){
         console.log(" !!!!!!!! Same position!!!!!!!! ");
         if(!stopTracking)
@@ -1338,10 +1466,19 @@ function trackCurrentGPSPosition(){
     console.log(JSON.stringify(tmp));
 }
 
+var modalCallback=null;
 /*****************************************************************************
  * Start tracking GPS location
  *****************************************************************************/
 function trackGPSPosition(elem,ltype){
+    modalCallback=function(){
+        //$("#myModal").find(".glyphicon-ok").parent().show();
+        if(myVectorLayer)
+            myVectorLayer.getSource().clear();
+        geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
+        setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+        $("#myModal").find("h4").html('<span class="glyphicon glyphicon-map-marker"></span> '+window.Android.translate("gps_track"));
+    };
     currentGeometry=ltype;
     currentGeometryField=elem;
     geometries[ltype]["geom"]=null;
@@ -1357,10 +1494,14 @@ function trackGPSPosition(elem,ltype){
             $("body").append(data);
             $("#map").css("height",($(window).height()-220)+"px");
             $('#myModal').modal();
+            addOptionalLocalTiles(true);
             $('#myModal').on('shown.bs.modal', function () {
+                console.log($("#mmm4me_ls").length);
                 initMapToLocation();
-                geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857'));
-                setTimeout(function() { trackCurrentGPSPosition();}, 1000);
+                localTileIndex=map.getLayers().getLength();
+                /*geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
+                setTimeout(function() { trackCurrentGPSPosition();}, 1000);*/
+                modalCallback();
             });
             $('#myModal').on('hide.bs.modal', function () {
                 console.log("HIDE");
@@ -1373,9 +1514,105 @@ function trackGPSPosition(elem,ltype){
         $('#myModal').modal();
         vectorLayer1.getSource().clear();
         updateCurrentMapLocation();
-        geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326','EPSG:3857'));
+        geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
         setTimeout(function() { trackCurrentGPSPosition();}, 1000);
     }
+}
+
+var hasAddedElement=0;
+var myVectorLayer=null;
+function addSelectedElement(wktString){
+    var features=[];
+        try{
+            var format = new ol.format.WKT();
+            features.push(
+                format.readFeature(wktString, {
+				    dataProjection: 'EPSG:4326',
+					featureProjection: 'EPSG:3857'
+                })
+            );
+        }catch(e){
+            console.log("Unable to parse WKT ?!"+e)
+        }
+    if(!vectorLayer1){
+        myVectorLayer = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                features: features
+            }),
+            style: new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: "#3333aa",
+                    width: 1.4
+                })
+            })
+        });
+        map.addLayer(myVectorLayer);
+    }
+    else{
+        vectorLayer1.getSource().clear();
+        vectorLayer1.getSource().addFeatures(features);
+    }
+    console.log(vectorLayer1.getSource().getExtent());
+    map.updateSize();
+    map.getView().fit(vectorLayer1.getSource().getExtent(),map.getSize());
+    hasAddedElement=1;
+}
+
+/*****************************************************************************
+ * Show selected feature on map
+ *****************************************************************************/
+ var addSelectedIndex=0;
+ var mySelectedElement=null;
+function showElementOnMap(wktString){
+    mySelectedElement=wktString;
+    modalCallback=function(){
+            //$("#myModal").find(".glyphicon-ok").parent().hide();
+            if(addSelectedIndex==0){
+                updateCurrentMapLocation();
+                $("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
+            }
+            addSelectedElement(mySelectedElement);
+            $("#myModal").find("h4").html('<span class="glyphicon glyphicon-globe"></span> '+window.Android.translate("view_feature"));
+            addSelectedIndex++;
+    };
+    //$("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
+    if(!$("#map").length)
+    $.ajax({
+        method: "GET",
+        url: './map-modal.html',
+        error: function(){
+        },
+        success: function(data){
+            console.log(data);
+            $("body").append(data);
+            $("#map").css("height",($(window).height()-220)+"px");
+            $('#myModal').modal();
+            addOptionalLocalTiles(true);
+            $('#myModal').on('shown.bs.modal', function () {
+                console.log($("#mmm4me_ls").length);
+                initMapToLocation();
+                localTileIndex=map.getLayers().getLength();
+                modalCallback();
+            });
+            $('#myModal').on('hide.bs.modal', function () {
+                console.log("HIDE");
+                stopTracking=true;
+            });
+        }
+    });
+    else{
+        console.log("OK ");
+        $('#myModal').modal();
+        console.log("OK ");
+        vectorLayer1.getSource().clear();
+        console.log("OK ");
+        updateCurrentMapLocation();
+        console.log("OK ");
+        addSelectedElement(wktString);
+        console.log("OK ");
+    }
+
+        $("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
 }
 
 
@@ -1433,11 +1670,12 @@ function addStatusControl(){
 /*****************************************************************************
  * Initialize the map and show the current GPS location
  *****************************************************************************/
+var localTiles;
 function initMapToLocation(){
     if(map)
         return;
     var osmSource = new ol.source.OSM();
-    var localTiles = new ol.source.XYZ({
+    localTiles = new ol.source.XYZ({
         tileLoadFunction:
         function(imageTile, src) {
             imageTile.getImage().src = "data:image/jpeg;base64,"+window.Android.displayTile(src);console.log("imageTile src set ! ("+src+")");
@@ -1466,8 +1704,7 @@ function initMapToLocation(){
             })
         }),
         view: new ol.View({
-            center: ol.proj.transform(
-		[0,0], 'EPSG:4326', 'EPSG:3857'),
+            center: ol.proj.transform([0,0], 'EPSG:4326', 'EPSG:3857'),
             zoom: 14,
             maxZoom: 22,
             minZoom: 1
@@ -1517,7 +1754,7 @@ function initMapToLocation(){
           };*/
     };
     position=JSON.parse(window.Android.getFullGPS());
-    console.log(JSON.stringify(position));
+    //console.log(JSON.stringify(position));
     if(position.length==0){
         position=[{lon:3.5,lat:43.5,source:"none"}];
     }
@@ -1529,6 +1766,8 @@ function initMapToLocation(){
                                             			  'EPSG:3857')),
             source: position[i].source
         }));
+        if(position[i].source=="GPS")
+            bestIndex=i;
     }
     var vectorSource = new ol.source.Vector({
         features: iconFeatures //add an array of features
@@ -1544,14 +1783,16 @@ function initMapToLocation(){
     });
     map.addLayer(vectorLayer);
     map.addLayer(vectorLayer1);
-    console.log(JSON.stringify(position));
-    map.getView().setCenter(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326', 'EPSG:3857'))
-    console.log(JSON.stringify(position));
+    //console.log(JSON.stringify(position));
+    map.getView().setCenter(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326', 'EPSG:3857'));
+    //console.log(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326', 'EPSG:3857'));
+    //console.log(JSON.stringify(position));
 }
 
 /*****************************************************************************
  * Update the current loction of the map depending on the GPS location
  *****************************************************************************/
+var bestIndex=0;
 function updateCurrentMapLocation(){
     position=JSON.parse(window.Android.getFullGPS());
     console.log(JSON.stringify(position));
@@ -1561,12 +1802,91 @@ function updateCurrentMapLocation(){
     var iconFeatures = [];
     for(var i=0;i<position.length;i++){
         iconFeatures.push(new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.transform([/*3.5,43.5*/position[i].lon,position[i].lat], 'EPSG:4326',
+            geometry: new ol.geom.Point(ol.proj.transform([position[i].lon,position[i].lat], 'EPSG:4326',
 							  'EPSG:3857')),
             source: position[i].source
         }));
+        if(position[i].source=="GPS")
+            bestIndex=i;
     }
     vectorLayer.getSource().clear();
     vectorLayer.getSource().addFeatures(iconFeatures);
-    map.getView().setCenter(ol.proj.transform([position[0].lon,position[0].lat], 'EPSG:4326', 'EPSG:3857'))
+    map.getView().setCenter(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326', 'EPSG:3857'))
+}
+
+
+/*****************************************************************************
+ * Display a dropdown that let user add their local tiles on top of OSMs
+ *****************************************************************************/
+var localTileIndex=0;
+function addOptionalLocalTiles(shouldFixPosition){
+    var tmp=JSON.parse(window.Android.getGNStatus());
+    if(tmp["net"]){
+        $.ajax({
+            method: "GET",
+            url: 'content/layer_switcher.html',
+            success: function(data){
+                if(MM4ME_DEBUG)
+                    console.log('Display warning message on the UI !');
+                $(".map").prepend(data);
+                if(shouldFixPosition)
+                    $("#mm4me_ls").css("margin-bottom","25px");
+
+                $(".map").parent().find("input[type=range]").first().on('change',function(){
+                    console.log("change to "+$(this).val());
+                    map.getLayers().item(localTileIndex).setOpacity($(this).val()/100);
+                });
+                $(".map").parent().find("input[type=checkbox]").parent().on('click',function(){
+                    var tmp=$(this).find("input[type=checkbox]");
+                    if(tmp.is(":checked"))
+                        $(this).find("input[type=checkbox]").prop("checked",false).change();
+                    else
+                        $(this).find("input[type=checkbox]").prop("checked",true).change();
+                });
+                $("#layerSwitcherCheck").on('change',function(){
+                    if($(this).parent().find("i").hasClass("glyphicon-eye-open")){
+                        $("#dmopacity").hide();
+                        $(this).parent().find("i").removeClass("glyphicon-eye-open").addClass("glyphicon-eye-close");
+                        if(map.getLayers().getLength()>=4)
+                            map.getLayers().item(localTileIndex).setVisible(false);
+                    }else{
+                        $(this).parent().find("i").removeClass("glyphicon-eye-close").addClass("glyphicon-eye-open");
+                        $("#dmopacity").show();
+                        console.log(JSON.stringify(map.getLayers().getLength()));
+                        if(map.getLayers().getLength()<localTileIndex+1){
+                            //map.addLayer(new ol.layer.Tile({source: localTiles}));
+                            var myTileLayer=new ol.layer.Tile({source: localTiles});
+                            var layers = map.getLayers();
+                            layers.insertAt(1,myTileLayer);
+                            //var myTileLayer=map.getLayers()[map.getLayers().getLength()-1];
+                            //map.raiseLayer(myTileLaye, 1);
+                            //map.setLayerIndex(myTileLayer,1);
+                            //map.redraw();
+                            localTileIndex=1;
+                        }
+                        else
+                            map.getLayers().item(localTileIndex).setVisible(true);
+                    }
+
+                });
+            },
+            error: function(){
+                alert("error fetching noserver.html file!");
+            }
+        });
+    }
+}
+
+var oldBearer=0;
+function reactOrientation(direction){
+    if(map){
+        window.Android.startReportDirection();
+        console.log("******* ----- p "+oldBearer+" d "+direction+" diff "+(oldBearer-direction));
+        if($("#followNorth").is(":checked") && (oldBearer-direction)<-0.05 || (oldBearer-direction)>0.05){
+            map.getView().setRotation(-direction);
+            oldBearer=direction;
+        }
+    }else{
+        window.Android.stopReportDirection();
+    }
 }

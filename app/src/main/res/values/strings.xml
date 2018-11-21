@@ -16,7 +16,7 @@
     <string name="cancel">Cancel</string>
     <string name="image">Image</string>
     <string name="import_success">Import success</string>
-    <string name="import_download_start">Downloading file &#8320;</string>
+    <string name="import_download_start">Downloading file</string>
     <string name="import_download_end">File downloaded</string>
     <string name="import_failure">Import failed</string>
     <string name="choose_picture">Select an existing photo</string>
@@ -38,7 +38,8 @@
     <string name="mm4me_welcome_txt">You are using the MapMint application for Monitoring and Evaluation called MapMint4ME.</string>
     <string name="welcome">Welcome</string>
     <string name="export_success">Export has been successful</string>
-    <string name="upload_start">Uploading your recorded data &#8320;</string>
+    <string name="upload_start">Uploading recorded data</string>
+    <string name="view_on_map">View on map</string>
     <string name="file_create">Import a file</string>
     <string name="nolisting_intro_p">For being able to consult your data on the field, you need to first download the data and forms. To do so, please use the \"Import\" bouton presentend bellow and follow instructions then come back here.</string>
     <string name="import_intro_p">Before going on the field to record new data, make sure to download the latest version of the data and forms byt using the \"Import\" tool. Then, you can start recording new value within the MapMint4ME application.</string>
@@ -48,4 +49,12 @@
     <string name="noserver_btn">Add a server</string>
     <string name="map">Map</string>
     <string name="no_gps">No GPS position</string>
+    <string name="gps_track">GPS Track</string>
+    <string name="view_feature">View feature</string>
+    <string name="about_intro">Your are using the MapMint4ME application. It is provided free of charge under the term of the MIT/X11 License and aims to provide an easy to use editing tool for your own data on the field.</string>
+    <string name="about_property">The software has been developped and published on GooglePlay™ by GeoLabs SARL.</string>
+    <string name="about_howtosetup">In case you want to learn how to use this application, please click</string>
+    <string name="about_howtosetup_link">here</string>
+    <string name="title">MapMint4ME</string>
+    <string name="description">Import, Edit, Export</string>
 </resources>

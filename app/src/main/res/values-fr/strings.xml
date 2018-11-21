@@ -16,7 +16,7 @@
     <string name="cancel">Annuler</string>
     <string name="image">Image</string>
     <string name="import_success">Import réalisé avec succès</string>
-    <string name="import_download_start">Téléchargement du fichier &#8320;</string>
+    <string name="import_download_start">Téléchargement du fichier</string>
     <string name="import_download_end">Fichier téléchargé</string>
     <string name="import_failure">L\'import a échoué</string>
     <string name="choose_picture">Choisissez une image</string>
@@ -38,7 +38,10 @@
     <string name="mm4me_welcome_txt">Vous utilisez l\'application MapMint pour la surveillance et l\'évaluation appelée MapMint4ME.</string>
     <string name="welcome">Bienvenue</string>
     <string name="export_success">L\'export s\'est réalisé avec succès</string>
-    <string name="upload_start">Émission de vos données enregistrées &#8320;</string>
+    <string name="upload_start">Émission des données enregistrées</string>
+    <string name="view_on_map">Voir sur la carte</string>
+    <string name="gps_track">Trace GPS</string>
+    <string name="view_feature">Visualisation</string>
     <string name="file_create">Importer un fichier</string>
     <string name="nolisting_intro_p">Pour être en mesure de consulter vos données sur le terrain, vous devez au préalable les télécharger depuis le serveur. Pour ce faire, veuillez utiliser le boutton \"Importer\" présenté ci-dessous et suivre les instuctions puis revenez ici.</string>
     <string name="import_intro_p">Avant d\'aller sur le terrain pour saisir de nouvelles données, assurez-vous d\'avoir téléchargé les dernières versions des interfaces de saisie de la base de données en utilisant l\'outil \"Importer\". Ensuite, vous pouvez commencer à saisir vos données dans l\'application MapMint4ME.</string>

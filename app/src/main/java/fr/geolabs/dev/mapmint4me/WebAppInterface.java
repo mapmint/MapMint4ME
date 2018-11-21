@@ -16,11 +16,13 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Patterns;
@@ -55,6 +57,7 @@ import java.io.StringWriter;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -93,36 +96,31 @@ public class WebAppInterface {
     }
 
     private NotificationManager mManager;
+    private int currentId=0;
 
     /**
      * Show a toast from the web page
      */
     @JavascriptInterface
     public void notify(String msg) {
-        mManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        Intent resultIntent = new Intent(mContext, MapMint4ME.class);
-        PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(mContext,
-                        0,
-                        resultIntent,
-                        PendingIntent.FLAG_NO_CREATE
-                );
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(mContext)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentTitle("MapMint4ME")
-                        .setContentText(msg)
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(msg));
-        //BigTextStyle myStyle = new NotificationCompat.BigTextStyle().bigText(msg);
-        //mBuilder.setStyle(myStyle);
-        mBuilder.setContentIntent(resultPendingIntent);
-        int mNotificationId = 1;
-        NotificationManager mNotifyMgr =
-                (NotificationManager) mContext.getSystemService(mContext.NOTIFICATION_SERVICE);
-        Notification notification = mBuilder.build();
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
-        mNotifyMgr.notify(mNotificationId, notification);
+        //mContext.createNotificationChannel();
+        Intent intent = new Intent(mContext, MapMint4ME.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
 
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME)mContext).CHANNEL_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("My notification")
+                .setContentText(msg)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                // Set the intent that will fire when the user taps the notification
+                //.setContentIntent(pendingIntent);
+                //.setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+        currentId++;
+        notificationManager.notify(currentId, mBuilder.build());
     }
 
     @JavascriptInterface
@@ -235,7 +233,6 @@ public class WebAppInterface {
                 jsonArray.put(jsonArray.length(), json);
             }
         }
-
         JSONObject json = new JSONObject();
         ((MapMint4ME) mContext).startLocationUpdates();
         Location location1 = ((MapMint4ME) mContext).getLastLocation();
@@ -290,7 +287,7 @@ public class WebAppInterface {
             // First get location from Network Provider
             if (!isGPSEnabled && isNetworkEnabled) {
                 myLocationManager.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
+                        LocationManager.NETWORK_PROVIDER, 1000, 0, new LocationListener() {
                             @Override
                             public void onStatusChanged(String provider, int status, Bundle extras) {
                             }
@@ -319,7 +316,7 @@ public class WebAppInterface {
                 if (isGPSEnabled) {
                     if (location == null && !hasPosition) {
                         myLocationManager.requestLocationUpdates(
-                                LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+                                LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
                                     @Override
                                     public void onStatusChanged(String provider, int status, Bundle extras) {
                                     }
@@ -342,6 +339,32 @@ public class WebAppInterface {
                             location = myLocationManager
                                     .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             hasPosition = true;
+                        }else{
+                            myLocationManager.requestLocationUpdates(
+                                    LocationManager.NETWORK_PROVIDER, 1000, 0, new LocationListener() {
+                                        @Override
+                                        public void onStatusChanged(String provider, int status, Bundle extras) {
+                                        }
+
+                                        @Override
+                                        public void onProviderEnabled(String provider) {
+                                        }
+
+                                        @Override
+                                        public void onProviderDisabled(String provider) {
+                                        }
+
+                                        @Override
+                                        public void onLocationChanged(final Location location) {
+                                        }
+                                    });
+                            source = "Network";
+                            Log.d("Network", "Network");
+                            if (myLocationManager != null) {
+                                location = myLocationManager
+                                        .getLastKnownLocation(myLocationManager.NETWORK_PROVIDER);
+                                hasPosition = true;
+                            }
                         }
                     }
                 }
@@ -404,7 +427,7 @@ public class WebAppInterface {
     }
 
     /**
-     * Set mTop to true/false from the web page
+     * Set text to the string to be translated
      */
     @JavascriptInterface
     public String translate(String text) {
@@ -415,6 +438,29 @@ public class WebAppInterface {
         }
     }
 
+    /**
+     * Set mTop to true/false from the web page
+
+    @JavascriptInterface
+    public String getOrientation() throws JSONException{
+        try {
+            ((MapMint4ME)mContext).updateOrientationAngles();
+            float[] res=((MapMint4ME)mContext).getOrientationAngles();
+            Log.e("Error", "" + res.toString());
+            JSONArray jsonArray = new JSONArray();
+            for(int i=0;i<3;i++)
+                jsonArray.put(i,res[i]);
+            float[] res1=((MapMint4ME)mContext).getRotationMatrix();
+            Log.e("Error", "" + res.toString());
+            for(int i=0;i<3;i++)
+                jsonArray.put(i+3,res1[i]);
+            return jsonArray.toString();
+        } catch (Exception e) {
+            Log.e("Error", "" + e.toString());
+            return e.toString();
+        }
+    }*/
+
     private LocalDB db = null;
 
     /**
@@ -422,9 +468,22 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public String displayTable(String table, String[] fields) {
+
+        //    db.close();
         if (db == null)
             db = new LocalDB(mContext);
         return db.getRows(table, fields).toString();
+    }
+
+    /**
+     * Set mTop to true/false from the web page
+     */
+    @JavascriptInterface
+    public String rebuildChunk(String table, String[] fields) {
+        //    db.close();
+        if (db == null)
+            db = new LocalDB(mContext);
+        return db.rebuildChunk(table, fields).toString();
     }
 
     /**
@@ -493,27 +552,119 @@ public class WebAppInterface {
         return size.y;
     }
 
+    private String fileSaved=null;
     @JavascriptInterface
-    public String downloadFile(String url) {
+    public void newDownloadFile(final String url) {
+        fileSaved=null;
+        new Thread(new Runnable() {
+            public void run() {
+                fileSaved=_downloadFile(url);
+            }
+        }).start();
+    }
+
+    @JavascriptInterface
+    public String downloadedFile() {
+        while(fileSaved!=null);
+        return fileSaved;
+    }
+
+    private class DownloadFilesTask extends AsyncTask<String, Integer, String> {
+        protected String doInBackground(String... urls) {
+            int count = urls.length;
+            long totalSize = 0;
+            String res=null;
+            for (int i = 0; i < count; i++) {
+                //totalSize += Downloader.downloadFile(urls[i]);
+                //publishProgress((int) ((i / (float) count) * 100));
+                // Escape early if cancel() is called
+                res=_downloadFile(urls[i]);
+                if (isCancelled()) break;
+            }
+            return res;
+        }
+
+        public void myProgressPublication(int val){
+            publishProgress(val);
+        }
+        protected void onProgressUpdate(Integer... progress) {
+            setProgressPercent(progress[0]);
+        }
+
+        public void setProgressPercent(Integer... progress){
+
+        }
+        protected void onPostExecute(Long result) {
+            //showDialog("Downloaded " + result + " bytes");
+        }
+    }
+
+    @JavascriptInterface
+    public String downloadFile(final String url) {
+        /*DownloadFilesTask myTask = new DownloadFilesTask();
+        myTask.execute(url);*/
+        try {
+            return new DownloadFilesTask().execute(url).get();
+        }catch(Exception e) {
+            return null;
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @JavascriptInterface
+    public String _downloadFile(String url) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String[] tmp = url.split("/");
         String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
 
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID);
+        mBuilder.setContentTitle(tmp[tmp.length - 1].split("_")[0])
+                .setContentText(tmp[tmp.length - 1])
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+
+        int PROGRESS_MAX = 100;
+        int PROGRESS_CURRENT = 0;
+        mBuilder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
+        currentId++;
+        notificationManager.notify(currentId, mBuilder.build());
+
+
         try {
+            URL mUrl = new URL(url);
+            URLConnection connection = mUrl.openConnection();
+            connection.connect();
+
+            int fileLenth = connection.getContentLength();
             BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
             FileOutputStream fos = new FileOutputStream(fileName);
             BufferedOutputStream bout = new BufferedOutputStream(fos, 1024);
             byte[] data = new byte[1024];
             int x = 0;
+            int y=0;
+            int myCnt=0;
+            Log.w("WebAppInterface", ""+fileLenth);
+            int lTot=fileLenth/1024;
             while ((x = in.read(data, 0, 1024)) >= 0) {
                 bout.write(data, 0, x);
+                myCnt+=x;
+                if(myCnt==fileLenth || y%5==0){
+                    mBuilder.setContentText((myCnt/(1024*1024))+" / "+(fileLenth/(1024*1024))+" Mb")
+                            .setProgress(PROGRESS_MAX, (y*100)/lTot, false);
+                    notificationManager.notify(currentId, mBuilder.build());
+                    //myTask.myProgressPublication((y*100)/lTot);
+                }
+                y++;
             }
+            mBuilder.setContentText("Completed")
+                    .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);
+            notificationManager.notify(currentId, mBuilder.build());
             fos.flush();
             bout.flush();
             fos.close();
             bout.close();
             in.close();
-
             return tmp[tmp.length - 1];
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
@@ -522,8 +673,22 @@ public class WebAppInterface {
             Log.w("WebAppInterface", exceptionAsString);
             //showToast("Error: " + exceptionAsString);
         }
+        mBuilder.setContentTitle("Download completed")
+                .setProgress(PROGRESS_MAX,PROGRESS_MAX,false);
+        notificationManager.notify(currentId, mBuilder.build());
         return null;
     }
+
+    @JavascriptInterface
+    public void startReportDirection(){
+        ((MapMint4ME)mContext).startReportDirection();
+    }
+
+    @JavascriptInterface
+    public void stopReportDirection(){
+        ((MapMint4ME)mContext).stopReportDirection();
+    }
+
 
     @JavascriptInterface
     public String getGNStatus() throws JSONException {
