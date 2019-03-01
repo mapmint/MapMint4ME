@@ -3,6 +3,7 @@
     <string name="table">Table</string>
     <string name="save">Save</string>
     <string name="insert">Insert</string>
+    <string name="delete">Delete</string>
     <string name="add">Add</string>
     <string name="edit">Edit</string>
     <string name="home">Home</string>
@@ -10,8 +11,10 @@
     <string name="views_header"> Below you will find a list of features you are able to view.</string>
     <string name="take_picture">Take a picture</string>
     <string name="use_gps">Use GPS position</string>
-    <string name="drawl_gps">Track GPS position (line)</string>
-    <string name="drawp_gps">Track GPS position (polygon)</string>
+    <string name="drawl_gps">Draw line (auto)</string>
+    <string name="drawp_gps">Draw polygon (auto)</string>
+    <string name="drawlm_gps">Draw line (manual)</string>
+    <string name="drawpm_gps">Draw polygon(manual)</string>
     <string name="cancel">Cancel</string>
     <string name="image">Image</string>
     <string name="import_success">Import success</string>
@@ -33,6 +36,9 @@
     <string name="server_login">Login</string>
     <string name="server_password">Password</string>
     <string name="server_add">Add server</string>
+    <string name="delete_server_success">Server settings successfully deleted</string>
+    <string name="update_server_success">Server settings successfully updated</string>
+    <string name="update_server_failed">Server settings failed to update</string>
     <string name="mm_no_db_found">In order to view your data in the field, you must first ensure that you have downloaded your data and forms using the \"Import\" module (see below and follow associated instructions before returning here).</string>
     <string name="mm4me_welcome_txt">You are using the MapMint application for Monitoring and Evaluation called MapMint4ME.</string>
     <string name="welcome">Welcome</string>
@@ -54,6 +60,9 @@
     <string name="about_property">The software has been developped and published on GooglePlay™ by GeoLabs SARL.</string>
     <string name="about_howtosetup">In case you want to learn how to use this application, please click</string>
     <string name="about_howtosetup_link">here</string>
+    <string name="settings">Settings for</string>
+    <string name="insert_success">Successfully recorded</string>
+    <string name="update_success">Successfully updated</string>
     <string name="title">MapMint4ME</string>
     <string name="description">Import, Edit, Export</string>
 </resources>

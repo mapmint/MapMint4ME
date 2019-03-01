@@ -144,10 +144,8 @@ body { padding-top: 70px; }
 <script src="scripts/generic.js"></script>
 <script type="text/javascript">
 
-    //$(function() {
     $(window).on('load', function() {
 
-        //while(true)
         try{
     try{
 	    //we replace default localStorage with our Android Database one
@@ -184,7 +182,14 @@ body { padding-top: 70px; }
             },
             success: function(data){
                 console.log("Run js after");
+                try{
                 $("body").append('<script>'+data+'<\/script>');
+                console.log("ok");
+                }catch(e){
+                console.log("Unable to load");
+                console.log(data);
+                console.log("Unable to load");
+                }
             }
         });
         $(".navbar").find("a").each(function(){
@@ -205,7 +210,6 @@ body { padding-top: 70px; }
                 }
             }
         });
-        //break;
         }catch(e){
             console.log("Wait for loading "+e);
         }

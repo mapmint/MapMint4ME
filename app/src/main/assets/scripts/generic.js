@@ -271,9 +271,11 @@ function printCurrentType(obj,cid){
                     '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
                 else if(geoType=='LINESTRING' || geoType=='MULTILINESTRING' )
                 return res+'<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawl_gps")+'</button>'+
+                    '<button class="btn btn-default" href="#" onclick="trackStepByStepPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawlm_gps")+'</button>'+
                     '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" />'+viewb+'</div>';
                 else if(geoType=='POLYGON' || geoType=='MULTIPOLYGON' )
                 return res+'<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'polygon\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawp_gps")+'</button>'+
+                    '<button class="btn btn-default" href="#" onclick="trackStepByStepPosition(\'field_'+obj["id"]+'\',\'polygon\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawpm_gps")+'</button>'+
                     '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" />'+viewb+'</div>';
 
             }
@@ -547,6 +549,7 @@ function runInsertQuery(obj,mid,func){
     var res=window.Android.executeQuery(req,queryValues,queryTypes);
     window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,"+osubquery+")",[cleanupTableName(allTables[mid].name),req],[1,1]);
     try{
+        window.Android.showToast(window.Android.translate("insert_success"));
         func(mid);
     }catch(e){
         window.Android.notify("Error: "+e);
@@ -554,6 +557,7 @@ function runInsertQuery(obj,mid,func){
 
 }
 
+var systemSelectedIndex=-1;
 /*****************************************************************************
  * Execute an Update SQL query for a given table
  *****************************************************************************/
@@ -563,7 +567,7 @@ function runUpdateQuery(obj,mid,func){
     var queryValues0=[];
     var queryValues=[];
     var queryTypes=[];
-    var lastValue=$("#exampleTable"+((mid==mtable)?"":"_"+mid)).find(".selected").find('input[type=hidden]').first().val();
+    var lastValue=$("#exampleTable"+((mid==mtable)?"":"_"+mid)).find(".selected").find('input[type=hidden]').first().val()?$("#exampleTable"+((mid==mtable)?"":"_"+mid)).find(".selected").find('input[type=hidden]').first().val():systemSelectedIndex;
     var ccol=getPKey(cleanupTableName(allTables[mid].name));
     var queryEnd=" WHERE "+ccol+"=?";
     var lcnt=0;
@@ -621,6 +625,7 @@ function runUpdateQuery(obj,mid,func){
         console.log(req);
     if(window.Android.executeQuery(req,queryValues,queryTypes)>=0){
         window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,?)",[cleanupTableName(allTables[mid].name),req,lastValue],[1,1,1]);
+        window.Android.showToast(window.Android.translate("update_success"));
         func(mid);
     }
 }
@@ -849,6 +854,7 @@ function updateChangingFields(changingFields){
                 return function(){
                     for(var j=0;j<changingField.length;j++){
                         for(var ckey in changingField[j]){
+                            console.log("CKEY: "+ckey);
                             var i=0;
                             $(this).parent().parent().parent().find("select[name=field_"+changingField[j][ckey]["id"]+"]").html("");
                             var cIndex=changingField[j][ckey]["options"].indexOf($(this).val());
@@ -858,6 +864,7 @@ function updateChangingFields(changingFields){
                                 var cnt=0;
                                 var cStr="<option ";
                                 for(var lkey in changingField[j][ckey]["values"][cIndex][i]){
+                                    console.log(changingField[j][ckey]["values"][cIndex][i][lkey]);
                                     if(cnt==0)
                                         cStr+=' value="'+changingField[j][ckey]["values"][cIndex][i][lkey]+'"'+(cnt0==0?'" selected="selected"':'')+' >';
                                     else
@@ -1199,6 +1206,7 @@ function editOnlyTableReact(tid){
         $(".mm-act-add").removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
             runUpdateQuery($(this).parent().parent(),mainTable[id],editOnlyTableReact);
         });
+        systemSelectedIndex=list[0].val;
         displayEditForm(mid,list[0].val,false);
     }
 }
@@ -1467,6 +1475,130 @@ function trackCurrentGPSPosition(){
 }
 
 var modalCallback=null;
+
+function trackStepCurrentGPSPosition(){
+    console.log("## trackStepCurrentGPSPosition");
+    updateCurrentMapLocation();
+    $("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
+    if(!stopTracking)
+        setTimeout(function() { trackStepCurrentGPSPosition();}, 1000);
+}
+
+function addCurrentLocation(){
+    console.log("addCurrentLocation!!!!");
+    if(geometries["origin"]==null)
+        geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
+    else{
+        var tmp0=geometries["origin"].getCoordinates();
+        if(geometries[currentGeometry]["geom"]!=null){
+            var tmp1=geometries[currentGeometry]["geom"].getCoordinates();
+            tmp0=tmp1[tmp1.length-1];
+        }
+        tmp=ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857');
+        console.log(JSON.stringify(tmp0));
+        console.log(JSON.stringify(tmp));
+        $("#currentPosition").html("<b>Position: "+position[bestIndex].lon.toFixed(6)+","+position[bestIndex].lat.toFixed(6)+"</b>");
+        if(geometries[currentGeometry]["geom"]==null){
+            //geometries[currentGeometry]=new geometries[currentGeometry]["constructor"]([tmp0,tmp]);
+            if(currentGeometry=="line")
+                geometries[currentGeometry]["geom"]=new ol.geom.LineString([tmp0,tmp]);
+            else
+                geometries[currentGeometry]["geom"]=new ol.geom.LineString([tmp0,tmp]);
+        }else{
+            if(currentGeometry=="line"){
+                tmpCoordinates=geometries[currentGeometry]["geom"].getCoordinates();
+                tmpCoordinates.push(tmp);
+                geometries[currentGeometry]["geom"]=new ol.geom.LineString(tmpCoordinates);
+            }
+            else{
+                if(geometries[currentGeometry]["cline"]==null)
+                    tmpCoordinates=geometries[currentGeometry]["geom"].getCoordinates();
+                else
+                    tmpCoordinates=geometries[currentGeometry]["cline"].getCoordinates();
+                console.log(JSON.stringify(tmpCoordinates));
+                tmpCoordinates.push(tmp);
+                console.log(JSON.stringify(tmpCoordinates));
+                if(tmpCoordinates.length>2){
+                    geometries[currentGeometry]["cline"]=new ol.geom.LineString(tmpCoordinates);
+                    tmpCoordinates.push(tmpCoordinates[0]);
+                    console.log(JSON.stringify(tmpCoordinates));
+                    geometries[currentGeometry]["geom"]=new ol.geom.Polygon();
+                    console.log(JSON.stringify(tmpCoordinates));
+                    geometries[currentGeometry]["geom"].appendLinearRing(new ol.geom.LinearRing(tmpCoordinates));
+                    console.log(JSON.stringify(tmpCoordinates));
+                }
+            }
+
+        }
+        try{
+            console.log(JSON.stringify(geometries[currentGeometry]["geom"].getCoordinates()));
+            var feature=new ol.Feature({geometry: geometries[currentGeometry]["geom"],"name":"myFeature"});
+            vectorLayer1.getSource().clear();
+            vectorLayer1.getSource().addFeatures([feature]);
+            var wkt=new ol.format.WKT();
+            var tmpGeometry=geometries[currentGeometry]["geom"].clone().transform('EPSG:3857', 'EPSG:4326');
+            console.log(wkt.writeGeometry(tmpGeometry));
+            $("input[name='"+currentGeometryField+"']").val(wkt.writeGeometry(tmpGeometry));
+        }catch(e){
+            console.log(e);
+        }
+
+    }
+}
+
+function trackStepByStepPosition(elem,ltype){
+    modalCallback=function(){
+        //$("#myModal").find(".glyphicon-ok").parent().show();
+        if(myVectorLayer)
+            myVectorLayer.getSource().clear();
+        geometries["origin"]=null;
+        setTimeout(function() { trackStepCurrentGPSPosition();}, 1000);
+        $("#myModal").find("h4").html('<span class="glyphicon glyphicon-map-marker"></span> '+window.Android.translate("gps_track"));
+        $("#myModal").find(".modal-footer").html(
+        '<button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>'+
+        '<button type="submit" class="btn btn-primary btn-default pull-left" onclick="addCurrentLocation()"><span class="glyphicon glyphicon-plus"></span> Add</button>'+
+        '<button type="submit" class="btn btn-primary btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Save</button>'
+        );
+    };
+    currentGeometry=ltype;
+    currentGeometryField=elem;
+    geometries[ltype]["geom"]=null;
+    geometries[ltype]["cline"]=null;
+    if(!$("#map").length)
+    $.ajax({
+        method: "GET",
+        url: './map-modal.html',
+        error: function(){
+        },
+        success: function(data){
+            console.log(data);
+            $("body").append(data);
+            $("#map").css("height",($(window).height()-220)+"px");
+            $('#myModal').modal();
+            addOptionalLocalTiles(true);
+            $('#myModal').on('shown.bs.modal', function () {
+                console.log($("#mmm4me_ls").length);
+                initMapToLocation();
+                localTileIndex=map.getLayers().getLength();
+                /*geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
+                setTimeout(function() { trackCurrentGPSPosition();}, 1000);*/
+                modalCallback();
+            });
+            $('#myModal').on('hide.bs.modal', function () {
+                console.log("HIDE");
+                stopTracking=true;
+            });
+        }
+    });
+    else{
+        stopTracking=false;
+        $('#myModal').modal();
+        vectorLayer1.getSource().clear();
+        updateCurrentMapLocation();
+        geometries["origin"]=null;
+        setTimeout(function() { trackStepCurrentGPSPosition();}, 1000);
+    }
+}
 /*****************************************************************************
  * Start tracking GPS location
  *****************************************************************************/
@@ -1478,6 +1610,10 @@ function trackGPSPosition(elem,ltype){
         geometries["origin"]=new ol.geom.Point(ol.proj.transform([position[bestIndex].lon,position[bestIndex].lat], 'EPSG:4326','EPSG:3857'));
         setTimeout(function() { trackCurrentGPSPosition();}, 1000);
         $("#myModal").find("h4").html('<span class="glyphicon glyphicon-map-marker"></span> '+window.Android.translate("gps_track"));
+        $("#myModal").find(".modal-footer").html(
+            '<button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>'+
+            '<button type="submit" class="btn btn-primary btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Save</button>'
+        );
     };
     currentGeometry=ltype;
     currentGeometryField=elem;
@@ -1678,7 +1814,7 @@ function initMapToLocation(){
     localTiles = new ol.source.XYZ({
         tileLoadFunction:
         function(imageTile, src) {
-            imageTile.getImage().src = "data:image/jpeg;base64,"+window.Android.displayTile(src);console.log("imageTile src set ! ("+src+")");
+            imageTile.getImage().src = "data:image/jpeg;base64,"+window.Android.displayTile(src);
         },
         attributions: [
             ol.source.OSM.ATTRIBUTION
@@ -1880,7 +2016,10 @@ function addOptionalLocalTiles(shouldFixPosition){
 var oldBearer=0;
 function reactOrientation(direction){
     if(map){
-        window.Android.startReportDirection();
+        if($("#followNorth").is(":checked"))
+            window.Android.startReportDirection();
+        else
+            window.Android.stopReportDirection();
         console.log("******* ----- p "+oldBearer+" d "+direction+" diff "+(oldBearer-direction));
         if($("#followNorth").is(":checked") && (oldBearer-direction)<-0.05 || (oldBearer-direction)>0.05){
             map.getView().setRotation(-direction);

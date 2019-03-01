@@ -89,6 +89,9 @@ import java.util.concurrent.TimeUnit;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static java.lang.Thread.sleep;
 
+
+
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -228,6 +231,7 @@ public class MapMint4ME extends Activity implements
             webSettings.setAppCacheEnabled(true);
             webSettings.setDatabaseEnabled(true);
             webSettings.setJavaScriptEnabled(true);
+            webSettings.setPluginState(WebSettings.PluginState.ON);
             webSettings.setDomStorageEnabled(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mCookieManager.setAcceptThirdPartyCookies(myWebView, true);

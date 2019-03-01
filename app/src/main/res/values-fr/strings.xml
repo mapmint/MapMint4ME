@@ -31,9 +31,12 @@
     <string name="back">Retour</string>
     <string name="server_name">Nom du serveur</string>
     <string name="server_url">URL du serveur</string>
-    <string name="server_login">Nom d\'utilisateur</string>
+    <string name="server_login">Identifiant</string>
     <string name="server_password">Mot de passe</string>
-    <string name="server_add">Ajouter un serveur</string>
+    <string name="server_add">Ajouter un serveer</string>
+    <string name="delete_server_success">Paramètres serveur supprimés avec succès</string>
+    <string name="update_server_success">Paramètres serveur mis à jour avec succès</string>
+    <string name="update_server_failed">Impossible de mettre à jour les paramètres serveur</string>
     <string name="mm_no_db_found">Pour être en mesure d\'éditer ou de consulter les données sur le terrain, vous devez au préalable avoir télécharger les données nécessaires. Pour ce faire, utilisez le bouton \"Importer\" ci-dessous et suivez les instructions, ensuite revenez ici.</string>
     <string name="mm4me_welcome_txt">Vous utilisez l\'application MapMint pour la surveillance et l\'évaluation appelée MapMint4ME.</string>
     <string name="welcome">Bienvenue</string>

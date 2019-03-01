@@ -1,4 +1,4 @@
-$(function(){
+//$(function(){
     updateBreadcrumbs(["home","map"]);
     addStatusControl();
     getCurrentStatus();
@@ -192,4 +192,4 @@ $(function(){
     }
 
     console.log("End map.js");
-})();
+//})();

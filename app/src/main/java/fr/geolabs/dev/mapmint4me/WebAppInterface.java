@@ -744,9 +744,62 @@ public class WebAppInterface {
         return errorMsg;
     }
 
+    /*private class UploadFilesTask extends AsyncTask<String, Integer, String> {
+        protected String doInBackground(String... urls) {
+            long totalSize = 0;
+            if(urls.length>2) {
+                String res = uploadFile(urls[0], urls[1], urls[2]);
+                if(res!=null)
+                    return "Completed";
+                else
+                    return "Failed";
+            }else
+                return null;
+        }
+
+        public void myProgressPublication(int val){
+            publishProgress(val);
+        }
+        protected void onProgressUpdate(Integer... progress) {
+            setProgressPercent(progress[0]);
+        }
+
+        public void setProgressPercent(Integer... progress){
+
+        }
+        protected void onPostExecute(Long result) {
+            //showDialog("Downloaded " + result + " bytes");
+        }
+    }
+
+    @JavascriptInterface
+    public String uploadFile(final String url,final String field,final String file) {
+        try {
+            return new UploadFilesTask().execute(url,field,file).get();
+        }catch(Exception e) {
+            return null;
+        }
+    }*/
+
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @JavascriptInterface
     public boolean uploadFile(String url,String field,String file) {
+        File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
+        String[] tmp = url.split("/");
+        String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID);
+        mBuilder.setContentTitle(tmp[tmp.length - 1].split("_")[0])
+                .setContentText(tmp[tmp.length - 1])
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+
+        int PROGRESS_MAX = 100;
+        int PROGRESS_CURRENT = 0;
+        mBuilder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
+        currentId++;
+        notificationManager.notify(currentId, mBuilder.build());
 
         String attachmentName = field;
         String attachmentFileName = file;
@@ -765,8 +818,8 @@ public class WebAppInterface {
 
             URL curl = new URL(url);
 
-            File asset_dir = new File(mContext.getFilesDir()+File.separator+"data");
-            String reqfile = asset_dir.getAbsolutePath() + File.separator + "request";
+            File asset_dir1 = new File(mContext.getFilesDir()+File.separator+"data");
+            String reqfile = asset_dir1.getAbsolutePath() + File.separator + "request";
 
             HttpURLConnection conn = (HttpURLConnection) curl.openConnection();
             conn.setConnectTimeout(15000);
@@ -830,7 +883,8 @@ public class WebAppInterface {
             request.close();
 
             int status = conn.getResponseCode();
-
+            mBuilder.setContentText("Upload ...")
+                    .setProgress(PROGRESS_MAX, 50, false);
             if(status==200) {
                 InputStream responseStream = new
                         BufferedInputStream(conn.getInputStream());
@@ -853,6 +907,8 @@ public class WebAppInterface {
                 conn.disconnect();
 
                 Log.w("WebAppInterface", "end");
+                mBuilder.setContentText("Completed")
+                        .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);
                 return true;
             }
             conn.disconnect();

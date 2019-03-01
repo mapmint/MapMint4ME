@@ -55,7 +55,87 @@ $(function(){
             }
         };
         $(".media-list").find("button").last().click(cmd(list[i]));
+        (function(a){
+            var closure=a;
+            $(".media-heading").last().find("a").on("click",function(){
+                console.log("Update config");
+                console.log(closure["id"]);
+                $.ajax({
+                    method: "GET",
+                    url: "file:///android_asset/content/login.html",
+                    success: function(data){
+                        console.log("SUCCESS");
+                        console.log(data);
+                        doModal(window.Android.translate("settings")+" "+closure["name"],data);
+                        $(".btn-group").remove();
+                        $("#inputServer").parent().find("h2").append(closure["name"]);
+                        $("#inputServer").val(closure["name"]);
+                        $("#inputUrl").val(closure["url"]);
+                        $("#inputLogin").val(closure["login"]);
+                        $("#inputPassword").val(closure["password"]);
+                        var localList=JSON.parse(window.Android.displayTableFromDb("servers.db","SELECT count(*) as cnt FROM mm4me_servers",[]));
+                        console.log(window.Android.displayTableFromDb("servers.db","SELECT count(*) as cnt FROM mm4me_servers",[]));
+                        if(localList[0]["cnt"]>1){
+                            $("#dynamicModal").find(".btn-danger").show();
+                            $("#dynamicModal").find(".btn-danger").off('click');
+                            $("#dynamicModal").find(".btn-danger").on('click',function(){
+                                console.log(closure["id"]);
+                                var query="DELETE FROM mm4me_servers where id="+closure["id"];
+                                console.log(query);
+                                window.Android.executeQueryFromDb("servers.db",query,[],[]);
+                                console.log("OK ---- "+query);
+                                window.Android.showToast(window.Android.translate("delete_server_success"));
+                                document.location="file:///android_asset/import.html";
+                            });
+                        }else{
+                            $("#dynamicModal").find(".btn-danger").hide();
+                        }
+
+                        $("#dynamicModal").find(".btn-success").off('click');
+                        $("#dynamicModal").find(".btn-success").on('click',function(){
+                            console.log(closure["id"]);
+                            var query="UPDATE mm4me_servers set name=?, url=?, login=?, password=? where id="+closure["id"];
+                            window.Android.executeQueryFromDb("servers.db",query,[$("#inputServer").val(),$("#inputUrl").val(),$("#inputLogin").val(),$("#inputPassword").val()],[1,1,1,1]);
+                            window.Android.showToast(window.Android.translate("update_server_success"));
+                            document.location="file:///android_asset/import.html";
+                        });
+                    },
+                    error: function(data){
+                        console.log("ERROR");
+                    }
+                 });
+            });
+        })(list[i]);
     }
+
+function doModal(heading, formContent) {
+    html =  '<div id="dynamicModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal" aria-hidden="true">';
+    html += '<div class="modal-dialog">';
+    html += '<div class="modal-content">';
+    html += '<div class="modal-header">';
+    html += '<a class="close" data-dismiss="modal">×</a>';
+    html += '<h4>'+heading+'</h4>'
+    html += '</div>';
+    html += '<div class="modal-body">';
+    html += formContent;
+    html += '</div>';
+    html += '<div class="modal-footer">';
+    html += '<span class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-trash"></i> '+window.Android.translate("delete")+'</span>';
+    html += '<span class="btn btn-success" data-dismiss="modal"><i class="glyphicon glyphicon-ok"></i> '+window.Android.translate("save")+'</span>';
+    html += '<span class="btn btn-primary" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> '+window.Android.translate("cancel")+'</span>';
+    html += '</div>';  // content
+    html += '</div>';  // dialog
+    html += '</div>';  // footer
+    html += '</div>';  // modalWindow
+    $('body').append(html);
+    $("#dynamicModal").modal();
+    $("#dynamicModal").modal('show');
+
+    $('#dynamicModal').on('hidden.bs.modal', function (e) {
+        $(this).remove();
+    });
+
+}
 
     // Update the ongoing status using GetStatus URL
     function ping(myRoot,url,origin_url){
