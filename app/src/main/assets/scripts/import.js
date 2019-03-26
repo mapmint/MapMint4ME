@@ -1,3 +1,28 @@
+    var currentServer=null;
+    var nbDownloads=3;
+    var nbDownloaded=0;
+    var dbs=["local.db","edit.db","tiles.db"];
+    var current_url;
+
+    function postUpdate(){
+        console.log("RUN POSTUPDATE! "+arguments[0]+" "+arguments[1]+" "+nbDownloads);
+        currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+dbs[arguments[1]]);
+        //var downloadedFile=window.Android.downloadedFile();
+        if(!window.Android.copyFile(arguments[0],dbs[arguments[1]])){
+            currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
+            window.Android.reinitCounter();
+        }
+        nbDownloaded+=1;
+        if(nbDownloaded==nbDownloads){
+            window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+current_url+"'",[],[])
+            if(MM4ME_DEBUG){
+                console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+current_url+"'");
+            }
+            currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
+            window.Android.reinitCounter();
+        }
+    }
+
 $(function(){
     if(MM4ME_DEBUG)
         console.log('run');
@@ -137,9 +162,13 @@ function doModal(heading, formContent) {
 
 }
 
+
+
     // Update the ongoing status using GetStatus URL
     function ping(myRoot,url,origin_url){
         console.log(url);
+        currentServer=myRoot;
+        current_url=origin_url;
         $.ajax({
             method: "GET",
             url: url,
@@ -161,8 +190,9 @@ function doModal(heading, formContent) {
                         myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
                         console.log("import_download_start");
                         myRoot.find('.progress-bar').css("width","100%").attr('aria-valuenow', 100).html("100%");
-                        var dbs=["local.db","edit.db","tiles.db"];
+
                         var lcnt0=0;
+                        currentServer=myRoot;
                         $(myData).find("wps\\:Reference").each(function(){
                             if(chooseId==-1 && lcnt0==2){
                                 console.log("Nothing to do!");
@@ -171,26 +201,25 @@ function doModal(heading, formContent) {
                                 if(MM4ME_DEBUG)
                                     console.log(curl);
                                 //window.Android.notify(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
-                                myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
-                                window.Android.showToast(window.Android.translate("import_download_start"));
                                 var downloadedFile=window.Android.downloadFile(curl);
-                                myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+downloadedFile);
+                                //myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
+                                myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
+                                window.Android.showToast(window.Android.translate("import_download_start"));
+                                /*myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+downloadedFile);
                                 //downloadedFile=window.Android.downloadedFile();
                                 if(MM4ME_DEBUG)
                                     console.log(downloadedFile);
                                 if(!window.Android.copyFile(downloadedFile,dbs[lcnt0])){
                                     myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
                                     return ;
-                                }
+                                }*/
+                                lcnt0+=1;
                             }
                             console.log(dbs[lcnt0]);
-                            lcnt0+=1;
+
                         });
-                        window.Android.executeQueryFromDb("servers.db","UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'",[],[])
-                        if(MM4ME_DEBUG){
-                            console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+origin_url+"'");
-                        }
-                        myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
+                        nbDownloads=lcnt0;
+
                         disconnect(origin_url);
                         return;
                     }

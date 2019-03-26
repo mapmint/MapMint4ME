@@ -211,15 +211,17 @@ function fetchDependencies(obj,cid,changingField){
                 changingField[key]["dep"][i][ckey]["id"]=list1[0]["id"];
                 for(var j=0;j<changingField[key]["dep"][i][ckey]["options"].length;j++){
                     var creq=list1[0]["value"];
-                    if(creq.toLowerCase().indexOf("WHERE ")<0){
-                        creq=creq.replace(/order by/,"WHERE "+
-                               changingField[key]["dep"][i][ckey]["tfield"]+
-                               changingField[key]["dep"][i][ckey]["operator"]+
-                               changingField[key]["dep"][i][ckey]["options"][j]+
-                               " order by ");
+                    if(changingField[key]["dep"][i][ckey]["tfield"]!="none"){
+                        if(creq.toLowerCase().indexOf("WHERE ")<0){
+                            creq=creq.replace(/order by/,"WHERE "+
+                                   changingField[key]["dep"][i][ckey]["tfield"]+
+                                   changingField[key]["dep"][i][ckey]["operator"]+
+                                   changingField[key]["dep"][i][ckey]["options"][j]+
+                                   " order by ");
+                        }
+                        list0=JSON.parse(window.Android.displayTable(cleanupTableName(creq),[]));
+                        changingField[key]["dep"][i][ckey]["values"].push(list0);
                     }
-                    list0=JSON.parse(window.Android.displayTable(cleanupTableName(creq),[]));
-                    changingField[key]["dep"][i][ckey]["values"].push(list0);
                 }
             }
 
@@ -364,21 +366,33 @@ function printCurrentType(obj,cid){
                 var refs=JSON.parse(window.Android.displayTable(cleanupTableName(req),[]));
                 var tmpStr='<select name="field_'+obj["id"]+'" class="form-control">';
                 var cvalues=[];
+                //console.log(JSON.stringify(refs));
                 for(var j=0;j<refs.length;j++){
                     var tmpStr2='';
                     var cnt=0;
-                    tmpStr+="<option "
+                    var cStr="<option ";
+                    //tmpStr+="<option ";
+                    //console.log(JSON.stringify(refs[j]));
                     for(var k in refs[j]){
                         if(cnt==0){
-                            tmpStr+='value="'+refs[j][k]+'">';
+                            //tmpStr+='value="'+refs[j][k]+'">';
+                            cStr+='value="'+refs[j][k]+'">';
                             cvalues.push(refs[j][k]);
                         }
                         else
                         if(cnt==1)
-                            tmpStr+=refs[j][k];
+                            //tmpStr+=refs[j][k];
+                            cStr+=refs[j][k];
                         cnt+=1;
                     }
-                    tmpStr+="</option>"
+                    //tmpStr+="</option>"
+                    cStr+="</option>";
+                    if(cnt==1){
+                        for(var k in refs[j]){
+                            cStr='<option value="null">'+refs[j][k]+'</option>';
+                        }
+                    }
+                    tmpStr+=cStr;
                 }
                 tmpStr+="</select>";
 
@@ -387,13 +401,24 @@ function printCurrentType(obj,cid){
                     var lobj={};
                     lobj[obj["id"]]={"dep":JSON.parse(obj["dependencies"])};
                     for(var jj=0;jj<lobj[obj["id"]]["dep"].length;jj++){
-                        for(var kk in lobj[obj["id"]]["dep"][jj])
-                            lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
+                        for(var kk in lobj[obj["id"]]["dep"][jj]){
+                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
+                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]["options"]));
+                            try{
+                                if(lobj[obj["id"]]["dep"][jj][kk]["options"].length==0)
+                                    lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
+                            }catch(e){
+                                console.log(e);
+                                lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
+                            }
+                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
+                        }
                     }
                     changingFields.push(lobj);
                     var tmpCnt=changingFields.length-1;
                     setTimeout(function(){fetchDependencies(obj,cid,changingFields[tmpCnt])},1);
                 }catch(e){
+                    console.log(name+" "+e);
                     window.Android.showToast("  **** "+obj["name"]+" "+e);
                 }
                 return tmpStr;
@@ -437,6 +462,9 @@ function printOptionalCheckbox(obj,cid){
     }
     return '';
 }
+
+var refTypeId=null;
+var editPrintedOnce=[];
 /*****************************************************************************
  * Create HTML part to display the line containing both the title and the
  * corresponding input for a given table's field.
@@ -447,9 +475,9 @@ function printEditionFields(obj,myRoot,cid,mid){
         editSchema[mid]={};
     editSchema[mid][obj["id"]]=JSON.parse(list1);
     list1=JSON.parse(list1);
-    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="well tab-pane" role="tabpanel"></div>');
+    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="well tab-pane" role="tabpanel">'+obj["description"]+'</div>');
     for(var j in list1)
-        if(list1[j]["edition"]>0){
+        if(list1[j]["edition"]>0) {
             myRoot.find(".tab-content").first().children().last().append(
                 '<div class="row form-group" >'+
                 '<div class="col-xs-3">'+
@@ -459,7 +487,175 @@ function printEditionFields(obj,myRoot,cid,mid){
                 printCurrentType(list1[j],mid)+
                 '</div>'+
                 '</div>');
+            if(list1[j]["dependencies"]){
+                try{
+                    editPrintedOnce.push(list1[j]["name"]);
+                    console.log("JSON PARSE")
+                    console.log(list1[j]["dependencies"]);
+                    var objJson=JSON.parse(list1[j]["dependencies"]);
+                    console.log("JSON PARSE OK");
+                    if(!refTypeId)
+                        refTypeId=JSON.parse(window.Android.displayTable("select id from mm4me_ftypes where ftype='e' and code='ref'",[]))[0]["id"];
+                    console.log(refTypeId);
+                    for(i in objJson){
+                        if(objJson[i]["myself"]){
+                            console.log("IS MYSELF!!");
+                            for(k in objJson[i]["myself"]){
+                                for(l in objJson[i]["myself"][k]){
+
+
+                                    if(objJson[i]["myself"][k][l]["dependents"]){
+                                        for(m in objJson[i]["myself"][k][l]["dependents"]){
+                                            for(n in objJson[i]["myself"][k][l]["dependents"][m]){
+                                                console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["sql_query"]);
+                                                console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["label"]);
+                                                var lObj={"id": n, "ftype":refTypeId,"value":objJson[i]["myself"][k][l]["dependents"][m][n]["sql_query"]};
+                                                //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+n+'"]').length)
+                                                myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
+                                                        '<div class="row form-group" >'+
+                                                        '<div class="col-xs-12">'+
+                                                        '<label for="edit_"'+n+'">'+objJson[i]["myself"][k][l]["dependents"][m][n]["label"]+'</label>'+
+                                                        '</div>'+
+                                                        '<div class="col-xs-12">'+
+                                                        printCurrentType(lObj,mid)+
+                                                        '</div>'+
+                                                        '</div>');
+                                                console.log(myRoot.find('select[name="field_'+n+'"]'));
+                                                console.log(printCurrentType(lObj,mid));
+                                                (function(a,b){
+                                                myRoot.find('select[name="field_'+n+'"]').off('change');
+                                                myRoot.find('select[name="field_'+n+'"]').on('change',function(){
+                                                    console.log('select[name="field_'+n+'"]');
+                                                    var req=cleanupTableName(a["value"]);
+                                                    if(a["value"].indexOf("WHERE")<0){
+                                                        req=req.replace(/order by/g,"where "+b["tfieldf"]+" "+b["operator"]+" "+(b["operator"]=="like"?"'":"")+$(this).val()+(b["operator"]=="like"?"'":"")+" order by")
+                                                    }
+                                                    console.log(req);
+                                                    var res=JSON.parse(window.Android.displayTable(req,[]));
+                                                    myRoot.find('select[name="field_'+a["id"]+'"]').html("");
+                                                    for(ij in res){
+                                                        var tmpStr=' <option value="';
+                                                        var poi=0;
+                                                        for(kl in res[ij]){
+                                                            if(poi==0)
+                                                                tmpStr+=res[ij][kl]+'">';
+                                                            else{
+                                                                tmpStr+=res[ij][kl]+'</otion>';
+                                                                myRoot.find('select[name="field_'+a["id"]+'"]').append(tmpStr);
+                                                            }
+                                                            poi+=1;
+                                                        }
+                                                    }
+
+                                                })
+                                                })(list1[j],objJson[i]["myself"][k][l]["dependents"][m][n]);
+
+                                            }
+                                        }
+                                    }
+
+                                    console.log(objJson[i]["myself"][k][l]["sql_query"]);
+                                    console.log(objJson[i]["myself"][k][l]["label"]);
+                                    var lObj={"id": l,"ftype":refTypeId,"value":objJson[i]["myself"][k][l]["sql_query"]};
+                                    //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+l+'"]').length)
+                                    myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
+                                            '<div class="row form-group" >'+
+                                           '<div class="col-xs-12">'+
+                                           '<label for="edit_"'+l+'">'+objJson[i]["myself"][k][l]["label"]+'</label>'+
+                                           '</div>'+
+                                           '<div class="col-xs-12">'+
+                                           printCurrentType(lObj,mid)+
+                                           '</div>'+
+                                           '</div>');
+                                    console.log(myRoot.find('select[name="field_'+l+'"]'));
+                                    console.log('select[name="field_'+l+'"]');
+                                    (function(a,b,c,d,e){
+                                        myRoot.find('select[name="field_'+a+'"]').on('change',function(){
+                                            console.log('select[name="field_'+a+'"]');
+                                            if(b["dependents"]){
+                                                for(m in b["dependents"]){
+                                                    for(n in b["dependents"][m]){
+                                                        var req=cleanupTableName(b["dependents"][m][n]["sql_query"]);
+                                                        if(req.indexOf("WHERE")<0)
+                                                            req=req.replace(/order by/g," WHERE "+b["tfield"]+" "+b["operator"]+" "+(b["operator"]=="like"?"'":"")+$(this).val()+(b["operator"]=="like"?"'":"")+" order by ");
+                                                        var res=JSON.parse(window.Android.displayTable(req,[]));
+                                                        myRoot.find('select[name="field_'+n+'"]').html("");
+                                                        for(ij in res){
+                                                            var tmpStr=' <option value="';
+                                                            var poi=0;
+                                                            for(kl in res[ij]){
+                                                                if(poi==0)
+                                                                    tmpStr+=res[ij][kl]+'">';
+                                                                else{
+                                                                    tmpStr+=res[ij][kl]+'</otion>';
+                                                                    myRoot.find('select[name="field_'+n+'"]').append(tmpStr);
+                                                                }
+                                                                poi+=1;
+                                                            }
+                                                        }
+                                                        myRoot.find('select[name="field_'+n+'"]').change();
+                                                    }
+                                                }
+                                            }else{
+                                                var req=cleanupTableName(c["value"]);
+                                                var clause=b["tfield"]+" "+b["operator"]+" "+(b["operator"]=="like"?"'":"")+$(this).val()+(b["operator"]=="like"?"'":"");
+                                                if(d.length>1){
+                                                    for(var i=0;i<d.length;i++){
+                                                        if(i!=e){
+                                                            for(kk in d[i])
+                                                                if($('select[name="field_'+kk+'"]').val()!="")
+                                                                clause+=" "+d[i][kk]["cond_join"]+" "+d[i][kk]["tfield"]+" "+d[i][kk]["operator"]+" "+(d[i][kk]["operator"]=="like"?"'":"")+$('select[name="field_'+kk+'"]').val()+(d[i][kk]["operator"]=="like"?"'":"");
+                                                        }
+                                                    }
+                                                }
+                                                if(req.indexOf("wehere")<0)
+                                                    req=req.replace(/order by/g,"where "+clause+" order by");
+                                                try{
+                                                    var res1=JSON.parse(window.Android.displayTable(req,[]));
+                                                    myRoot.find('select[name="field_'+c["id"]+'"]').html("");
+                                                    for(ij1 in res1){
+                                                        var tmpStr=' <option value="';
+                                                        var poi=0;
+                                                        for(kl1 in res1[ij1]){
+                                                            if(poi==0)
+                                                                tmpStr+=res1[ij1][kl1]+'">';
+                                                            else{
+                                                                tmpStr+=res1[ij1][kl1]+'</otion>';
+                                                                myRoot.find('select[name="field_'+c["id"]+'"]').append(tmpStr);
+                                                            }
+                                                            poi+=1;
+                                                        }
+                                                    }
+                                                    if(b["html_template"]){
+                                                        myRoot.find('select[name="field_'+c["id"]+'"]').off('change');
+                                                        myRoot.find('select[name="field_'+c["id"]+'"]').on('change',function(){
+                                                            if(!$(this).parent().find(".html_layout"))
+                                                                $(this).parent().append('<div class="html_layout"></div>');
+
+                                                        });
+                                                    }
+                                                }catch(e){console.log(e);}
+                                                console.log(req);
+                                            }
+                                        });
+                                    })(l,objJson[i]["myself"][k][l],list1[j],objJson[i]["myself"],k);
+
+                                    //if(objJson[i]["myself"][k][l]["dependents"])
+                                        myRoot.find('select[name="field_'+l+'"]').change();
+
+                                }
+                            }
+                        }else
+                            console.log("Basic dependencies!");
+                    }
+                }catch(e){
+                    console.log(e);
+                }
+            }
+
+
         }
+
     myRoot.find(".tab-content").first().children().last().append(
         '<div class="row btn-group" >'+
         '<button class="btn btn-default mm-act-'+(cid.indexOf('_')<0?'save':'add')+'">'+window.Android.translate((cid.indexOf('_')<0?'save':'add'))+'</button>'+
@@ -495,7 +691,7 @@ function runInsertQuery(obj,mid,func){
                 for(var i in editSchema[mid]){
                     for(var j in editSchema[mid][i]){
                         if(editSchema[mid][i][j]["id"]==cid){
-                            if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
+                            if(editSchema[mid][i][j]["name"].indexOf("unamed")<0 && $(this).parent().is(":visible")){
                             if(MM4ME_DEBUG)
                                 console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
                             queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
@@ -583,7 +779,7 @@ function runUpdateQuery(obj,mid,func){
             for(var j in editSchema[mid][i]){
                 if(editSchema[mid][i][j]["id"]==cid){
                     if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
-                    console.log(JSON.stringify(editSchema[mid][i][j]));
+                    //console.log(JSON.stringify(editSchema[mid][i][j]));
                     if(MM4ME_DEBUG)
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
                     query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+"=?";
@@ -683,7 +879,7 @@ function listTable(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -846,38 +1042,59 @@ function listTable(id,name,title,init,prefix){
  * Update a field depending on another field value (i.e region > department)
  *****************************************************************************/
 function updateChangingFields(changingFields){
-    console.log(JSON.stringify(changingFields));
+    if(MM4ME_DEBUG)
+        console.log(JSON.stringify(changingFields));
     try{
     for(var i=0;i<changingFields.length;i++){
         for(var key in changingFields[i]){
             var localFunc=function(changingField){
                 return function(){
                     for(var j=0;j<changingField.length;j++){
-                        for(var ckey in changingField[j]){
+                        for(var ckey in changingField[j])
+                        if (ckey!="myself"){
                             console.log("CKEY: "+ckey);
                             var i=0;
-                            $(this).parent().parent().parent().find("select[name=field_"+changingField[j][ckey]["id"]+"]").html("");
                             var cIndex=changingField[j][ckey]["options"].indexOf($(this).val());
-                            //window.Android.showToast(cIndex+" "+changingField[j][ckey]["values"][cIndex]);
-                            var cnt0=0;
-                            for(i=0;i<changingField[j][ckey]["values"][cIndex].length;i++){
-                                var cnt=0;
-                                var cStr="<option ";
-                                for(var lkey in changingField[j][ckey]["values"][cIndex][i]){
-                                    console.log(changingField[j][ckey]["values"][cIndex][i][lkey]);
-                                    if(cnt==0)
-                                        cStr+=' value="'+changingField[j][ckey]["values"][cIndex][i][lkey]+'"'+(cnt0==0?'" selected="selected"':'')+' >';
-                                    else
-                                        cStr+=changingField[j][ckey]["values"][cIndex][i][lkey]+'</option>';
-                                    cnt+=1;
-                                }
-                                cnt0+=1;
-                                $("select[name=field_"+changingField[j][ckey]["id"]+"]").append(cStr);
-                            }
-                            if(i==0)
-                                $("select[name=field_"+changingField[j][ckey]["id"]+"]").html('<option value="NULL">'+window.Android.translate('none')+'</option>');
-                            $("select[name=field_"+changingField[j][ckey]["id"]+"]").change();
+                            if(cIndex==-1)
+                                try{
+                                    cIndex=changingField[j][ckey]["options"].indexOf(parseInt($(this).val(),10));
+                                }catch(e){}
+                            console.log("CKEY: "+ckey+" "+cIndex);
+                            console.log("CKEY: "+JSON.stringify(changingField[j][ckey]["options"])+" "+$(this).val());
 
+                            if(changingField[j][ckey]["values"][cIndex]){
+                                console.log(cIndex);
+                                $(this).parent().parent().parent().find("select[name=field_"+changingField[j][ckey]["id"]+"]").html("");
+                                //window.Android.showToast(cIndex+" "+changingField[j][ckey]["values"][cIndex]);
+                                var cnt0=0;
+                                for(i=0;i<changingField[j][ckey]["values"][cIndex].length;i++){
+                                    var cnt=0;
+                                    var cStr="<option ";
+                                    for(var lkey in changingField[j][ckey]["values"][cIndex][i]){
+                                        console.log(changingField[j][ckey]["values"][cIndex][i][lkey]);
+                                        if(cnt==0)
+                                            cStr+=' value="'+changingField[j][ckey]["values"][cIndex][i][lkey]+'"'+(cnt0==0?'" selected="selected"':'')+' >';
+                                        else
+                                            cStr+=changingField[j][ckey]["values"][cIndex][i][lkey]+'</option>';
+                                        cnt+=1;
+                                    }
+                                    cnt0+=1;
+                                    $("select[name=field_"+changingField[j][ckey]["id"]+"]").append(cStr);
+                                }
+                                if(i==0)
+                                    $("select[name=field_"+changingField[j][ckey]["id"]+"]").html('<option value="NULL">'+window.Android.translate('none')+'</option>');
+                                $("select[name=field_"+changingField[j][ckey]["id"]+"]").change();
+                            }else{
+                                console.log("DISPLAY ELEMENT IF CINDEX >=0 ");
+                                //console.log(JSON.stringify(changingField[j][ckey]));
+                                console.log('input[name="field_'+ckey+'"],select[name="field_'+ckey+'"],textarea[name="field_'+ckey+'"]');
+                                console.log($('input[name="field_'+changingField[j][ckey]["id"]+'"],select[name="field_'+changingField[j][ckey]["id"]+'"],textarea[name="field_'+changingField[j][ckey]["id"]+'"]').parent().parent().html());
+                                var mycKey=changingField[j][ckey]["id"];
+                                if(cIndex<0)
+                                    $('input[name="field_'+mycKey+'"],select[name="field_'+mycKey+'"],textarea[name="field_'+mycKey+'"]').parent().parent().hide();
+                                else
+                                    $('input[name="field_'+mycKey+'"],select[name="field_'+mycKey+'"],textarea[name="field_'+mycKey+'"]').parent().parent().show();
+                            }
                         }
                     }
                 };
@@ -1033,6 +1250,7 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
 
 }
 
+var onFormFirstLoad=null;
 /*****************************************************************************
  * Show the edit form
  *****************************************************************************/
@@ -1056,13 +1274,127 @@ function displayEditForm(cid,selectedId,basic){
     var notSizedFields=[];
     for(var i in editSchema[cid]){
         for(var j in editSchema[cid][i]){
-            console.log(JSON.stringify(editSchema[cid][i][j]));
+            //console.log(JSON.stringify(editSchema[cid][i][j]));
             if(editSchema[cid][i][j]["ftype"]=="5"){
                 sizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
                 sizedFieldsAlias.push(editSchema[cid][i][j]["id"]);
             }
-            else
+            else{
                 notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
+                try{
+                    var tmp=JSON.parse(editSchema[cid][i][j]["dependencies"]);
+                    var sqlReq="";
+                    var sqlClause="";
+                    var sqlParams="";
+                    var sqlParam=0;
+                    var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+                    var hasDep=false;
+                    var previousElements=[];
+                    for(k in tmp)
+                        for(l in tmp[k]){
+                            //console.log(JSON.stringify(tmp[k][l]));
+                            if(l=="myself"){
+                                for(m in tmp[k][l])
+                                    for(n in tmp[k][l][m]){
+                                            //console.log(JSON.stringify(tmp[k][l][m][n]));
+                                            if(sqlReq!=""){
+                                                sqlReq+=", ";
+                                                sqlParams+=", ";
+                                                //sqlClause+=" WHERE "+alphabet[sqlParam-1]+"."+tmp[k][l][m][n]["tfield"]+"="+alphabet[sqlParam]+"."+tmp[k][l][m][n]["tfield"];
+
+                                            }
+                                            sqlReq+="("+cleanupTableName(tmp[k][l][m][n]["sql_query"])+") as "+alphabet[sqlParam];
+                                            sqlParams+=alphabet[sqlParam]+"."+tmp[k][l][m][n]["tfield"];
+                                            sqlParam+=1;
+                                            if(tmp[k][l][m][n]["dependents"]){
+                                                //console.log(JSON.stringify(tmp[k][l][m][n]["dependents"]));
+                                                for(var o in tmp[k][l][m][n]["dependents"]){
+                                                    //console.log(JSON.stringify(tmp[k][l][m][n]["dependents"][o]));
+                                                    for(var p in tmp[k][l][m][n]["dependents"][o]){
+                                                        console.log(tmp[k][l][m][n]["dependents"][o][p]["sql_query"].replace(/from/,","+tmp[k][l][m][n]["dependents"][o][p]["tfield"]+" from"));
+                                                        sqlReq+=", ("+cleanupTableName(tmp[k][l][m][n]["dependents"][o][p]["sql_query"]).replace(/from/,","+tmp[k][l][m][n]["dependents"][o][p]["tfield"]+" from")+") as b";
+                                                        sqlParams+=", b."+tmp[k][l][m][n]["dependents"][o][p]["tfieldf"];
+                                                        sqlParam+=2;
+                                                        sqlReq+=", ("+cleanupTableName(editSchema[cid][i][j]["value"]).replace(/from/,","+tmp[k][l][m][n]["dependents"][o][p]["tfieldf"]+" from")+") as c";
+
+                                                        sqlClause+=" WHERE c."+tmp[k][l][m][n]["dependents"][o][p]["tfieldf"]+"=b."+tmp[k][l][m][n]["dependents"][o][p]["tfieldf"];
+                                                        sqlClause+=" AND b."+tmp[k][l][m][n]["tfield"]+"=a."+tmp[k][l][m][n]["tfield"];
+                                                        sqlClause+=" AND c.id=(SELECT "+editSchema[cid][i][j]["name"]+" FROM "+cleanupTableName(allTables[cid].name)+" where id="+selectedId+")";
+                                                        hasDep=true;
+                                                    }
+                                                }
+                                            }
+                                    }
+                                if(!hasDep){
+                                    var tmpReq=cleanupTableName(editSchema[cid][i][j]["value"]);
+                                    for(m in tmp[k][l])
+                                        for(n in tmp[k][l][m]){
+                                            tmpReq=tmpReq.replace(/from/,","+tmp[k][l][m][n]["tfield"]+" from");
+                                            if(sqlClause=="")
+                                                sqlClause+=" WHERE ";
+                                            else
+                                                sqlClause+=" "+tmp[k][l][m][n]["cond_join"]+" ";
+                                            sqlClause+=alphabet[m]+"."+tmp[k][l][m][n]["tfield"]+"=a1."+tmp[k][l][m][n]["tfield"];
+                                            sqlClause+="";
+                                        }
+                                    sqlClause+=" AND a1.id=(SELECT "+editSchema[cid][i][j]["name"]+" FROM "+cleanupTableName(allTables[cid].name)+" where id="+selectedId+")";
+                                    //sqlReq=(tmpReq);
+                                    console.log(tmpReq);
+                                    sqlReq+=", ("+tmpReq+") as a1";
+                                }
+                                //console.log(JSON.stringify(tmp[k][l]));
+                                console.log("SELECT "+sqlParams+" FROM "+sqlReq+" "+sqlClause);
+                                var localQuery="SELECT "+sqlParams+" FROM "+sqlReq+" "+sqlClause;
+                                var res0=JSON.parse(window.Android.displayTable(localQuery,[]));
+                                console.log(JSON.stringify(res0));
+                                for(m in res0)
+                                    for(n in res0[m]){
+                                        try{
+                                            console.log("input[name=field_"+n+"],select[name=field_"+n+"],textarea[name=field_"+n+"]");
+                                            /**/
+                                            if($('.mm4me_edition').find("input[name=field_"+n+"],select[name=field_"+n+"],textarea[name=field_"+n+"]").first().length)
+                                                $('.mm4me_edition').find("input[name=field_"+n+"],select[name=field_"+n+"],textarea[name=field_"+n+"]").first().val(res0[m][n]).change();
+                                            else{
+                                                for(m0 in tmp[k][l])
+                                                        for(n0 in tmp[k][l][m0]){
+                                                            /*console.log(n0.indexOf(n)<0);
+                                                            console.log(n);
+                                                            console.log(n0);
+                                                            console.log(res0[m][n]);*/
+                                                            if(n0.indexOf(n)>=0){
+                                                                console.log("input[name=field_"+n0+"],select[name=field_"+n0+"],textarea[name=field_"+n0+"]");
+                                                                if(!$('.mm4me_edition').find("input[name=field_"+n+"],select[name=field_"+n+"],textarea[name=field_"+n+"]").first().length)
+                                                                    $('.mm4me_edition').find("input[name=field_"+n0+"],select[name=field_"+n0+"],textarea[name=field_"+n0+"]").first().val(res0[m][n]).change();
+                                                            }
+                                                        }
+                                            }
+                                        }catch(e){
+                                            console.log(e);
+                                        }
+
+                                    }
+                                //if(tmp[k][l]["dependents"])
+                            }else{
+                                console.log(JSON.stringify(tmp[k][l]));
+                                if(tmp[k][l]["tfield"]=="none"){
+                                    var isNull=JSON.parse(window.Android.displayTable("SELECT CASE WHEN "+l+" is null THEN 1 ELSE 0 END as p FROM "+cleanupTableName(allTables[cid].name)+" where id="+selectedId,[]));
+                                    console.log(JSON.stringify(isNull));
+                                    if(isNull[0]["p"]=="0"){
+                                        console.log(JSON.stringify(isNull));
+                                        console.log("input[name=field_"+editSchema[cid][i][j]["id"]+"],select[name=field_"+editSchema[cid][i][j]["id"]+"],textarea[name=field_"+editSchema[cid][i][j]["id"]+"]");
+                                        console.log(k+"");
+                                        $('.mm4me_edition').find("input[name=field_"+editSchema[cid][i][j]["id"]+"],select[name=field_"+editSchema[cid][i][j]["id"]+"],textarea[name=field_"+editSchema[cid][i][j]["id"]+"]").first().val(k+"").change();
+                                    }
+                                }
+
+                            }
+                        }
+
+                    //if(sqlReq)
+                }catch(e){
+                    console.log(e);
+                }
+            }
             if(editSchema[cid][i][j]["name"].indexOf("unamed")<0)
                 fields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
         }
@@ -1073,7 +1405,7 @@ function displayEditForm(cid,selectedId,basic){
     if(sizedFields.length>0){
         for(var i=0;i<sizedFields.length;i++){
             var hasElement=JSON.parse(window.Android.displayTable("select count("+sizedFields[i]+") as cnt, length("+sizedFields[i]+") as len from "+cleanupTableName(allTables[cid].name)+" where length("+sizedFields[i]+") > 1000000 and "+ccol+"="+selectedId,[]));
-            console.log(JSON.stringify(hasElement[0]));
+            //console.log(JSON.stringify(hasElement[0]));
             if(hasElement[0]["cnt"]!="0"){
                 var nbIteration=parseInt(hasElement[0]["len"])/1000000;
                 var zfields=[]
@@ -1219,7 +1551,7 @@ function listEdit(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -2020,7 +2352,7 @@ function reactOrientation(direction){
             window.Android.startReportDirection();
         else
             window.Android.stopReportDirection();
-        console.log("******* ----- p "+oldBearer+" d "+direction+" diff "+(oldBearer-direction));
+        //console.log("******* ----- p "+oldBearer+" d "+direction+" diff "+(oldBearer-direction));
         if($("#followNorth").is(":checked") && (oldBearer-direction)<-0.05 || (oldBearer-direction)>0.05){
             map.getView().setRotation(-direction);
             oldBearer=direction;

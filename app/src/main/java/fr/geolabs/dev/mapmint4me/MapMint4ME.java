@@ -173,6 +173,10 @@ public class MapMint4ME extends Activity implements
 
     private boolean upgradeMMGPS=false;
 
+    public WebView getMyWebView() {
+        return myWebView;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

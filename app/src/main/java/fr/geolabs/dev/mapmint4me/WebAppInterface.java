@@ -558,7 +558,7 @@ public class WebAppInterface {
         fileSaved=null;
         new Thread(new Runnable() {
             public void run() {
-                fileSaved=_downloadFile(url);
+                fileSaved=_downloadFile(url,0);
             }
         }).start();
     }
@@ -570,6 +570,7 @@ public class WebAppInterface {
     }
 
     private class DownloadFilesTask extends AsyncTask<String, Integer, String> {
+        public int id=0;
         protected String doInBackground(String... urls) {
             int count = urls.length;
             long totalSize = 0;
@@ -578,7 +579,7 @@ public class WebAppInterface {
                 //totalSize += Downloader.downloadFile(urls[i]);
                 //publishProgress((int) ((i / (float) count) * 100));
                 // Escape early if cancel() is called
-                res=_downloadFile(urls[i]);
+                res=_downloadFile(urls[i],id);
                 if (isCancelled()) break;
             }
             return res;
@@ -599,12 +600,22 @@ public class WebAppInterface {
         }
     }
 
+    private int counter=0;
+    @JavascriptInterface
+    public void reinitCounter() {
+        counter=0;
+    }
+
     @JavascriptInterface
     public String downloadFile(final String url) {
         /*DownloadFilesTask myTask = new DownloadFilesTask();
         myTask.execute(url);*/
         try {
-            return new DownloadFilesTask().execute(url).get();
+            DownloadFilesTask tmp=new DownloadFilesTask();
+            tmp.id=counter;
+            tmp.execute(url);
+            counter+=1;
+            return "started";
         }catch(Exception e) {
             return null;
         }
@@ -612,10 +623,10 @@ public class WebAppInterface {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @JavascriptInterface
-    public String _downloadFile(String url) {
+    public String _downloadFile(String url, final int id) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String[] tmp = url.split("/");
-        String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
+        final String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID);
@@ -665,6 +676,12 @@ public class WebAppInterface {
             fos.close();
             bout.close();
             in.close();
+            ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
+                public void run() {
+                    String[] tmp = fileName.split("/");
+                    ((MapMint4ME)mContext).getMyWebView().loadUrl("javascript:postUpdate('"+tmp[tmp.length - 1]+"',"+id+");");
+                }
+            });
             return tmp[tmp.length - 1];
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
@@ -711,6 +728,7 @@ public class WebAppInterface {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
+        mContext.deleteDatabase(dest);
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(srcName);
