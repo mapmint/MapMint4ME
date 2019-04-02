@@ -686,14 +686,21 @@ public class WebAppInterface {
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
+            final String exceptionAsString = sw.toString();
             Log.w("WebAppInterface", exceptionAsString);
+            mBuilder.setContentTitle("Download Failed")
+                    .setProgress(PROGRESS_MAX,PROGRESS_MAX,false);
+            notificationManager.notify(currentId, mBuilder.build());
+            ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
+                public void run() {
+                    String[] tmp = fileName.split("/");
+                    ((MapMint4ME)mContext).getMyWebView().loadUrl("javascript:downloadFailed('"+exceptionAsString+"',"+id+");");
+                }
+            });
+            return null;
             //showToast("Error: " + exceptionAsString);
         }
-        mBuilder.setContentTitle("Download completed")
-                .setProgress(PROGRESS_MAX,PROGRESS_MAX,false);
-        notificationManager.notify(currentId, mBuilder.build());
-        return null;
+
     }
 
     @JavascriptInterface

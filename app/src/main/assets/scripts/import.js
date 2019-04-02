@@ -23,6 +23,10 @@
         }
     }
 
+    function downloadFailed(){
+        currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_failure")+" "+dbs[arguments[1]]+": "+arguments[0]);
+    }
+
 $(function(){
     if(MM4ME_DEBUG)
         console.log('run');
