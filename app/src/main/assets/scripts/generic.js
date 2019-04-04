@@ -21,20 +21,7 @@ if(lang=="fr"){
 
 
 function loadWelcome(){
-    $.ajax({
-        method: "GET",
-        url: "./content/welcome.html",
-        success: function(ldata){
-            $("body").html(ldata);
-            $("body").css("margin","0");
-            $("body").css("padding","0");
-            //$('#myCarousel').css("height",($(window).height()-50)+"px");
-            //$("#myCarousel").css("margin","0");
-            $('.item').css("background-color","#333");
-            $('.carousel-caption').css("color","#fff");
-            $('.item').css("height",($(window).height())+"px");
-        }
-    });
+    window.Android.startWelcomeScreen();
 }
 
 /*****************************************************************************

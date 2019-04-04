@@ -48,15 +48,12 @@
             android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:scheme="http"
                     android:host="*.mapmint.com"
@@ -64,6 +61,12 @@
                 <data
                     android:scheme="https" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".WelcomeScreen"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/generalnotitle"
+            android:hardwareAccelerated="true">
         </activity>
         <provider
             android:name="android.support.v4.content.FileProvider"

@@ -20,4 +20,8 @@
         <item name="android:background">@color/black_overlay</item>
     </style>
 
+    <style name="generalnotitle" parent="FullscreenTheme">
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 </resources>

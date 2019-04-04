@@ -1,4 +1,13 @@
-$(".panel-heading").first().html($(".panel-heading").first().html().replace(/Home/g,window.Android.translate("home")));
+while(true)
+try{
+start();
+break;
+}catch(e){
+console.log(e);
+}
+
+function start(){
+setTimeout(function(){$(".panel-heading").first().html($(".panel-heading").first().html().replace(/Home/g,window.Android.translate("home")));},10);
 $("h2").first().html(window.Android.translate("welcome"));
 $("p").first().html(window.Android.translate("mm4me_welcome_txt"));
 var translatedStrings=[
@@ -32,3 +41,4 @@ getCurrentStatus();
             }
         });
 
+}

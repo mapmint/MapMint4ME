@@ -569,6 +569,12 @@ public class WebAppInterface {
         return fileSaved;
     }
 
+    @JavascriptInterface
+    public void startWelcomeScreen(){
+        ((MapMint4ME) mContext).launchWelcomeScreen();
+        ((MapMint4ME) mContext).finish();
+    }
+
     private class DownloadFilesTask extends AsyncTask<String, Integer, String> {
         public int id=0;
         protected String doInBackground(String... urls) {
@@ -735,7 +741,11 @@ public class WebAppInterface {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
-        mContext.deleteDatabase(dest);
+        try {
+            mContext.deleteDatabase(dest);
+        }catch(Exception e) {
+            Log.d("Unable to delete database!", e.toString());
+        }
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(srcName);
@@ -754,6 +764,7 @@ public class WebAppInterface {
             fos = null;
             return true;
         } catch (Exception e) {
+            Log.d("Unable to copy file database!", e.toString());
             e.printStackTrace();
             return false;
         }

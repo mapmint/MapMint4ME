@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Navbar Template for Bootstrap</title>
+    <title>MapMint4ME Home page</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -145,7 +145,7 @@ body { padding-top: 70px; }
 <script type="text/javascript">
 
     $(window).on('load', function() {
-
+    while(true)
         try{
     try{
 	    //we replace default localStorage with our Android Database one
@@ -183,6 +183,7 @@ body { padding-top: 70px; }
             success: function(data){
                 console.log("Run js after");
                 try{
+                console.log(this.url);
                 $("body").append('<script>'+data+'<\/script>');
                 console.log("ok");
                 }catch(e){
@@ -210,6 +211,7 @@ body { padding-top: 70px; }
                 }
             }
         });
+        break;
         }catch(e){
             console.log("Wait for loading "+e);
         }

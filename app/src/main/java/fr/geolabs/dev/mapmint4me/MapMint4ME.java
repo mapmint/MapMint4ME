@@ -179,11 +179,12 @@ public class MapMint4ME extends Activity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        //mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        //mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         super.onCreate(savedInstanceState);
         mLocationRequest = LocationRequest.create();
         setContentView(R.layout.activity_map_mint4_me);
-        //mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        //mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -296,7 +297,6 @@ public class MapMint4ME extends Activity implements
     private String channel_description="MapMint4ME channel used for notification";
     public String CHANNEL_ID="MapMint4ME-11223344";
 
-
     public void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -306,12 +306,17 @@ public class MapMint4ME extends Activity implements
             int importance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
-            channel.setSound(null, null);
+            //channel.setSound(null, null);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
+    }
+
+    public void launchWelcomeScreen() {
+        startActivity(new Intent(getApplicationContext(), WelcomeScreen.class));
+        finish();
     }
 
     public boolean mInternetActivated=false;
