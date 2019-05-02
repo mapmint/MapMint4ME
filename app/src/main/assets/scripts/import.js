@@ -1,13 +1,17 @@
+    var chooseId=null;
     var currentServer=null;
     var nbDownloads=3;
     var nbDownloaded=0;
-    var dbs=["local.db","edit.db","tiles.db"];
+    var dbs=["local.db","edit.db","tiles.db","baseLayers.json"];
     var current_url;
 
     function postUpdate(){
         console.log("RUN POSTUPDATE! "+arguments[0]+" "+arguments[1]+" "+nbDownloads);
-        currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+dbs[arguments[1]]);
         //var downloadedFile=window.Android.downloadedFile();
+        if(arguments[1]==2 && chooseId==-1)
+            arguments[1]+=1;
+        currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_download_end")+" "+dbs[arguments[1]]);
+        console.log(dbs[arguments[1]]);
         if(!window.Android.copyFile(arguments[0],dbs[arguments[1]])){
             currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_failure"));
             window.Android.reinitCounter();
@@ -30,7 +34,6 @@
 $(function(){
     if(MM4ME_DEBUG)
         console.log('run');
-    var chooseId=null;
 
     updateBreadcrumbs(["home","mm_import"]);
     addStatusControl();
@@ -200,7 +203,9 @@ function doModal(heading, formContent) {
                         $(myData).find("wps\\:Reference").each(function(){
                             if(chooseId==-1 && lcnt0==2){
                                 console.log("Nothing to do!");
-                            }else{
+                                //lcnt0+=1;
+                            }else
+                            if(lcnt0<=2){
                                 var curl=$(this).attr("href");
                                 if(MM4ME_DEBUG)
                                     console.log(curl);
@@ -220,13 +225,21 @@ function doModal(heading, formContent) {
                                 lcnt0+=1;
                             }
                             console.log(dbs[lcnt0]);
-
                         });
+                        $(myData).find("wps\\:Reference").last().each(function(){
+                                                        var curl=$(this).attr("href");
+                                                        if(MM4ME_DEBUG)
+                                                            console.log(curl);
+                                                        //window.Android.notify(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
+                                                        var downloadedFile=window.Android.downloadFile(curl);
+                                                        lcnt0+=1;
+                                                });
                         nbDownloads=lcnt0;
 
                         disconnect(origin_url);
                         return;
                     }
+
                     if(!$(myData).find("wps\\:ProcessSucceeded").length){
                         console.log(data["documentElement"]["outerHTML"]);
                         console.log($(myData).find("wps\\:ProcessStarted").attr("percentCompleted"));
@@ -260,7 +273,7 @@ function doModal(heading, formContent) {
 
     // Invoke the mm4me.createSqliteDB4ME WPS service
     function createSqliteDB4ME(elem,url,cid){
-        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=tileId="+cid+"&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true&storeExecuteResponse=true&status=true";
+        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=tileId="+cid+"&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true;Result3@asReference=true&storeExecuteResponse=true&status=true";
         if(MM4ME_DEBUG)
             console.log(curl);
         $.ajax({
