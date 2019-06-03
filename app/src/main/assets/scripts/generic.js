@@ -257,7 +257,8 @@ function printCurrentType(obj,cid){
                 var res='<script>currentTypes.push(\''+obj["id"]+'_display\');</script> <input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).next().show();$(this).next().next().show();}else {$(this).next().hide();$(this).next().next().hide();}"/>';
                 if(geoType=='POINT' || geoType=='MULTIPOINT' )
                 return res+'<button class="btn btn-default" href="#" onclick="requireGPSPosition(\'field_'+obj["id"]+'\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("use_gps")+'</button>'+
-                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>';
+                    '<div><input type="hidden" name="field_'+obj["id"]+'" value="" data-optional="true" /><h4>GPS Informations</h4><h5>Type <span class="btn_field_'+obj["id"]+'_source"></span></h5><h5>Coords</h5><h5 class="btn_field_'+obj["id"]+'_long"></h5><h5 class="btn_field_'+obj["id"]+'_lat"></h5></div>'+
+                    '<script>$("#'+obj["id"]+'_display").prop("checked",true).change();requireGPSPosition("field_'+obj["id"]+'");</script>';
                 else if(geoType=='LINESTRING' || geoType=='MULTILINESTRING' )
                 return res+'<button class="btn btn-default" href="#" onclick="trackGPSPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawl_gps")+'</button>'+
                     '<button class="btn btn-default" href="#" onclick="trackStepByStepPosition(\'field_'+obj["id"]+'\',\'line\');" id="btn_field_'+obj["id"]+'"><i class="glyphicon glyphicon-map-marker"></i> '+window.Android.translate("drawlm_gps")+'</button>'+
@@ -1684,7 +1685,7 @@ function authenticate(url,login,passwd,func,func1){
 /*****************************************************************************
  * Disconnect a user
  *****************************************************************************/
-function disconnect(url){
+function disconnect(url,func,func1){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogOut&DataInputs=&RawDataOutput=Result";
     if(MM4ME_DEBUG)
         console.log(curl);
@@ -1696,12 +1697,18 @@ function disconnect(url){
                 console.log(data);
                 console.log("** Your are no more connected!");
             }
+            if(func){
+                            func();
+                        }
         },
         error: function(){
             if(MM4ME_DEBUG){
                 console.log(curl);
                 console.log("unable to disconnect!");
             }
+            if(func1){
+                            func1();
+                        }
         }
     });
 }
@@ -2125,11 +2132,58 @@ function addStatusControl(){
 /*****************************************************************************
  * Initialize the map and show the current GPS location
  *****************************************************************************/
-var localTiles;
+var localTiles,localTiles0;
+var tileLayers=[];
 function initMapToLocation(){
     if(map)
         return;
     var osmSource = new ol.source.OSM();
+
+    var otherLayers=[];
+    var otherLayersSwitcher="";
+    try{
+        var BasesLayersStr=window.Android.getBaseLayers();
+        console.log(BasesLayersStr);
+        var BasesLayers=JSON.parse(BasesLayersStr);
+        for(var i=0;i<BasesLayers.length;i++){
+            for(var j in BasesLayers[i]){
+                if(j=="wmts"){
+                    for(var k=0;k<BasesLayers[i][j]["layers"].length;k++){
+                         var cbLayer=BasesLayers[i][j]["layers"][k].split("|");
+                         otherLayers.push({
+                            olLayer: new ol.source.XYZ({
+                                attributions: [
+                                    BasesLayers[i][j]["attribution"]
+                                ],
+                                url: cbLayer[1],
+                                maxZoom: 19
+                            }),
+                            label: cbLayer[3]
+                         });
+                    }
+                }else{
+                    if(j=="bing"){
+                        for(var k=0;k<BasesLayers[i][j]["layers"].length;k++){
+                            var cbLayer=BasesLayers[i][j]["layers"][k];
+                            console.log(cbLayer);
+                            otherLayers.push({
+                                olLayer: new ol.source.BingMaps({
+                                        imagerySet: cbLayer,
+                                        key: BasesLayers[i][j]["key"]
+                                }),
+                                label: "Bing "+BasesLayers[i][j]["all_layer_labels"][BasesLayers[i][j]["all_layers"].indexOf(cbLayer)]
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        console.log(BasesLayersStr);
+
+    }catch(e){
+        console.log(e);
+    }
+
     localTiles = new ol.source.XYZ({
         tileLoadFunction:
         function(imageTile, src) {
@@ -2146,10 +2200,65 @@ function initMapToLocation(){
     var tmp=JSON.parse(window.Android.getGNStatus());
     var layers=[new ol.layer.Tile({source: localTiles})];
     console.log(JSON.stringify(tmp));
-    if(tmp["net"])
+    if(tmp["net"]){
         layers=[new ol.layer.Tile({
             source: osmSource
         })];
+        for(var i=0;i<otherLayers.length;i++){
+            //layers.push(new ol.layer.Tile({source: otherLayers[i]["olLayer"]}));
+            (function(i){
+                setTimeout(function(){
+                    console.log($("#mm4meLSTemplate").length);
+                    console.log(i);
+                    $("#layerSwitcherCheck").parent().parent().parent().append($("#mm4meLSTemplate")[0].innerHTML.replace(/IDENT/g,i).replace(/LABEL/,otherLayers[i]["label"]));
+                    $("#layerSwitcherCheck_"+i).off('change');
+                    (function(i){
+                        $("#layerSwitcherCheck_"+i).on('change',function(){
+                            if($(this).parent().find("i").hasClass("glyphicon-eye-open")){
+                                $("#dmopacity_"+i).hide();
+                                $(this).parent().find("i").removeClass("glyphicon-eye-open").addClass("glyphicon-eye-close");
+                                if(map.getLayers().getLength()>=4)
+                                    map.getLayers().item(otherLayers[i]["index"]).setVisible(false);
+                            }else{
+                                $(this).parent().find("i").removeClass("glyphicon-eye-close").addClass("glyphicon-eye-open");
+                                $("#dmopacity_"+i).show();
+                                console.log(JSON.stringify(map.getLayers().getLength()));
+                                if(!otherLayers[i]["index"]){
+                                    var myTileLayer=new ol.layer.Tile({source: otherLayers[i]["olLayer"]});
+                                    var layers = map.getLayers();
+                                    layers.insertAt(tileLayers.length+1,myTileLayer);
+                                    otherLayers[i]["index"]=tileLayers.length+1;
+                                    tileLayers.push(myTileLayer);
+                                    if(localTileIndex>0)
+                                        localTileIndex+=1;
+                                }
+                                else
+                                    map.getLayers().item(otherLayers[i]["index"]).setVisible(true);
+                            }
+                        });
+                        $(".map").parent().find("input[type=range]").last().on('change',function(){
+                            console.log("change to "+$(this).val());
+                            map.getLayers().item(otherLayers[i]["index"]).setOpacity($(this).val()/100);
+                        });
+
+                    })(i);
+                    $(".map").parent().find("input[type=checkbox]").parent().off('click');
+                                    $(".map").parent().find("input[type=checkbox]").parent().on('click',function(){
+                                        var tmp=$(this).find("input[type=checkbox]");
+                                        if(tmp.is(":checked")){
+                                            $(this).find("input[type=checkbox]").prop("checked",false).change();
+                                            $(this).addClass("select");
+                                        }
+                                        else{
+                                            $(this).find("input[type=checkbox]").prop("checked",true).change();
+                                            $(this).removeClass("select");
+                                        }
+                                    });
+
+                },1);
+            })(i)
+        }
+    }
     map = new ol.Map({
         layers: layers,
         target: 'map',
@@ -2312,12 +2421,12 @@ function addOptionalLocalTiles(shouldFixPosition){
                             //map.addLayer(new ol.layer.Tile({source: localTiles}));
                             var myTileLayer=new ol.layer.Tile({source: localTiles});
                             var layers = map.getLayers();
-                            layers.insertAt(1,myTileLayer);
+                            layers.insertAt(tileLayers.length+1,myTileLayer);
                             //var myTileLayer=map.getLayers()[map.getLayers().getLength()-1];
                             //map.raiseLayer(myTileLaye, 1);
                             //map.setLayerIndex(myTileLayer,1);
                             //map.redraw();
-                            localTileIndex=1;
+                            localTileIndex=tileLayers.length+1;
                         }
                         else
                             map.getLayers().item(localTileIndex).setVisible(true);

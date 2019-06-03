@@ -5,7 +5,7 @@
     display: table;
     position: relative;
     height: 25px;
-    margin-top: 20px;
+    margin-top: 0px;
     background-color: rgb(245, 245, 245);
     border-radius: 4px;
     -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -110,17 +110,38 @@
 <div id="mm4me_ls" class="dropup" style="position: absolute; left: 20px; bottom: 15px;z-index: 1000;opacity: 0.8;">
     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Options
         <span class="caret"></span></button>
-    <ul class="dropdown-menu" style="width:100%;">
-        <li><a href="#"><input id="followNorth" type="checkbox" />  <i class="glyphicon glyphicon-arrow-up"></i> Point north </a></li>
-        <li><a href="#"><input id="layerSwitcherCheck" type="checkbox" /> <i class="glyphicon glyphicon-eye-close"> </i> Local tiles &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+    <ul class="dropdown-menu" style="width:370px;">
+        <li><a href="#"><input id="followNorth" type="checkbox" style="display:none" />  <i class="glyphicon glyphicon-arrow-up"></i> Point north </a></li>
+        <li><a href="#"><input id="layerSwitcherCheck" type="checkbox"  style="display:none"/> <i class="glyphicon glyphicon-eye-close"> </i> Local tiles &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
         <li id="dmopacity" style="display:none">
             <a href="#">
-                <i class="glyphicon glyphicon-adjust"> </i> Opacity
-                <div class="range range-primary" >
-                    <input type="range" name="range" min="1" max="100" value="100" onchange="range.value=value">
-                    <output id="range">100</output>
+                <div class="col-xs-4">
+                    <i class="glyphicon glyphicon-adjust"> </i> Opacity
+                </div>
+                <div class="col-xs-8">
+                    <div class="range range-primary" >
+                        <input type="range" name="range" min="1" max="100" value="100" onchange="range.value=value" />
+                        <output id="range">100</output>
+                    </div>
                 </div>
             </a>
         </li>
     </ul>
 </div>
+
+<script type="text/template" id="mm4meLSTemplate" >
+    <li><a href="#"><input id="layerSwitcherCheck_IDENT" type="checkbox"  style="display:none"/> <i class="glyphicon glyphicon-eye-close"> </i> LABEL</a></li>
+    <li id="dmopacity_IDENT" style="display:none">
+        <a href="#">
+            <div class="col-xs-4">
+                <i class="glyphicon glyphicon-adjust"> </i> Opacity
+            </div>
+            <div class="col-xs-8">
+                <div class="range range-primary" >
+                    <input type="range" name="rangeIDENT" min="1" max="100" value="100" onchange="rangeIDENT.value=value;/*$(this).val(value);$(this).next().text(value);*/" />
+                    <output id="rangeIDENT">100</output>
+                </div>
+            </div>
+        </a>
+    </li>
+</script>

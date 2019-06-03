@@ -575,6 +575,24 @@ public class WebAppInterface {
         ((MapMint4ME) mContext).finish();
     }
 
+    @JavascriptInterface
+    public void keepScreenOn(){
+        ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
+            public void run() {
+                ((MapMint4ME) mContext).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void screenCanGoOff(){
+        ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
+            public void run() {
+                ((MapMint4ME) mContext).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+    }
+
     private class DownloadFilesTask extends AsyncTask<String, Integer, String> {
         public int id=0;
         protected String doInBackground(String... urls) {
@@ -663,10 +681,12 @@ public class WebAppInterface {
             int myCnt=0;
             Log.w("WebAppInterface", ""+fileLenth);
             int lTot=fileLenth/1024;
+            if(lTot==0)
+                lTot=1;
             while ((x = in.read(data, 0, 1024)) >= 0) {
                 bout.write(data, 0, x);
                 myCnt+=x;
-                if(myCnt==fileLenth || y%5==0){
+                if(myCnt==fileLenth || y%15==0){
                     mBuilder.setContentText((myCnt/(1024*1024))+" / "+(fileLenth/(1024*1024))+" Mb")
                             .setProgress(PROGRESS_MAX, (y*100)/lTot, false);
                     notificationManager.notify(currentId, mBuilder.build());
@@ -719,6 +739,21 @@ public class WebAppInterface {
         ((MapMint4ME)mContext).stopReportDirection();
     }
 
+    @JavascriptInterface
+    public String getBaseLayers() throws JSONException, IOException {
+        File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
+        String srcName = asset_dir.getAbsolutePath() + File.separator + "baseLayers.json";
+        File fin0 = new File(srcName);
+        if(fin0.exists()) {
+            FileInputStream fin = new FileInputStream(srcName);
+            byte[] buffer = new byte[(int)fin0.length()];
+            int r;
+            while ((r = fin.read(buffer)) != -1) {
+                return new String(buffer);
+            }
+        }
+        return null;
+    }
 
     @JavascriptInterface
     public String getGNStatus() throws JSONException {
@@ -741,11 +776,11 @@ public class WebAppInterface {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
-        try {
+        /*try {
             mContext.deleteDatabase(dest);
         }catch(Exception e) {
             Log.d("Unable to delete database!", e.toString());
-        }
+        }*/
         FileInputStream fin = null;
         try {
             fin = new FileInputStream(srcName);
@@ -885,7 +920,7 @@ public class WebAppInterface {
             FileInputStream inputStream = new FileInputStream(mContext.getFilesDir()+File.separator+"data"+ File.separator + file);
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            byte [] buffer               = new byte[ 4096 ];
+            byte [] buffer               = new byte[ 512 ];
 
             int n = 0;
             while (-1 != (n = inputStream.read(buffer))) {

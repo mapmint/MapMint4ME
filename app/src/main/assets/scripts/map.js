@@ -6,6 +6,7 @@
     addOptionalLocalTiles();
     //$('.breadcrumb').append('<li>Point north <input id="followNorth" type="checkbox" /></li>');
 
+
     $("#map").css("height",($(window).height()-150)+"px");
     try{
         console.log("initMapToLocation");

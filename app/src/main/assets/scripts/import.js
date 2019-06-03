@@ -25,6 +25,7 @@
             currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
             window.Android.reinitCounter();
         }
+        window.Android.screenCanGoOff();
     }
 
     function downloadFailed(){
@@ -83,7 +84,12 @@ $(function(){
             var closure=a;
             return function(){
                 closure1=$(this);
-                authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);console.log(closure1);checkTilesList(closure1,closure["url"]);});
+                authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);console.log(closure1);checkTilesList(closure1,closure["url"]);},function(){
+                    disconnect(closure["url"],function(){
+                        authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);console.log(closure1);checkTilesList(closure1,closure["url"]);});
+                    });
+
+                });
             }
         };
         $(".media-list").find("button").last().click(cmd(list[i]));
@@ -273,6 +279,7 @@ function doModal(heading, formContent) {
 
     // Invoke the mm4me.createSqliteDB4ME WPS service
     function createSqliteDB4ME(elem,url,cid){
+        window.Android.keepScreenOn();
         var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=tileId="+cid+"&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true;Result3@asReference=true&storeExecuteResponse=true&status=true";
         if(MM4ME_DEBUG)
             console.log(curl);
