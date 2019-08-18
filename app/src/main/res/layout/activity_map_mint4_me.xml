@@ -9,7 +9,32 @@
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
+    <Button
+        android:id="@+id/button2"
+        style="@android:style/Widget.Button"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="right|bottom"
+        android:background="@drawable/draw"
 
+        android:onClick="OnButtonClickD"
+        android:text="AR Draw"
+
+        />
+
+    <Button
+        android:id="@+id/button3"
+        style="@android:style/Widget.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|bottom"
+        android:background="@drawable/circle"
+        android:fontFamily="sans-serif-smallcaps"
+        android:onClick="OnButtonClickS"
+        android:text="AR Scale"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="#aaff00"
+        android:typeface="normal" />
     <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

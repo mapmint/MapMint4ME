@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fr.geolabs.dev.mapmint4me="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
     package="fr.geolabs.dev.mapmint4me">
+
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,7 +15,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL"
+        tools:ignore="ProtectedPermissions" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="21" />
@@ -31,6 +35,8 @@
         android:name="fr.meteolib.android.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
     <uses-permission android:name="fr.meteolib.android.permission.C2D_MESSAGE" />
+
+    <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
 
 
     <application
@@ -82,6 +88,14 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+
+
+
+        <activity android:name="com.hl3hl3.arcoremeasure.ArMeasureActivity"/>
+        <activity android:name="drawar.DrawAR"/>
+        <meta-data android:name="com.google.ar.core" android:value="required" />
+
     </application>
 
 </manifest>

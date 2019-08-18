@@ -3,7 +3,7 @@
     <color name="colorPrimary">#3f51b5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-
+    <color name="active">@android:color/holo_blue_dark</color>
     <color name="black_overlay">#66000000</color>
 
         <!-- Screens background color-->
@@ -17,6 +17,14 @@
         <color name="dot_inactive_screen1">#ffa000</color>
         <color name="dot_inactive_screen2">#008c57</color>
         <color name="dot_inactive_screen3">#0e1e49</color>
+
+
+    <color name="gray">@android:color/darker_gray</color>
+
+    <color name="black">#666666</color>
+    <color name="blue">#599eff</color>
+    <color name="line">#aaaaaa</color>
+    <color name="white">#efefef</color>
 
     <array name="dot_on_page_active">
         <item>#8BC34A</item>

@@ -94,4 +94,21 @@
     <string name="play_again_desc">To see the welcome slider again, goto Settings -> apps -> welcome slider -> clear data</string>
     <string name="play_again">Play Again</string>
     <!-- /Slides -->
+
+
+    <string name="ok" translatable="false">OK</string>
+
+    <string name="need_permission" translatable="false">Camera permission is needed to run this application</string>
+
+    <string name="not_support" translatable="false">This device does not support AR. </string>
+
+    <string name="action_1" translatable="false" >Delete</string>
+    <string name="action_2" translatable="false">Set as first</string>
+    <string name="action_3" translatable="false">Horizontal move</string>
+    <string name="action_4" translatable="false">Vertical move</string>
+
+    <string name="action_1_toast" translatable="false">Remove this cube.</string>
+    <string name="action_2_toast" translatable="false">Reorder and set this cube to the first.</string>
+    <string name="action_3_toast" translatable="false">Move on x and z axis.</string>
+    <string name="action_4_toast" translatable="false">Move on y axis.</string>
 </resources>
