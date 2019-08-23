@@ -51,8 +51,7 @@ public class CloudAnchor extends AppCompatActivity {
 
         anchorid =(EditText)findViewById(R.id.editText);
         resolve=(Button)findViewById(R.id.resolve);
-
-
+        
 
         arFragment = (CustomArFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
