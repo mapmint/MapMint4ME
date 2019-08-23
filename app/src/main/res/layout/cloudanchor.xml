@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/resolve"
+        style="@android:style/Widget.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:onClick="OnButtonClick"
+        android:background="@drawable/circle2"
+        android:textColor="#ffffff"
+        android:fontFamily="sans-serif-smallcaps"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:typeface="normal"
+        android:text="Resolve" />
+
+    <fragment
+        android:id="@+id/fragment"
+        android:name="fr.geolabs.dev.mapmint4me.CustomArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="115dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:ems="10"
+        android:hint="Room Code"
+        android:inputType="number"
+        android:textColor="#FFFFFF" />
+
+
+
+</RelativeLayout>

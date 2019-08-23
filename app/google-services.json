@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "330195530896",
+    "firebase_url": "https://mapmint4meo.firebaseio.com",
+    "project_id": "mapmint4meo",
+    "storage_bucket": "mapmint4meo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330195530896:android:7b763fa19e5f1685",
+        "android_client_info": {
+          "package_name": "fr.geolabs.dev.mapmint4me"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "330195530896-a960pga83drjqsmd1p5n0l84pradsa1l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fr.geolabs.dev.mapmint4me",
+            "certificate_hash": "ff2b0d70f42941f42a93c27e07470d25cbca0587"
+          }
+        },
+        {
+          "client_id": "330195530896-3k58vvvf50j35dvqba4n9o9nag25ej56.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCq3VvJ7SEZUgut7y9_btAWI9G8qSUNRxs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330195530896-3k58vvvf50j35dvqba4n9o9nag25ej56.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

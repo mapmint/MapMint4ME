@@ -90,11 +90,16 @@
             android:value="@integer/google_play_services_version" />
 
 
-
+        <activity android:name=".CloudAnchor"/>
 
         <activity android:name="com.hl3hl3.arcoremeasure.ArMeasureActivity"/>
         <activity android:name="drawar.DrawAR"/>
         <meta-data android:name="com.google.ar.core" android:value="required" />
+
+
+
+
+        <meta-data android:name="com.google.android.ar.API_KEY" android:value="AIzaSyDTsutwy3QvhFRNGRbnRPa4pxdRoJNK61Q"/>
 
     </application>
 
