@@ -293,6 +293,31 @@ public class MapMint4ME extends Activity implements
         }
     }
 
+    public void OnButtonClickS(View V)
+    {
+
+        Toast.makeText(this, "AR Scale", Toast.LENGTH_SHORT).show();
+        Intent i = new Intent(MapMint4ME.this, com.hl3hl3.arcoremeasure.ArMeasureActivity.class);
+        startActivity(i);
+
+    }
+    public void OnButtonClickD(View V)
+    {
+
+        Toast.makeText(this, "AR Draw", Toast.LENGTH_SHORT).show();
+        Intent i = new Intent(MapMint4ME.this, drawar.DrawAR.class);
+        startActivity(i);
+    }
+
+
+
+
+
+
+
+
+
+
     private String channel_name="MapMint4ME";
     private String channel_description="MapMint4ME channel used for notification";
     public String CHANNEL_ID="MapMint4ME-11223344";
