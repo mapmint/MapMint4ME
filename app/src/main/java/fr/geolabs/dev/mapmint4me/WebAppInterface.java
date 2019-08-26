@@ -114,9 +114,9 @@ public class WebAppInterface {
                 .setContentText(msg)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-                // Set the intent that will fire when the user taps the notification
-                //.setContentIntent(pendingIntent);
-                //.setAutoCancel(true);
+        // Set the intent that will fire when the user taps the notification
+        //.setContentIntent(pendingIntent);
+        //.setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
         currentId++;
@@ -441,25 +441,25 @@ public class WebAppInterface {
     /**
      * Set mTop to true/false from the web page
 
-    @JavascriptInterface
-    public String getOrientation() throws JSONException{
-        try {
-            ((MapMint4ME)mContext).updateOrientationAngles();
-            float[] res=((MapMint4ME)mContext).getOrientationAngles();
-            Log.e("Error", "" + res.toString());
-            JSONArray jsonArray = new JSONArray();
-            for(int i=0;i<3;i++)
-                jsonArray.put(i,res[i]);
-            float[] res1=((MapMint4ME)mContext).getRotationMatrix();
-            Log.e("Error", "" + res.toString());
-            for(int i=0;i<3;i++)
-                jsonArray.put(i+3,res1[i]);
-            return jsonArray.toString();
-        } catch (Exception e) {
-            Log.e("Error", "" + e.toString());
-            return e.toString();
-        }
-    }*/
+     @JavascriptInterface
+     public String getOrientation() throws JSONException{
+     try {
+     ((MapMint4ME)mContext).updateOrientationAngles();
+     float[] res=((MapMint4ME)mContext).getOrientationAngles();
+     Log.e("Error", "" + res.toString());
+     JSONArray jsonArray = new JSONArray();
+     for(int i=0;i<3;i++)
+     jsonArray.put(i,res[i]);
+     float[] res1=((MapMint4ME)mContext).getRotationMatrix();
+     Log.e("Error", "" + res.toString());
+     for(int i=0;i<3;i++)
+     jsonArray.put(i+3,res1[i]);
+     return jsonArray.toString();
+     } catch (Exception e) {
+     Log.e("Error", "" + e.toString());
+     return e.toString();
+     }
+     }*/
 
     private LocalDB db = null;
 
@@ -570,10 +570,32 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void startWelcomeScreen(){
-        ((MapMint4ME) mContext).launchWelcomeScreen();
-        ((MapMint4ME) mContext).finish();
+
+    public void startWelcomeScreen(String s) {
+
+        if (s.equals("scale")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen2();
+            ((MapMint4ME) mContext).finish();
+        }
+        if (s.equals("draw")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen3();
+            ((MapMint4ME) mContext).finish();
+        }
+        if (s.equals("cloud")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen4();
+            ((MapMint4ME) mContext).finish();
+        }
+        if (s.equals("help")) {
+            ((MapMint4ME) mContext).launchWelcomeScreen();
+            ((MapMint4ME) mContext).finish();
+        }
     }
+
+
+
 
     @JavascriptInterface
     public void keepScreenOn(){
@@ -759,7 +781,7 @@ public class WebAppInterface {
     public String getGNStatus() throws JSONException {
         JSONObject json = new JSONObject();
         ConnectivityManager connectivityManager
-            = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         json.put("net",(activeNetworkInfo!=null&&activeNetworkInfo.isConnected()));
         try{

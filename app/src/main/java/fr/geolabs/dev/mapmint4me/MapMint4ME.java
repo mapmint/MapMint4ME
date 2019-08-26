@@ -293,21 +293,6 @@ public class MapMint4ME extends Activity implements
         }
     }
 
-    public void OnButtonClickS(View V)
-    {
-
-        Toast.makeText(this, "AR Scale", Toast.LENGTH_SHORT).show();
-        Intent i = new Intent(MapMint4ME.this, com.hl3hl3.arcoremeasure.ArMeasureActivity.class);
-        startActivity(i);
-
-    }
-    public void OnButtonClickD(View V)
-    {
-
-        Toast.makeText(this, "AR Draw", Toast.LENGTH_SHORT).show();
-        Intent i = new Intent(MapMint4ME.this, drawar.DrawAR.class);
-        startActivity(i);
-    }
 
 
 
@@ -339,8 +324,20 @@ public class MapMint4ME extends Activity implements
         }
     }
 
+
     public void launchWelcomeScreen() {
         startActivity(new Intent(getApplicationContext(), WelcomeScreen.class));
+        finish();
+    }
+    public void launchWelcomeScreen2() {
+        startActivity(new Intent(getApplicationContext(), com.hl3hl3.arcoremeasure.ArMeasureActivity.class));
+        finish();
+    }
+    public void launchWelcomeScreen3() {
+        startActivity(new Intent(getApplicationContext(), drawar.DrawAR.class));
+        finish();
+    } public void launchWelcomeScreen4() {
+        startActivity(new Intent(getApplicationContext(), CloudAnchor.class));
         finish();
     }
 
