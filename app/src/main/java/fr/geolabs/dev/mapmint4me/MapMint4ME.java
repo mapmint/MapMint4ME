@@ -4,12 +4,18 @@ import android.*;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -28,6 +34,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -126,7 +133,9 @@ public class MapMint4ME extends Activity implements
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
     private NotificationManager mManager;
+    private boolean hasLocalTiles = false ;
     private String TAG = "MapMint4ME";
+
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -176,6 +185,188 @@ public class MapMint4ME extends Activity implements
     public WebView getMyWebView() {
         return myWebView;
     }
+    private String mFilename;
+    private boolean tilesDownloading=false;
+
+    private long downloadID;
+
+    public boolean getDownloadStatus(){
+        return tilesDownloading;
+    }
+
+
+    private class DownloadFilesCheckingTask extends AsyncTask<String, Integer, String> {
+        public int id=0;
+        private AlertDialog dialog;
+        private AlertDialog.Builder builder;
+
+        protected void onPreExecute() {
+            super.onPreExecute();
+            builder = new AlertDialog.Builder(MapMint4ME.this);
+        }
+
+        @Override
+        protected String doInBackground(String... bb) {
+            String res=null;
+            while(tilesDownloading) {
+                DownloadManager downloadManager=(DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Query q = new DownloadManager.Query();
+                q.setFilterById(downloadID);
+                Log.i("handleData()", "Handling data");
+                Cursor c = downloadManager.query(q);
+                if (c.moveToFirst()) {
+                    Log.i("handleData()", "Download ID: " + downloadID + " / " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_ID)));
+                    Log.i("handleData()", "Download Status: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS)));
+                    switch(c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))){
+                        case DownloadManager.STATUS_SUCCESSFUL:
+                            Log.i("handleData()", "Download Successful ");
+                            return "Download successfull.";
+                        case DownloadManager.STATUS_FAILED:
+                            Log.i("handleData()", "Failed: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                            return "Download failed, an error occured (code: "+c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON))+").";
+                        case DownloadManager.STATUS_PENDING:
+                            Log.i("handleData()", "Pending: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                            break;
+                        case DownloadManager.STATUS_RUNNING:
+                            Log.i("handleData()", "Running: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                            return "Download started, you should see the progress status in your notifications bar.";
+                        case DownloadManager.STATUS_PAUSED:
+                            Log.i("handleData()", "Paused: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                            break;
+
+                    }
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            builder.setMessage(result);
+            builder.setPositiveButton("OK", new OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User clicked OK button
+                    dialog.dismiss();
+                }
+            });
+            dialog = builder.create();
+            dialog.show();
+        }
+
+        public void myProgressPublication(int val){
+            publishProgress(val);
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+            setProgressPercent(progress[0]);
+        }
+
+        public void setProgressPercent(Integer... progress){
+
+        }
+        protected void onPostExecute(Long result) {
+            //showDialog("Downloaded " + result + " bytes");
+        }
+    }
+
+    private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //Fetching the download id received with the broadcast
+            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+            //Checking if the received broadcast is for our enqueued download by matching download id
+            if (downloadID == id) {
+                mWebAppInterface.copyFileA(mFilename,"tiles.db");
+                Toast.makeText(MapMint4ME.this, R.string.tiles_download_success, Toast.LENGTH_SHORT).show();
+                tilesDownloading=false;
+                hasLocalTiles = true ;
+                DownloadManager downloadManager=(DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                downloadManager.remove(id);
+            }
+        }
+    };
+
+    public void beginDownload(String url,String filename){
+        mFilename=filename;
+        File file=new File(getExternalFilesDir(null),filename);
+        /*
+        Create a DownloadManager.Request with all the information necessary to start the download
+         */
+        DownloadManager.Request request= null;// Set if download is allowed on roaming network
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            request = new DownloadManager.Request(Uri.parse(url))
+                        .setTitle(getString(R.string.tiles_database))// Title of the Download Notification
+                        .setDescription(getString(R.string.database_download_message))// Description of the Download Notification
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)// Visibility of the download Notification
+                        .setDestinationUri(Uri.fromFile(file))// Uri of the destination file
+                        .setRequiresCharging(false)// Set if charging is required to begin the download
+                        .setRequiresDeviceIdle(false)
+                        .setAllowedOverMetered(true)// Set if download is allowed on Mobile network
+                        .setAllowedOverRoaming(true);
+            Log.d(TAG, "Version support setRequiresCharging.");
+        }else {
+            request = new DownloadManager.Request(Uri.parse(url))
+                    .setTitle(getString(R.string.tiles_database))// Title of the Download Notification
+                    .setDescription(getString(R.string.database_download_message))// Description of the Download Notification
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)// Visibility of the download Notification
+                    .setDestinationUri(Uri.fromFile(file))// Uri of the destination file
+                    .setAllowedOverMetered(true)// Set if download is allowed on Mobile network
+                    .setAllowedOverRoaming(true);
+            Log.d(TAG, "Version does not support setRequiresCharging.");
+        }
+        DownloadManager downloadManager=(DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        tilesDownloading=true;
+        hasLocalTiles = false ;
+        Log.d(TAG, "ENQUEUE START.");
+        Log.d(TAG, "ENQUEUE START."+downloadManager.getMaxBytesOverMobile(this));
+        downloadID = downloadManager.enqueue(request);// enqueue puts the download request in the queue.
+        DownloadManager.Query q = new DownloadManager.Query();
+        q.setFilterById(downloadID);
+        Log.i("handleData()", "Handling data");
+        Cursor c = downloadManager.query(q);
+        if (c.moveToFirst()) {
+            Log.i("handleData()", "Download ID: " + downloadID + " / " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_ID)));
+            Log.i("handleData()", "Download Status: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS)));
+            switch(c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))){
+                case DownloadManager.STATUS_SUCCESSFUL:
+                    Log.i("handleData()", "Download Successful ");
+                    break;
+                case DownloadManager.STATUS_FAILED:
+                    Log.i("handleData()", "Failed: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                    break;
+                case DownloadManager.STATUS_PENDING:
+                    Log.i("handleData()", "Pending: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                    break;
+                case DownloadManager.STATUS_RUNNING:
+                    Log.i("handleData()", "Running: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                    break;
+                case DownloadManager.STATUS_PAUSED:
+                    Log.i("handleData()", "Paused: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+                    break;
+
+            }
+            if (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                String uriString = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
+                Log.i("handleData()", "Download URI: " + uriString);
+            } else if (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_FAILED) {
+                Log.i("handleData()", "Reason: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
+            }
+        }
+        DownloadFilesCheckingTask tmp=new DownloadFilesCheckingTask();
+        tmp.id=1;
+
+        tmp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                //tmp.execute();
+        Log.d(TAG, "ENQUEUE END.");
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +376,7 @@ public class MapMint4ME extends Activity implements
         super.onCreate(savedInstanceState);
         mLocationRequest = LocationRequest.create();
         setContentView(R.layout.activity_map_mint4_me);
+        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -384,6 +576,8 @@ public class MapMint4ME extends Activity implements
 
     @Override
     public void onStart() {
+        //registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        //registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         super.onStart();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -393,8 +587,16 @@ public class MapMint4ME extends Activity implements
     }
 
     @Override
+    public void onDestroy() {
+        unregisterReceiver(onDownloadComplete);
+        super.onDestroy();
+    }
+
+    @Override
     public void onStop() {
+        //unregisterReceiver(onDownloadComplete);
         super.onStop();
+
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -405,7 +607,11 @@ public class MapMint4ME extends Activity implements
     private SensorManager mSensorManager;
     @Override
     protected void onResume() {
-        super.onResume();
+        try {
+            super.onResume();
+        } finally {
+            Log.d(TAG, "Handled error onResume!!");
+        }
         Sensor gsensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Sensor msensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mSensorManager.registerListener(this, gsensor, SensorManager.SENSOR_DELAY_NORMAL);

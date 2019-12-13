@@ -54,4 +54,38 @@
     <string name="noserver_btn">Ajouter un serveur</string>
     <string name="map">Carte</string>
     <string name="no_gps">Pas de position GPS</string>
+    <string name="delete">Supprimer</string>
+    <string name="insert_success">Enregistrement réussi</string>
+    <string name="update_success" >Mise à jour réussie</string>
+    <string name="description">Importer, Éditer, Exporter</string>
+    <string name="delete_success">Suppression réussie</string>
+    <string name="drawlm_gps">Trace GPS (manuelle)</string>
+    <string name="drawpm_gps">Trace GPS (manuelle)</string>
+    <string name="about_property">L\'applciation a été développée et publiée sur GooglePlay™ par GeoLabs SARL</string>
+    <!-- Slides -->
+    <string name="title_activity_welcome">Home Screen</string>
+    <string name="next">Suivant</string>
+    <string name="skip">Sauter</string>
+    <string name="introduction"><![CDATA[<ul>
+                    <li><b>Importer vos données</b><p>Pour commencer, vous devez configurer une serveur MapMint à partir duquel vous pourrez télécharger une copie locale de vos données pour une édition hors lignes.</p></li>
+                    <li><b>Éditer vos données sur le terrain</b><p>Que ce soit avec ou sans connection internet, vous pourrez collecter les données que vous souhaitez sur le terrain.</p></li>
+                    <li><b>Exporter vos données</b><p>À la fin de votre travail de terrain ou quand vous avez de nouveau une connection à internet, cliquez simplement sur le bouton exporter du module Export pour envoyer vos données sur le serveur MapMint!</p></li>
+                </ul>]]></string>
+    <string name="slide_1_title">Importer</string>
+    <string name="slide_1_desc">Avant tout, téléchargez vos données en utilisant le module Importer !</string>
+    <string name="slide_2_title">Serveur MapMint</string>
+    <string name="slide_2_desc">À minima, vous devrez configurer un serveur MapMint !</string>
+    <string name="slide_3_title">Configuration du Serveur</string>
+    <string name="slide_3_desc">Configurer votre application pour accéder au serveur MapMint !</string>
+    <string name="slide_4_title">MapMint4ME est simple</string>
+    <string name="slide_4_desc">Cliquez ensuite sur le bouton Ajouter un serveur !</string>
+    <string name="slide_5_title">Import de données</string>
+    <string name="slide_5_desc">Pressez le botton importer et attendez que vos données soient téléchargées.</string>
+    <string name="slide_6_title">Edition de données</string>
+    <string name="slide_6_desc">Utilisez le module Editer ou voir pour collecter vos données sur le terrain.</string>
+    <string name="slide_7_title">Exporter</string>
+    <string name="slide_7_desc" >Utilisez le module Exporter pour renvoyer vos données sur le serveur MapMint.</string>
+    <string name="slide_8_title">Utilisez le</string>
+    <string name="slide_8_desc" >Vous devriez être en mesure d\'utiliser l\'application MapMint4ME.</string>
+    <string name="play_again_desc">Pour voir de nouveau la présentation, allez dans Configuration -> Application -> Bienvenue -> Vider </string>
 </resources>

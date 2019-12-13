@@ -6,8 +6,8 @@ android {
     defaultConfig {
         applicationId "fr.geolabs.dev.mapmint4me"
         minSdkVersion 16
-        targetSdkVersion 27
-        versionCode 23
+        targetSdkVersion 28
+        versionCode 30
         versionName "1.0"
         multiDexEnabled true
     }
@@ -29,9 +29,9 @@ android {
 
 dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation  'com.android.support:appcompat-v7:26.1.0'
-    implementation  'com.android.support:design:26.1.0'
-    implementation 'com.android.support:support-compat:26.1.0'
+    implementation  'com.android.support:appcompat-v7:27.1.0'
+    implementation  'com.android.support:design:27.1.0'
+    implementation 'com.android.support:support-compat:27.1.0'
     api 'com.google.android.gms:play-services:12.0.1'
     api 'com.google.android.gms:play-services-gcm:9.0.2'
     api 'com.google.android.gms:play-services-location:12.0.1'

@@ -94,16 +94,50 @@ function fetchThemes(obj,id){
  *****************************************************************************/
 function displayTablesTree(func){
     try{
-        var themes_0=JSON.parse(window.Android.displayTable("SELECT id,name FROM mm4me_themes where pid is null",[]));
+        var themes_0=JSON.parse(window.Android.displayTable("SELECT id,name FROM mm4me_themes where pid is null and name='Menu'",[]));
         var allThemes=[];
+        var allThemes1=[];
+        console.log(JSON.stringify(themes_0));
         for(var i=0;i<themes_0.length;i++){
             allThemes.push({text: themes_0[i]["name"]});
             fetchThemes(allThemes[allThemes.length-1],themes_0[i]["id"]);
             var hasTable=fetchTableForTheme(allThemes[allThemes.length-1],themes_0[i]["id"]);
-            if(!hasTable){
-                console.log("should remove!");
-                allThemes.pop(allThemes[allThemes.length-1]);
+            console.log(JSON.stringify(allThemes));
+            console.log(JSON.stringify(allThemes[allThemes.length-1]));
+            if(!hasTable && (!allThemes[allThemes.length-1]["nodes"] || allThemes[allThemes.length-1]["nodes"].length==0)){
+                //console.log("should remove!");
+                allThemes.pop();//allThemes[allThemes.length-1]);
+            }else{
+                if(allThemes[allThemes.length-1]["nodes"])
+                for(var k=allThemes[allThemes.length-1]["nodes"].length-1;k>=0;k--){
+                    try{
+                        console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]));
+                        if(!allThemes[allThemes.length-1]["nodes"][k]["myId"] && (!allThemes[allThemes.length-1]["nodes"][k]["nodes"] || allThemes[allThemes.length-1]["nodes"][k]["nodes"].length==0)){
+                            console.log("To remove: "+JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]))
+                            if(k==allThemes[allThemes.length-1]["nodes"].length-1)
+                                allThemes[allThemes.length-1]["nodes"].pop();
+                            else{
+                                allThemes[allThemes.length-1]["nodes"].splice(k,1);//,allThemes[allThemes.length-1]["nodes"][k+1]);
+                                console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"]));
+                                /*for(kk=allThemes[allThemes.length-1]["nodes"].length-1;kk>=k+1;kk--){
+                                    if(kk==allThemes[allThemes.length-1]["nodes"].length-1)
+                                        allThemes[allThemes.length-1]["nodes"].pop();
+                                }*/
+                            }
+                            //delete allThemes[allThemes.length-1]["nodes"][k];
+                            //allThemes[allThemes.length-1]["nodes"].pop(allThemes[allThemes.length-1]["nodes"][k]);
+                        }
+                        console.log(JSON.stringify(allThemes));
+                    }catch(e){
+                        allThemes1.push(allThemes[allThemes.length-1]["nodes"][k]);
+                        /*allThemes[allThemes.length-1]["nodes"].pop(allThemes[allThemes.length-1]["nodes"][k]);*/
+                        console.log(e);
+                    }
+                }
+                //allThemes=allThemes1;
             }
+            console.log(JSON.stringify(allThemes));
+
         }
         $(".mm4me_content").append('<div id="tree"></div>');
         $('#tree').treeview({
@@ -132,6 +166,7 @@ function displayTablesTree(func){
         var tableList=list;
         var total=0;
         contents=[];
+        console.log(JSON.stringify(list))
         for(var i in list){
             mainTable[list[i]["id"]]=list[i]["tid"];
         }
@@ -406,8 +441,8 @@ function printCurrentType(obj,cid){
                     var tmpCnt=changingFields.length-1;
                     setTimeout(function(){fetchDependencies(obj,cid,changingFields[tmpCnt])},1);
                 }catch(e){
-                    console.log(name+" "+e);
-                    window.Android.showToast("  **** "+obj["name"]+" "+e);
+                    console.log(" ***** "+name+"  -  "+obj["name"]+" "+e);
+                    //window.Android.showToast("  **** "+obj["name"]+" "+e);
                 }
                 return tmpStr;
 
@@ -462,8 +497,9 @@ function printEditionFields(obj,myRoot,cid,mid){
     if(!editSchema[mid])
         editSchema[mid]={};
     editSchema[mid][obj["id"]]=JSON.parse(list1);
+    console.log(list1);
     list1=JSON.parse(list1);
-    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="well tab-pane" role="tabpanel">'+obj["description"]+'</div>');
+    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="'+(obj["step"]==-2?'mm4me_delete ':'')+'well tab-pane" role="tabpanel">'+obj["description"]+'</div>');
     for(var j in list1)
         if(list1[j]["edition"]>0) {
             myRoot.find(".tab-content").first().children().last().append(
@@ -644,9 +680,13 @@ function printEditionFields(obj,myRoot,cid,mid){
 
         }
 
+    var save_type=(cid.indexOf('_')<0?'save':'add');
+    if(obj["step"]==-2){
+        save_type="delete";
+    }
     myRoot.find(".tab-content").first().children().last().append(
         '<div class="row btn-group" >'+
-        '<button class="btn btn-default mm-act-'+(cid.indexOf('_')<0?'save':'add')+'">'+window.Android.translate((cid.indexOf('_')<0?'save':'add'))+'</button>'+
+        '<button class="btn btn-default mm-act-'+(save_type)+'">'+window.Android.translate(save_type)+'</button>'+
         '</div>');
     console.log(JSON.stringify(currentTypes));
     for(i in currentTypes){
@@ -755,6 +795,7 @@ function runUpdateQuery(obj,mid,func){
     var ccol=getPKey(cleanupTableName(allTables[mid].name));
     var queryEnd=" WHERE "+ccol+"=?";
     var lcnt=0;
+    var reqs=[];
     $(obj).find("input,select,textarea").each(function(){
         if(MM4ME_DEBUG)
             console.log($(this).attr("name")+" <> "+$(this).val());
@@ -766,6 +807,7 @@ function runUpdateQuery(obj,mid,func){
         for(var i in editSchema[mid]){
             for(var j in editSchema[mid][i]){
                 if(editSchema[mid][i][j]["id"]==cid){
+                    console.log(JSON.stringify(editSchema[mid][i][j]));
                     if(editSchema[mid][i][j]["name"].indexOf("unamed")<0){
                     //console.log(JSON.stringify(editSchema[mid][i][j]));
                     if(MM4ME_DEBUG)
@@ -777,6 +819,17 @@ function runUpdateQuery(obj,mid,func){
                     //queryAttr.push(editSchema[i][j]["name"]);
                     //queryValues.push($(this).val());
                     lcnt+=1;
+                    }else{
+                        if(editSchema[mid][i][j]["ftype"]==6){
+                            var tmpVals=$(this).val();
+                            var tmpParts=editSchema[mid][i][j]["value"].split(';');
+                            reqs.push("DELETE FROM "+cleanupTableName(tmpParts[2])+" WHERE "+tmpParts[0]+"="+lastValue+";");
+                            for(var kk=0;kk<tmpVals.length;kk++){
+                                reqs.push("INSERT INTO "+cleanupTableName(tmpParts[2])+" (id,"+tmpParts[0]+","+tmpParts[1]+") VALUES ((select CASE WHEN count(id)>0 THEN max(id)+1 ELSE 1 END from "+cleanupTableName(tmpParts[2])+"),"+lastValue+","+tmpVals[kk]+");");
+
+                            }
+                            console.log(tmpVals[kk]);
+                        }
                     }
                     found=true;
                     break;
@@ -789,8 +842,10 @@ function runUpdateQuery(obj,mid,func){
             console.log(e);
         }
     });
+    console.log(JSON.stringify(reqs));
     for(var i in editSchema[mid]){
         for(var j in editSchema[mid][i]){
+            console.log(JSON.stringify(editSchema[mid][i][j]));
             if(editSchema[mid][i][j]["ftype"]==EDITION_TYPE_FILE && $(obj).find("#value_"+editSchema[mid][i][j]["id"]).find("img").length && $("#"+editSchema[mid][i][j]["id"]+"_display").length && $("#"+editSchema[mid][i][j]["id"]+"_display").is(":checked") ){
                 //queryAttr.push(editSchema[mid][i][j]["name"]);
                 query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"]+"=?";
@@ -809,8 +864,47 @@ function runUpdateQuery(obj,mid,func){
         console.log(req);
     if(window.Android.executeQuery(req,queryValues,queryTypes)>=0){
         window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,?)",[cleanupTableName(allTables[mid].name),req,lastValue],[1,1,1]);
+
+        for(var i=0;i<reqs.length;i++)
+            window.Android.executeQuery(reqs[i],[],[]);
         window.Android.showToast(window.Android.translate("update_success"));
         func(mid);
+    }
+}
+
+/*****************************************************************************
+ * Execute a Delete SQL query for a given table
+ *****************************************************************************/
+function runDeleteQuery(obj,mid,func){
+    var query="DELETE FROM "+cleanupTableName(allTables[mid].name)+" WHERE ";
+    var queryAttr=[];
+    var queryValues=[];
+    var queryTypes=[];
+    var lastValue=$("#exampleTable"+((mid==mtable)?"":"_"+mid)).find(".selected").find('input[type=hidden]').first().val()?$("#exampleTable"+((mid==mtable)?"":"_"+mid)).find(".selected").find('input[type=hidden]').first().val():systemSelectedIndex;
+    var ccol=getPKey(cleanupTableName(allTables[mid].name));
+    var queryEnd=ccol+"=?";
+    queryValues.push(lastValue);
+    queryTypes.push(1);
+    var req=query+queryEnd;
+    if(MM4ME_DEBUG)
+        console.log(req);
+    var res=window.Android.executeQuery(req,queryValues,queryTypes);
+    console.log(res);
+    if(res>=0){
+        var req1="SELECT count(*) from "+cleanupTableName(allTables[mid].name);
+        var res1=window.Android.executeQuery(req1,queryValues,queryTypes);
+        console.log(res1);
+        window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,?)",[cleanupTableName(allTables[mid].name),req,lastValue],[1,1,1]);
+        window.Android.showToast(window.Android.translate("delete_success"));
+        if(res1<1){
+
+        }
+        try{
+            func(mid);
+        }catch(e){
+            console.log(e);
+        }
+
     }
 }
 
@@ -867,7 +961,7 @@ function listTable(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step>=0 asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -877,35 +971,51 @@ function listTable(id,name,title,init,prefix){
         allTables[tblId]={"id":id,"name":name,"title":title};
         mtable=tblId;
 
-    $(".mm4me_edition").find("ul").first().html("");
-    $(".mm4me_edition").find(".well").first().html("");
-    $(".mm4me_listing").find("ul").first().append('<li role="presentation"><a data-toggle="tab" href="#edition_form_table">'+window.Android.translate('table')+'</a></li>');
-    var cnt=0;
-    for(var i in list){
-        lastEdition[list[i]["id"]]=list[i];
-        $(".mm4me_edition").find("ul").first().append('<li role="presentation" id="edition_link_'+list[i]["id"]+'"><a data-toggle="tab" href="#edition_form_'+list[i]["id"]+'">'+list[i]["name"]+'</a></li>');
-        printEditionFields(list[i],$("#edition_form_edit"),list[i]["id"],mainTable[id]);
-        if(cnt==0){
-            try{
-                var cid=list[i]["id"]+"_0";
-                $(".mm4me_listing").find("ul").first().append('<li role="presentation" class="require-select"><a data-toggle="tab" href="#edition_form_edit">'+window.Android.translate('edit')+'</a></li>');
-                $(".mm4me_listing").find("ul").first().append('<li role="presentation" id="edition_link_'+cid+'"><a data-toggle="tab" href="#edition_form_'+cid+'">'+window.Android.translate('add')+'</a></li>');
-                $(".require-select").hide();
-                printEditionFields(list[i],$(".mm4me_listing"),cid,mainTable[id]);
-            }catch(e){
-                console.log("**** ERROR ***> "+e);
+        $(".mm4me_edition").find("ul").first().html("");
+        $(".mm4me_edition").find(".well").first().html("");
+        $(".mm4me_listing").find("ul").first().append('<li role="presentation"><a data-toggle="tab" href="#edition_form_table">'+window.Android.translate('table')+'</a></li>');
+        var cnt=0;
+        for(var i in list){
+            lastEdition[list[i]["id"]]=list[i];
+            $(".mm4me_edition").find("ul").first().append('<li role="presentation" id="edition_link_'+list[i]["id"]+'"><a data-toggle="tab" href="#edition_form_'+list[i]["id"]+'">'+list[i]["name"]+'</a></li>');
+            printEditionFields(list[i],$("#edition_form_edit"),list[i]["id"],mainTable[id]);
+            if(cnt==0){
+                try{
+                    var cid=list[i]["id"]+"_0";
+                    $(".mm4me_listing").find("ul").first().append('<li role="presentation" class="require-select"><a data-toggle="tab" data-cible="mm4me_edition" href="#edition_form_edit">'+window.Android.translate('edit')+'</a></li>');
+                    var list2=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step=-2 order by mm4me_editions.step asc",[]);
+                    list2=JSON.parse(list2);
+                    for(var j in list2){
+                        printEditionFields(list2[j],$(".mm4me_listing"),list2[j]["id"],mainTable[id]);
+                        $("#edition_form_delete").find(".tab-content").append("<h1>DELETE FORM</h1>");
+                        $(".mm4me_listing").find("ul").first().append('<li role="presentation" class="require-select"><a data-toggle="tab" data-cible="mm4me_delete" href="#edition_form_'+list2[j]["id"]+'">'+window.Android.translate('delete')+'</a></li>');
+                    }
+                    $(".mm4me_listing").find("ul").first().append('<li role="presentation" id="edition_link_'+cid+'"><a data-toggle="tab" href="#edition_form_'+cid+'">'+window.Android.translate('add')+'</a></li>');
+                    $(".require-select").hide();
+                    printEditionFields(list[i],$(".mm4me_listing"),cid,mainTable[id]);
+                }catch(e){
+                    console.log("**** ERROR ***> "+e);
+                }
             }
-        }
-        cnt+=1;
+            cnt+=1;
         }
     }
 
         $('.mm4me_listing').find('ul').first().find('a').click(function (e) {
           e.preventDefault();
-          if($(this).parent().hasClass('require-select'))
+          $('.mm4me_delete').hide();
+          if($(this).parent().hasClass('require-select'))// && $(this).parent().data("target"))
             $('.mm4me_edition').show();
+            //$("."+$(this).parent().data("target")).show();
           else
+            //$("."+$(this).parent().data("target")).hide();
             $('.mm4me_edition').hide();
+          if($(this).data("cible")){
+            $('.mm4me_edition').hide();
+            $('.mm4me_delete').hide();
+            $('.'+$(this).data("cible")).show();
+          }
+
           if(MM4ME_DEBUG)
             console.log("DEBUG !! "+$(this).hasClass('require-select'))
           $(this).tab('show');
@@ -922,6 +1032,9 @@ function listTable(id,name,title,init,prefix){
         });
         $(".mm-act-save").click(function(){
             runUpdateQuery($(this).parent().parent(),mainTable[id],editTableReact);
+        });
+        $(".mm-act-delete").click(function(){
+            runDeleteQuery($(this).parent().parent(),mainTable[id],editTableReact);
         });
         $(".breadcrumb").children().last().remove();
     //$('.mm4me_edition').hide();
@@ -1017,7 +1130,8 @@ function listTable(id,name,title,init,prefix){
         } );
     }else{
         $('#'+localName).dataTable().fnClearTable();
-        $('#'+localName).dataTable().fnAddData(dataSet);
+        if(dataSet.length>0)
+            $('#'+localName).dataTable().fnAddData(dataSet);
     }
     })(localName,mainTable[id]));
 
@@ -1261,8 +1375,9 @@ function displayEditForm(cid,selectedId,basic){
     var sizedFieldsAlias=[];
     var notSizedFields=[];
     for(var i in editSchema[cid]){
+        //console.log(JSON.stringify(editSchema[cid][i]));
         for(var j in editSchema[cid][i]){
-            //console.log(JSON.stringify(editSchema[cid][i][j]));
+            console.log(JSON.stringify(editSchema[cid][i][j]));
             if(editSchema[cid][i][j]["ftype"]=="5"){
                 sizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
                 sizedFieldsAlias.push(editSchema[cid][i][j]["id"]);
@@ -1432,6 +1547,7 @@ function displayEditForm(cid,selectedId,basic){
         editValues=JSON.parse(editValues);
 
     }
+    console.log(JSON.stringify(editValues));
 
     for(var i in editValues){
         referenceIds[cid]=editValues[i]["local_id"];
@@ -1442,8 +1558,8 @@ function displayEditForm(cid,selectedId,basic){
                 $("#value_"+j).html(editValues[i][j]);
             }
             else{
-            $('.mm4me_edition').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
-            $('.mm4me_edition').find("textarea[name=field_"+j+"]").first().each(function(){
+            $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            $('.mm4me_edition,.mm4me_delete').find("textarea[name=field_"+j+"]").first().each(function(){
                 if($(this).hasClass("swagEditor")){
                     try{
                         $(this).summernote('disable');
@@ -1483,10 +1599,14 @@ function displayEditForm(cid,selectedId,basic){
                 if(editSchema[cid][i][j]["ftype"]==6){
                     var tmp=editSchema[cid][i][j]["value"].split(';');
                     var list=JSON.parse(window.Android.displayTable("select "+tmp[1]+" from "+cleanupTableName(tmp[2])+" where "+tmp[0]+"=(SELECT id from "+cleanupTableName(tblName)+" WHERE ogc_fid="+selectedId+")",[]));
+                    console.log(JSON.stringify(list));
                     editValues["0"][editSchema[cid][i][j]["id"]]=list;
+                    $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+editSchema[cid][i][j]["id"]+"]").find('option').each(function(){
+                        $(this).prop("selected",false);
+                    });
                     for(var k in list){
                         for(var l in list[k]){
-                            $('.mm4me_edition').find("select[name=field_"+editSchema[cid][i][j]["id"]+"]").find('option').each(function(){
+                            $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+editSchema[cid][i][j]["id"]+"]").find('option').each(function(){
                                 if($(this).val()==list[k][l])
                                     $(this).prop("selected",true);
                             });
@@ -1502,7 +1622,7 @@ function displayEditForm(cid,selectedId,basic){
         $(".breadcrumb").children().last().remove();
     $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-file" aria-hidden="true"></span> '+editValues["0"]["local_id"]+'</a></li>');
     }
-    ((cid==mtable)?$(".require-select"):$("#sub_tableContent_"+cid).find(".require-select")).first().show();
+    ((cid==mtable)?$(".require-select"):$("#sub_tableContent_"+cid).find(".require-select")).show();
     ((cid==mtable)?$(".require-select"):$("#sub_tableContent_"+cid).find(".require-select")).first().find("a").first().click();
 
     if(toRunOnLoad[cid])
@@ -1584,38 +1704,6 @@ function listEdit(id,name,title,init,prefix){
 
     setTimeout(function() { updateChangingFields(changingFields) }, 1500);
 
-    /*for(var i=0;i<changingFields.length;i++){
-        for(var key in changingFields[i]){
-            var localFunc=function(changingField){
-                return function(){
-                    for(var j=0;j<changingField.length;j++){
-                        for(var ckey in changingField[j]){
-                            var i=0;
-                            $(this).parent().parent().parent().find("select[name=field_"+changingField[j][ckey]["id"]+"]").html("");
-                            var cIndex=changingField[j][ckey]["options"].indexOf($(this).val());
-                            for(i=0;i<changingField[j][ckey]["values"][cIndex].length;i++){
-                                var cnt=0;
-                                var cStr="<option ";
-                                for(var lkey in changingField[j][ckey]["values"][cIndex][i]){
-                                    if(cnt==0)
-                                        cStr+=' value="'+changingField[j][ckey]["values"][changingField[j][ckey]["options"].indexOf($(this).val())][i][lkey]+'" >';
-                                    else
-                                        cStr+=changingField[j][ckey]["values"][cIndex][i][lkey]+'</option>';
-                                    cnt+=1;
-                                }
-                                $("select[name=field_"+changingField[j][ckey]["id"]+"]").append(cStr);
-                            }
-                            if(i==0)
-                                $("select[name=field_"+changingField[j][ckey]["id"]+"]").html('<option value="NULL">'+window.Android.translate('none')+'</option>');
-                        }
-                    }
-                };
-            };
-            $("select[name=field_"+key+"]").off('change');
-            $("select[name=field_"+key+"]").change(localFunc(changingFields[i][key]["dep"]));
-            $("select[name=field_"+key+"]").change();
-        }
-    }*/
     $('.mm4me_listing').show();
     $('.mm4me_content').hide();
 
@@ -2148,7 +2236,8 @@ function initMapToLocation(){
         for(var i=0;i<BasesLayers.length;i++){
             for(var j in BasesLayers[i]){
                 if(j=="wmts"){
-                    for(var k=0;k<BasesLayers[i][j]["layers"].length;k++){
+                    for(var k=0;k<BasesLayers[i][j]["layers"].length;k++)
+                        if(BasesLayers[i][j]["layers"][k]!=""){
                          var cbLayer=BasesLayers[i][j]["layers"][k].split("|");
                          otherLayers.push({
                             olLayer: new ol.source.XYZ({
@@ -2243,17 +2332,17 @@ function initMapToLocation(){
 
                     })(i);
                     $(".map").parent().find("input[type=checkbox]").parent().off('click');
-                                    $(".map").parent().find("input[type=checkbox]").parent().on('click',function(){
-                                        var tmp=$(this).find("input[type=checkbox]");
-                                        if(tmp.is(":checked")){
-                                            $(this).find("input[type=checkbox]").prop("checked",false).change();
-                                            $(this).addClass("select");
-                                        }
-                                        else{
-                                            $(this).find("input[type=checkbox]").prop("checked",true).change();
-                                            $(this).removeClass("select");
-                                        }
-                                    });
+                    $(".map").parent().find("input[type=checkbox]").parent().on('click',function(){
+                        var tmp=$(this).find("input[type=checkbox]");
+                        if(tmp.is(":checked")){
+                            $(this).find("input[type=checkbox]").prop("checked",false).change();
+                            $(this).addClass("select");
+                        }
+                        else{
+                            $(this).find("input[type=checkbox]").prop("checked",true).change();
+                            $(this).removeClass("select");
+                        }
+                    });
 
                 },1);
             })(i)
@@ -2396,6 +2485,8 @@ function addOptionalLocalTiles(shouldFixPosition){
                 if(shouldFixPosition)
                     $("#mm4me_ls").css("margin-bottom","25px");
 
+
+
                 $(".map").parent().find("input[type=range]").first().on('change',function(){
                     console.log("change to "+$(this).val());
                     map.getLayers().item(localTileIndex).setOpacity($(this).val()/100);
@@ -2433,6 +2524,17 @@ function addOptionalLocalTiles(shouldFixPosition){
                     }
 
                 });
+                try{
+                    var res=JSON.parse((window.Android.getNBTiles([],[])));
+                }catch(e){
+                    var res={"cnt":0};
+                }
+                var downloadState=window.Android.getTilesDownloadStatus();
+                console.log(JSON.stringify(res));
+                console.log(JSON.stringify(downloadState));
+                if( res.cnt=="0" )
+                    $('#layerSwitcherCheck').parent().hide();
+
             },
             error: function(){
                 alert("error fetching noserver.html file!");

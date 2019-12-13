@@ -175,8 +175,8 @@ public class LocalDB extends SQLiteOpenHelper {
             SQLiteStatement stmt = db.compileStatement(query);
             stmt.clearBindings();
             for (int i = 0; i < values.length;i++) {
-                /*Log.w("LocalDB",
-                        "TYPE : > " + types[i] + " < ! ");*/
+                Log.w("LocalDB",
+                        "TYPE : > " + types[i] + " < ! ");
                 switch (types[i]) {
 					case 18:
 						Log.w("LocalDB",
@@ -224,7 +224,7 @@ public class LocalDB extends SQLiteOpenHelper {
         }catch(Exception e){
             db.endTransaction();
             Log.w("LocalDB",
-                    "*** ERROR : > " + e + " < ! ");
+                    "*** ERROR EXECUTE : > " + e + " < ! ");
             db.close();
             return -1;
         }

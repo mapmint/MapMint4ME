@@ -464,11 +464,10 @@ public class WebAppInterface {
     private LocalDB db = null;
 
     /**
-     * Set mTop to true/false from the web page
+     * Display Table
      */
     @JavascriptInterface
     public String displayTable(String table, String[] fields) {
-
         //    db.close();
         if (db == null)
             db = new LocalDB(mContext);
@@ -476,7 +475,7 @@ public class WebAppInterface {
     }
 
     /**
-     * Set mTop to true/false from the web page
+     * Rebuild chunk
      */
     @JavascriptInterface
     public String rebuildChunk(String table, String[] fields) {
@@ -487,7 +486,7 @@ public class WebAppInterface {
     }
 
     /**
-     * Set mTop to true/false from the web page
+     * Execute Query
      */
     @JavascriptInterface
     public long executeQuery(String query, String[] values, int[] types) {
@@ -499,7 +498,7 @@ public class WebAppInterface {
     private LocalDB dbs = null;
 
     /**
-     * Set mTop to true/false from the web page
+     * Display Table from  specific DB
      */
     @JavascriptInterface
     public String displayTableFromDb(String dbName, String table, String[] fields) {
@@ -511,11 +510,23 @@ public class WebAppInterface {
 
     private LocalDB dbt = null;
 
+    /**
+     * Display tiles
+     */
     @JavascriptInterface
     public String displayTile(String xyz) {
-        if (dbt == null)
-            dbt = new LocalDB(mContext, "tiles.db");
+        if (dbt != null)
+            dbt.close();
+        dbt = new LocalDB(mContext, "tiles.db");
         return dbt.getTile(xyz);
+    }
+
+    @JavascriptInterface
+    public String getNBTiles(String[] values, int[] types) {
+        if (dbt != null)
+            dbt.close();
+        dbt = new LocalDB(mContext, "tiles.db");
+        return dbt.getRows("select count(*) as cnt from (select * from tiles limit 2) as a", values);
     }
 
     /**
@@ -634,6 +645,13 @@ public class WebAppInterface {
     public String downloadFile(final String url) {
         /*DownloadFilesTask myTask = new DownloadFilesTask();
         myTask.execute(url);*/
+        if(url.contains("tiles")) {
+            File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
+            String[] tmp = url.split("/");
+            final String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
+            ((MapMint4ME) mContext).beginDownload(url,tmp[tmp.length - 1]);
+            return "started";
+        }else
         try {
             DownloadFilesTask tmp=new DownloadFilesTask();
             tmp.id=counter;
@@ -772,6 +790,11 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
+    public boolean getTilesDownloadStatus() {
+        return ((MapMint4ME)mContext).getDownloadStatus();
+    }
+
+    @JavascriptInterface
     public boolean copyFile(String src,String dest) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + src;
@@ -797,6 +820,53 @@ public class WebAppInterface {
             fos.flush();
             fos.close();
             fos = null;
+            return true;
+        } catch (Exception e) {
+            Log.d("Unable to copy file database!", e.toString());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @JavascriptInterface
+    public void refreshDbs() {
+        if (dbs != null)
+            dbs.close();
+        dbs=null;
+        if (db != null)
+            db.close();
+        db=null;
+    }
+
+    public boolean copyFileA(String src,String dest) {
+        File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
+        String srcName = mContext.getExternalFilesDir(null).getAbsolutePath() + File.separator + src;
+        String destName = asset_dir.getAbsolutePath() + File.separator + dest;
+        /*try {
+            mContext.deleteDatabase(dest);
+        }catch(Exception e) {
+            Log.d("Unable to delete database!", e.toString());
+        }*/
+        FileInputStream fin = null;
+        try {
+            if(dbt!=null)
+                dbt.close();
+            fin = new FileInputStream(srcName);
+            FileOutputStream fos = new FileOutputStream(destName);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = fin.read(buffer)) != -1) {
+                fos.write(buffer, 0, read);
+            }
+            fin.close();
+            File srcFile= new File(srcName);
+            srcFile.delete();
+
+            fos.flush();
+            fos.close();
+            fos = null;
+            dbt=null;
+            Log.d("Copy file database","success");
             return true;
         } catch (Exception e) {
             Log.d("Unable to copy file database!", e.toString());
