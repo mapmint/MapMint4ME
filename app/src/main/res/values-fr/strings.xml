@@ -33,7 +33,7 @@
     <string name="server_url">URL du serveur</string>
     <string name="server_login">Identifiant</string>
     <string name="server_password">Mot de passe</string>
-    <string name="server_add">Ajouter un serveer</string>
+    <string name="server_add">Ajouter</string>
     <string name="delete_server_success">Paramètres serveur supprimés avec succès</string>
     <string name="update_server_success">Paramètres serveur mis à jour avec succès</string>
     <string name="update_server_failed">Impossible de mettre à jour les paramètres serveur</string>
@@ -88,4 +88,12 @@
     <string name="slide_8_title">Utilisez le</string>
     <string name="slide_8_desc" >Vous devriez être en mesure d\'utiliser l\'application MapMint4ME.</string>
     <string name="play_again_desc">Pour voir de nouveau la présentation, allez dans Configuration -> Application -> Bienvenue -> Vider </string>
+    <string name="play_again">Relancer</string>
+    <string name="tiles_download_success">Téléchargement des tuiles terminé</string>
+    <string name="tiles_database">Base de données stockant les tuiles</string>
+    <string name="database_download_message">Téléchargement de la base de données MapMint4ME</string>
+    <string name="run">Lancer</string>
+    <string name="offline_map">Cartes hors ligne</string>
+    <string name="use_current_tiles">Conserver mes tuiles</string>
+    <string name="STATUS_RUNNING">Le téléchargement a commencé, vous devriez voir le status d\'évolution dans votre barre de notification.</string>
 </resources>

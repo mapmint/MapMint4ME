@@ -928,8 +928,9 @@ public class WebAppInterface {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String[] tmp = url.split("/");
         String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
+        Log.w("WebAppInterface", url);
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+        /*NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID);
         mBuilder.setContentTitle(tmp[tmp.length - 1].split("_")[0])
                 .setContentText(tmp[tmp.length - 1])
@@ -940,14 +941,14 @@ public class WebAppInterface {
         int PROGRESS_CURRENT = 0;
         mBuilder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
         currentId++;
-        notificationManager.notify(currentId, mBuilder.build());
+        notificationManager.notify(currentId, mBuilder.build());*/
 
         String attachmentName = field;
         String attachmentFileName = file;
         String crlf = "\r\n";
         String twoHyphens = "--";
         String boundary="----" + System.currentTimeMillis();
-
+        Log.w("WebAppInterface", url);
         try {
 
             CookieManager mCookieManager = CookieManager.getInstance();
@@ -1024,8 +1025,8 @@ public class WebAppInterface {
             request.close();
 
             int status = conn.getResponseCode();
-            mBuilder.setContentText("Upload ...")
-                    .setProgress(PROGRESS_MAX, 50, false);
+            /*mBuilder.setContentText("Upload ...")
+                    .setProgress(PROGRESS_MAX, 50, false);*/
             if(status==200) {
                 InputStream responseStream = new
                         BufferedInputStream(conn.getInputStream());
@@ -1047,14 +1048,32 @@ public class WebAppInterface {
                 Log.w("WebAppInterface", response);
                 conn.disconnect();
 
-                Log.w("WebAppInterface", "end");
-                mBuilder.setContentText("Completed")
-                        .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);
+                Log.w("WebAppInterface", "end 1");
+                /*mBuilder.setContentText("Completed")
+                        .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);*/
                 return true;
+            }else{
+                InputStream responseStream = new
+                        BufferedInputStream(conn.getInputStream());
+
+                BufferedReader responseStreamReader =
+                        new BufferedReader(new InputStreamReader(responseStream));
+
+                String line = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ((line = responseStreamReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                responseStreamReader.close();
+
+                String response = stringBuilder.toString();
+                Log.w("WebAppInterface", "Resposne \n"+response);
+
             }
             conn.disconnect();
 
-            Log.w("WebAppInterface", "end");
+            Log.w("WebAppInterface", "end "+status);
             return false;
         }catch (Exception e){
             e.printStackTrace();

@@ -58,40 +58,48 @@
     <string name="view_feature">View feature</string>
     <string name="about_intro">Your are using the MapMint4ME application. It is provided free of charge under the term of the MIT/X11 License and aims to provide an easy to use editing tool for your own data on the field.</string>
     <string name="about_property">The software has been developped and published on GooglePlay™ by GeoLabs SARL.</string>
-    <string name="about_howtosetup">In case you want to learn how to use this application, please click</string>
-    <string name="about_howtosetup_link">here</string>
+    <string name="about_howtosetup" >In case you want to learn how to use this application, please click</string>
+    <string name="about_howtosetup_link" >here</string>
     <string name="settings">Settings for</string>
     <string name="insert_success">Successfully recorded</string>
-    <string name="update_success">Successfully updated</string>
-    <string name="title">MapMint4ME</string>
+    <string name="update_success" >Successfully updated</string>
+    <string name="delete_success">Successfully removed</string>
+    <string name="title" >MapMint4ME</string>
     <string name="description">Import, Edit, Export</string>
     <!-- Slides -->
-    <string name="title_activity_welcome">Home Screen</string>
+    <string name="title_activity_welcome" >Home Screen</string>
     <string name="next">NEXT</string>
     <string name="skip">SKIP</string>
-    <string name="start">GOT IT</string>
+    <string name="start" translatable="false">GOT IT</string>
     <string name="introduction"><![CDATA[<ul>
                     <li><b>Import your data</b><p>To get started, you need to configure a MapMint server from which you will be able to download a local copy of your data for offline editing.</p></li>
                     <li><b>Editing data in the field</b><p>Either with or without internet connectivity, you can collect the data you want in the field.</p></li>
                     <li><b>Export your data</b><p>At the end of your field work or once you have internet connectivity, simply click the export button within the Export module to post your records to the MapMint server!</p></li>
                 </ul>]]></string>
-    <string name="slide_1_title">Import</string>
-    <string name="slide_1_desc">Firstly, download your data using the Import module!</string>
-    <string name="slide_2_title">MapMint server</string>
-    <string name="slide_2_desc">As a minimum, you will need at least one MapMint server configured!</string>
-    <string name="slide_3_title">Server settings</string>
-    <string name="slide_3_desc">Configure your application to access the MapMint server!</string>
-    <string name="slide_4_title">MapMint4ME is easy</string>
-    <string name="slide_4_desc">Then click the Add server button!</string>
-    <string name="slide_5_title">Import data</string>
-    <string name="slide_5_desc">Press the Import button and wait for your data to download.</string>
-    <string name="slide_6_title">Edit data</string>
-    <string name="slide_6_desc">Use the Edit module to collect your data in the field.</string>
-    <string name="slide_7_title">Export</string>
-    <string name="slide_7_desc">Use the Export module to post your data back to the MapMint server.</string>
-    <string name="slide_8_title">Use it</string>
-    <string name="slide_8_desc">You should be ready to start using the MapMint4ME application.</string>
+    <string name="slide_1_title" >Import</string>
+    <string name="slide_1_desc" >Firstly, download your data using the Import module!</string>
+    <string name="slide_2_title" >MapMint server</string>
+    <string name="slide_2_desc" >As a minimum, you will need at least one MapMint server configured!</string>
+    <string name="slide_3_title" >Server settings</string>
+    <string name="slide_3_desc" >Configure your application to access the MapMint server!</string>
+    <string name="slide_4_title" >MapMint4ME is easy</string>
+    <string name="slide_4_desc" >Then click the Add server button!</string>
+    <string name="slide_5_title" >Import data</string>
+    <string name="slide_5_desc" >Press the Import button and wait for your data to download.</string>
+    <string name="slide_6_title" >Edit data</string>
+    <string name="slide_6_desc" >Use the Edit module to collect your data in the field.</string>
+    <string name="slide_7_title" >Export</string>
+    <string name="slide_7_desc" >Use the Export module to post your data back to the MapMint server.</string>
+    <string name="slide_8_title" >Use it</string>
+    <string name="slide_8_desc" >You should be ready to start using the MapMint4ME application.</string>
     <string name="play_again_desc">To see the welcome slider again, goto Settings -> apps -> welcome slider -> clear data</string>
     <string name="play_again">Play Again</string>
+    <string name="tiles_download_success">Tiles Download Completed</string>
+    <string name="tiles_database">Tiles database</string>
+    <string name="database_download_message">MapMint4ME database download</string>
+    <string name="run">Run</string>
+    <string name="offline_map">Offline mapping</string>
+    <string name="use_current_tiles">Use current tiles</string>
+    <string name="STATUS_RUNNING">Download started, you should see the progress status in your notifications bar.</string>
     <!-- /Slides -->
 </resources>

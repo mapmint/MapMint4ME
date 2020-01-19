@@ -455,9 +455,14 @@ function printCurrentType(obj,cid){
             if(definedSqlTypes[i]["code"]=="text")
                 return '<textarea class="form-control" name="field_'+obj["id"]+'">'+obj["value"]+'</textarea>';
             if(definedSqlTypes[i]["code"]=="boolean")
+                if(obj["value"]=="1")
+                return '<input type="checkbox" name="field_'+obj["id"]+'" checked="true" />';
+                else
                 return '<input type="checkbox" name="field_'+obj["id"]+'" />';
+            console.log(definedSqlTypes[i]["code"]);
+            console.log(JSON.stringify(obj));
             if(definedSqlTypes[i]["code"]=="date" || definedSqlTypes[i]["code"]=="datetime")
-                return '<input class="form-control" type="'+definedSqlTypes[i]["code"]+'" name="field_'+obj["id"]+'" />';
+                return definedSqlTypes[i]["code"]+' <input class="form-control" type="'+definedSqlTypes[i]["code"]+'-local" name="field_'+obj["id"]+'" />';
             if(definedSqlTypes[i]["code"]=="float")
                 return '<input class="form-control" type="number" name="field_'+obj["id"]+'" />';
             return definedSqlTypes[i]["code"];
@@ -504,10 +509,10 @@ function printEditionFields(obj,myRoot,cid,mid){
         if(list1[j]["edition"]>0) {
             myRoot.find(".tab-content").first().children().last().append(
                 '<div class="row form-group" >'+
-                '<div class="col-xs-3">'+
+                '<div class="col-xs-12 col-md-6">'+
                 '<label for="edit_"'+list1[j]["id"]+'">'+list1[j]["alias"]+'</label>'+
                 '</div>'+
-                '<div class="col-xs-9">'+
+                '<div class="col-xs-12 col-md-6 mm-edit-field">'+
                 printCurrentType(list1[j],mid)+
                 '</div>'+
                 '</div>');
@@ -526,8 +531,6 @@ function printEditionFields(obj,myRoot,cid,mid){
                             console.log("IS MYSELF!!");
                             for(k in objJson[i]["myself"]){
                                 for(l in objJson[i]["myself"][k]){
-
-
                                     if(objJson[i]["myself"][k][l]["dependents"]){
                                         for(m in objJson[i]["myself"][k][l]["dependents"]){
                                             for(n in objJson[i]["myself"][k][l]["dependents"][m]){
@@ -537,10 +540,10 @@ function printEditionFields(obj,myRoot,cid,mid){
                                                 //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+n+'"]').length)
                                                 myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
                                                         '<div class="row form-group" >'+
-                                                        '<div class="col-xs-12">'+
+                                                        '<div class="col-xs-12 col-md-6">'+
                                                         '<label for="edit_"'+n+'">'+objJson[i]["myself"][k][l]["dependents"][m][n]["label"]+'</label>'+
                                                         '</div>'+
-                                                        '<div class="col-xs-12">'+
+                                                        '<div class="col-xs-12 col-md-6">'+
                                                         printCurrentType(lObj,mid)+
                                                         '</div>'+
                                                         '</div>');
@@ -584,10 +587,10 @@ function printEditionFields(obj,myRoot,cid,mid){
                                     //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+l+'"]').length)
                                     myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
                                             '<div class="row form-group" >'+
-                                           '<div class="col-xs-12">'+
+                                           '<div class="col-xs-12 col-md-6">'+
                                            '<label for="edit_"'+l+'">'+objJson[i]["myself"][k][l]["label"]+'</label>'+
                                            '</div>'+
-                                           '<div class="col-xs-12">'+
+                                           '<div class="col-xs-12 col-md-6">'+
                                            printCurrentType(lObj,mid)+
                                            '</div>'+
                                            '</div>');
@@ -669,8 +672,44 @@ function printEditionFields(obj,myRoot,cid,mid){
 
                                 }
                             }
-                        }else
+                        }else{
                             console.log("Basic dependencies!");
+                            for(k in objJson[i]){
+                                if(objJson[i][k]["tfield"]=="none"){
+                                    console.log(k);
+                                    console.log(JSON.stringify(objJson[i][k]));
+                                    for(var l=0;l<list1.length;l++){
+                                        if(list1[l]["name"]==k){
+                                            console.log(JSON.stringify(list1[l]));
+                                            console.log('"edit_"'+list1[j]["id"])
+                                            //(function(list1,l,myRoot,objJson,i,k){
+                                                console.log(i);
+                                                console.log(k);
+                                                myRoot.find('select[name="field_'+list1[j]["id"]+'"]').off("change");
+                                                (function(obj,obj1,objJson){
+                                                myRoot.find('select[name="field_'+obj["id"]+'"]').on("change",function(){
+                                                    console.log("objJson[i][k]"+objJson);
+                                                    if($(this).val()==objJson["options"][0] || ($.isArray($(this).val()) && $(this).val().indexOf(""+objJson["options"][0])>=0) )
+                                                        myRoot.find('input[name="field_'+obj1["id"]+'"]').parent().parent().show();
+                                                    else
+                                                        myRoot.find('input[name="field_'+obj1["id"]+'"]').parent().parent().hide();
+                                                    console.log("objJson[i][k]"+JSON.stringify(objJson));
+                                                    console.log("obj"+JSON.stringify(obj));
+                                                    console.log("obj1"+JSON.stringify(obj1));
+                                                });
+                                                setTimeout(function(){myRoot.find('select[name="field_'+obj["id"]+'"]').change();},1000);
+
+                                                })(list1[j],list1[l],objJson[i][k]);
+                                            //})(list1,l,myRoot,objJson,i,k);
+                                        }
+
+                                    }
+
+                                }
+                            }
+
+
+                        }
                     }
                 }catch(e){
                     console.log(e);
@@ -711,7 +750,6 @@ function runInsertQuery(obj,mid,func){
         if(MM4ME_DEBUG)
             console.log($(this).attr("name")+" <> "+$(this).val());
         try{
-
             var cid=$(this).attr("name").replace(/field_/g,"");
             console.log(!$("#"+cid+"_display").length || ($("#"+cid+"_display").length && $("#"+cid+"_display").is(":checked")));
             var found=false;
@@ -723,7 +761,10 @@ function runInsertQuery(obj,mid,func){
                             if(MM4ME_DEBUG)
                                 console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
                             queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
-                            queryValues.push($(this).val());
+                            if($(this).attr("type")=="checkbox")
+                                queryValues.push($(this).is(":checked"));
+                            else
+                                queryValues.push($(this).val());
                             queryValues0.push("?");
                             queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
                             }
@@ -814,7 +855,10 @@ function runUpdateQuery(obj,mid,func){
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
                     query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+"=?";
                     queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
-                    queryValues.push($(this).val());
+                    if($(this).attr("type")=="checkbox")
+                        queryValues.push($(this).is(":checked")+"");
+                    else
+                        queryValues.push($(this).val());
                     //query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"]+"="+JSON.stringify($(this).val(),null);
                     //queryAttr.push(editSchema[i][j]["name"]);
                     //queryValues.push($(this).val());
@@ -860,8 +904,10 @@ function runUpdateQuery(obj,mid,func){
     queryValues.push(lastValue);
     queryTypes.push(lastValue,1);
     var req=query+queryEnd;
-    if(MM4ME_DEBUG)
+    if(MM4ME_DEBUG){
         console.log(req);
+        console.log(JSON.stringify(queryValues));
+    }
     if(window.Android.executeQuery(req,queryValues,queryTypes)>=0){
         window.Android.executeQuery("INSERT INTO history_log (tbl,sql,pkey_value) VALUES (?,?,?)",[cleanupTableName(allTables[mid].name),req,lastValue],[1,1,1]);
 
@@ -1098,10 +1144,12 @@ function listTable(id,name,title,init,prefix){
         var options={
             data: dataSet,
             columns: columns,
+            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
             "scrollX": true,
             scrollY:        '50vh',
             scrollCollapse: true,
-            select: true
+            select: true/*,
+            "bFilter": false*/
         };
         if(langUrl!=null)
             options["language"]={
@@ -1133,6 +1181,19 @@ function listTable(id,name,title,init,prefix){
         if(dataSet.length>0)
             $('#'+localName).dataTable().fnAddData(dataSet);
     }
+        setTimeout(function(){
+            if(dataSet.length==0){
+                $(".dataTables_filter").hide();
+                $(".dataTables_length").hide();
+                $(".dataTables_paginate").hide();
+            }else{
+                if(dataSet.length>5){
+                    $(".dataTables_filter").show();
+                    $(".dataTables_length").show();
+                    $(".dataTables_paginate").show();
+                }
+            }
+        },50);
     })(localName,mainTable[id]));
 
     setTimeout(function() { updateChangingFields(changingFields) }, 1500);
@@ -1309,6 +1370,7 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
         var options={
             data: dataSet,
             columns: columns,
+            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
             "scrollX": true,
             scrollY:        '50vh',
             scrollCollapse: true,
@@ -1347,6 +1409,22 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
         if(dataSet.length>0)
         $('#'+localName).dataTable().fnAddData(dataSet);
     }
+
+            setTimeout(function(){
+                if(dataSet.length==0){
+                    $(".dataTables_filter").hide();
+                    $(".dataTables_length").hide();
+                    $(".dataTables_paginate").hide();
+                }else{
+                    if(dataSet.length>5){
+                        $(".dataTables_filter").show();
+                        $(".dataTables_length").show();
+                        $(".dataTables_paginate").show();
+                    }
+                }
+            },50);
+
+
     $("#sub_tableContent_"+id+"").find("ul").first().find('a').first().click();
     })(localName,tid));
 
@@ -1383,7 +1461,8 @@ function displayEditForm(cid,selectedId,basic){
                 sizedFieldsAlias.push(editSchema[cid][i][j]["id"]);
             }
             else{
-                notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
+                if(editSchema[cid][i][j]["name"].indexOf("unamed_")<0)
+                    notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
                 try{
                     var tmp=JSON.parse(editSchema[cid][i][j]["dependencies"]);
                     var sqlReq="";
@@ -1559,6 +1638,8 @@ function displayEditForm(cid,selectedId,basic){
             }
             else{
             $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            if($('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").attr("type")=="checkbox")
+                $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").prop('checked',(editValues[i][j]==1));
             $('.mm4me_edition,.mm4me_delete').find("textarea[name=field_"+j+"]").first().each(function(){
                 if($(this).hasClass("swagEditor")){
                     try{
@@ -1598,7 +1679,8 @@ function displayEditForm(cid,selectedId,basic){
             if(editSchema[cid][i][j]["name"].indexOf("unamed")>=0){
                 if(editSchema[cid][i][j]["ftype"]==6){
                     var tmp=editSchema[cid][i][j]["value"].split(';');
-                    var list=JSON.parse(window.Android.displayTable("select "+tmp[1]+" from "+cleanupTableName(tmp[2])+" where "+tmp[0]+"=(SELECT id from "+cleanupTableName(tblName)+" WHERE ogc_fid="+selectedId+")",[]));
+                    //var list=JSON.parse(window.Android.displayTable("select "+tmp[1]+" from "+cleanupTableName(tmp[2])+" where "+tmp[0]+"=(SELECT ogc_fid from "+cleanupTableName(tblName)+" WHERE id="+selectedId+")",[]));
+                    var list=JSON.parse(window.Android.displayTable("select "+tmp[1]+" from "+cleanupTableName(tmp[2])+" where "+tmp[0]+"="+selectedId+"",[]));
                     console.log(JSON.stringify(list));
                     editValues["0"][editSchema[cid][i][j]["id"]]=list;
                     $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+editSchema[cid][i][j]["id"]+"]").find('option').each(function(){
@@ -1631,6 +1713,7 @@ function displayEditForm(cid,selectedId,basic){
      }
 }
 
+var editChangeOnce=false;
 /*****************************************************************************
  * The function to call at the end of insert or update query (edit only)
  *****************************************************************************/
@@ -1638,14 +1721,21 @@ function editOnlyTableReact(tid){
     var mid=tid;
     if(MM4ME_DEBUG)
         console.log("editOnlyTableReact("+mid+')');
+    console.log(mtable);
     if(mid==mtable){
         $('.mm4me_listing').find('ul').first().find('a').first().click();
         var ccol=getPKey(cleanupTableName(allTables[mid].name));
         var list=JSON.parse(window.Android.displayTable("select max("+ccol+") as val from "+cleanupTableName(allTables[mid].name),[]));
-        $(".require-select").show();
-        $(".mm-act-add").removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
-            runUpdateQuery($(this).parent().parent(),mainTable[id],editOnlyTableReact);
-        });
+        if(!editChangeOnce){
+            $(".mm-act-add").first().removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
+                console.log(mid);
+                console.log(JSON.stringify(mainTable));
+                console.log(JSON.stringify(allTables[mid]["id"]));
+                runUpdateQuery($(this).parent().parent(),mainTable[allTables[mid]["id"]],editOnlyTableReact);
+            });
+            editChangeOnce=true;
+        }
+        setTimeout(function(){$(".mm-edit-field").find(".require-select").hide();},500);
         systemSelectedIndex=list[0].val;
         displayEditForm(mid,list[0].val,false);
     }

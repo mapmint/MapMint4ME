@@ -229,7 +229,7 @@ public class MapMint4ME extends Activity implements
                             break;
                         case DownloadManager.STATUS_RUNNING:
                             Log.i("handleData()", "Running: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
-                            return "Download started, you should see the progress status in your notifications bar.";
+                            return getString(getResources().getIdentifier("STATUS_RUNNING", "string", getPackageName()));
                         case DownloadManager.STATUS_PAUSED:
                             Log.i("handleData()", "Paused: " + c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON)));
                             break;
@@ -475,12 +475,20 @@ public class MapMint4ME extends Activity implements
             Log.d(TAG, "appLinkData: " + appLinkData);
             Log.d(TAG, "appLinkAction: " + appLinkAction);
             Log.d(TAG, "appLinkAction: " + appLinkIntent.toUri(Intent.URI_INTENT_SCHEME));
-            try {
-                myWebView.loadUrl("file:///android_asset/map.html?mmGPS="+URLEncoder.encode(appLinkData.toString(),"utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            if(appLinkIntent.toUri(Intent.URI_INTENT_SCHEME).indexOf("addServer")>=0) {
+                try {
+                    myWebView.loadUrl("file:///android_asset/login.html?id=" + URLEncoder.encode(appLinkData.toString(), "utf-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }else {
+                try {
+                    myWebView.loadUrl("file:///android_asset/map.html?mmGPS=" + URLEncoder.encode(appLinkData.toString(), "utf-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                upgradeMMGPS = true;
             }
-            upgradeMMGPS=true;
             //myWebView.loadUrl("javascript:setTimeout(function(){console.log('##### START !!!');upgradeMMGPS();},100);");
         }
     }

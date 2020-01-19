@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fr.geolabs.dev.mapmint4me="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
     package="fr.geolabs.dev.mapmint4me">
 
@@ -48,28 +49,62 @@
             android:theme="@style/FullscreenTheme"
             android:hardwareAccelerated="true"
             android:keepScreenOn="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:scheme="http"
                     android:host="*.mapmint.com"
                     android:pathPattern="/getLocation" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
-                    android:scheme="https" />
+                    android:scheme="https"
+                    android:host="*.mapmint.com"
+                    android:pathPattern="/getLocation" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="http"
+                    android:host="*.mapmint.com"
+                    android:pathPattern="/addServer/.*/.*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="*.mapmint.com"
+                    android:pathPattern="/addServer/.*/.*" />
             </intent-filter>
         </activity>
         <activity
             android:name=".WelcomeScreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/generalnotitle"
-            android:hardwareAccelerated="true">
-        </activity>
+            android:hardwareAccelerated="true"></activity>
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="fr.geolabs.dev.fileprovider"

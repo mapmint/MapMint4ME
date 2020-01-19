@@ -208,6 +208,15 @@ public class LocalDB extends SQLiteOpenHelper {
                         outputStream.write( contentStream.toByteArray() );
                         stmt.bindBlob(i+1, outputStream.toByteArray());
                         break;
+                    case 13:
+                        Log.w("LocalDB",
+                                "TYPE : > " + types[i] + " >< "+ Boolean.parseBoolean(values[i]) +" < ! ");
+                        if(Boolean.parseBoolean(values[i])) {
+                            stmt.bindLong(i+1, 1);
+                        } else {
+                            stmt.bindLong(i+1, 0);
+                        }
+                        break;
                     default:
                         stmt.bindString(i+1, values[i]);
                         break;
@@ -370,7 +379,7 @@ public class LocalDB extends SQLiteOpenHelper {
 					String[] fields=cursor.getColumnNames();
 					JSONObject ljson = new JSONObject();
 					for (int j = 0; j < fields.length; j++) {
-					    if(cursor.getType(j)==FIELD_TYPE_STRING || cursor.getType(j)==FIELD_TYPE_INTEGER || cursor.getType(j)==FIELD_TYPE_FLOAT){
+					    if(cursor.getType(j)==FIELD_TYPE_STRING || cursor.getType(j)==FIELD_TYPE_INTEGER || cursor.getType(j)==FIELD_TYPE_FLOAT ){
                             ljson.put(fields[j], cursor.getString(j));
                         }else
                             if(cursor.getType(j)!=FIELD_TYPE_NULL){

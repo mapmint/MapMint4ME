@@ -361,11 +361,18 @@ function doModal(heading, formContent) {
                     success: function(ldata){
                         chooseId=null;
                         console.log(JSON.stringify(ldata));
+                        var regId=new RegExp("\\[TITLE\\]","g");
+                        var reg1Id=new RegExp("\\[RUN\\]","g");
+                        var reg2Id=new RegExp("\\[CANCEL\\]","g");
+                        ldata=ldata.replace(regId,window.Android.translate("offline_map"))
+                                   .replace(reg1Id,window.Android.translate("run"))
+                                   .replace(reg2Id,window.Android.translate("cancel"));
                         $("body").append(ldata);
+                        //$(".modal-header").first().find("h4").html(""+window.Android.translate("offline_map"));
                         var regId=new RegExp("\\[VALUE\\]","g");
                         var regName=new RegExp("\\[NAME\\]","g");
                         var regSize=new RegExp("\\[SIZE\\]","g");
-                        $("#extentList").html($("#extentListItem_template")[0].innerHTML.replace(regId,-1).replace(regName,"Use current tiles").replace(regSize,"0Mb"));
+                        $("#extentList").html($("#extentListItem_template")[0].innerHTML.replace(regId,-1).replace(regName,window.Android.translate("use_current_tiles")).replace(regSize,"0Mb"));
                         for(var i=0;i<myData.length;i++)
                             $("#extentList").append($("#extentListItem_template")[0].innerHTML.replace(regId,myData[i]["id"]).replace(regName,myData[i]["text"]).replace(regSize,myData[i]["size"]));
                         $("#extentList").find("input").each(function(){
