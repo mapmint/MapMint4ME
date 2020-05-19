@@ -147,71 +147,71 @@ body { padding-top: 70px; }
     $(window).on('load', function() {
     while(true)
         try{
-    try{
-	    //we replace default localStorage with our Android Database one
-  	    window.localStorage=LocalStorage;
-    }catch(e){
-	    //LocalStorage class was not found. be sure to add it to the webview
-	    console.log("LocalStorage ERROR : can't find android class LocalStorage. switching to raw localStorage")
-    }
-        ajaxSetup();
-        getCurrentStatus();
-        var tmp=document.location+"";
-        tmp=tmp.split("/");
-        $.ajax({
-            method: "GET",
-            url: './content/'+tmp[tmp.length-1],
-            error: function(){
-                $.ajax({
-                    method: "GET",
-                    url: './content/404.html',
-                    success: function(data){
-                        $(".container").append(data);
-                    }
-                });
-            },
-            success: function(data){
-                $(".container").append(data);
+            try{
+                //we replace default localStorage with our Android Database one
+                window.localStorage=LocalStorage;
+            }catch(e){
+                //LocalStorage class was not found. be sure to add it to the webview
+                console.log("LocalStorage ERROR : can't find android class LocalStorage. switching to raw localStorage")
             }
-        });
-        $.ajax({
-            method: "GET",
-            url: './scripts/'+(tmp[tmp.length-1].replace(/html/g,"js")),
-            error: function(){
-                console.log("Nothing to run after");
-            },
-            success: function(data){
-                console.log("Run js after");
-                try{
-                console.log(this.url);
-                $("body").append('<script>'+data+'<\/script>');
-                console.log("ok");
-                }catch(e){
-                console.log("Unable to load");
-                console.log(data);
-                console.log("Unable to load");
+            ajaxSetup();
+            getCurrentStatus();
+            var tmp=document.location+"";
+            tmp=tmp.split("/");
+            $.ajax({
+                method: "GET",
+                url: './content/'+tmp[tmp.length-1],
+                error: function(){
+                    $.ajax({
+                        method: "GET",
+                        url: './content/404.html',
+                        success: function(data){
+                            $(".container").append(data);
+                        }
+                    });
+                },
+                success: function(data){
+                    $(".container").append(data);
                 }
-            }
-        });
-        $(".navbar").find("a").each(function(){
-            if($(this).attr("href")==tmp[tmp.length-1]){
-                $(this).parent().addClass("active");
-                var closure=$(this);
-                try{
-                $.ajax({
-                    method: "GET",
-                    url: './menus/'+closure.attr('href'),
-                    success: function(data){
-                        console.log("Load menu");
-                        $(data).insertBefore(closure.parent());
-                        closure.parent().remove();
+            });
+            $.ajax({
+                method: "GET",
+                url: './scripts/'+(tmp[tmp.length-1].replace(/html/g,"js")),
+                error: function(){
+                    console.log("Nothing to run after");
+                },
+                success: function(data){
+                    console.log("Run js after");
+                    try{
+                        console.log(this.url);
+                        $("body").append('<script>'+data+'<\/script>');
+                        console.log("ok");
+                    }catch(e){
+                        console.log("Unable to load");
+                        console.log(data);
+                        console.log("Unable to load");
                     }
-                });
-                }catch(e){
                 }
-            }
-        });
-        break;
+            });
+            $(".navbar").find("a").each(function(){
+                if($(this).attr("href")==tmp[tmp.length-1]){
+                    $(this).parent().addClass("active");
+                    var closure=$(this);
+                    try{
+                    $.ajax({
+                        method: "GET",
+                        url: './menus/'+closure.attr('href'),
+                        success: function(data){
+                            console.log("Load menu");
+                            $(data).insertBefore(closure.parent());
+                            closure.parent().remove();
+                        }
+                    });
+                    }catch(e){
+                    }
+                }
+            });
+            break;
         }catch(e){
             console.log("Wait for loading "+e);
         }

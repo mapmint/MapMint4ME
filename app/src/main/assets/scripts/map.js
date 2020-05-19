@@ -1,4 +1,8 @@
-//$(function(){
+var runOnce=true;
+$(function(){
+    if(!runOnce)
+        return;
+    runOnce=false;
     updateBreadcrumbs(["home","map"]);
     addStatusControl();
     getCurrentStatus();
@@ -60,12 +64,12 @@
                         features=[];
                         for(var j=0;j<pFeatures.length;j++){
                             if(pFeatures[j]["geom"])
-				features.push(
+				                features.push(
                                     format.readFeature('POINT'+pFeatures[j]["geom"].replace(","," "), {
-					dataProjection: 'EPSG:4326',
-					featureProjection: 'EPSG:3857'
+                                        dataProjection: 'EPSG:4326',
+                                        featureProjection: 'EPSG:3857'
                                     })
-				);
+                				);
                         }
                         var bstyle = function (feature, resolution) {
                             var iconFont = 'Glyphicons Halflings';
@@ -193,4 +197,4 @@
     }
 
     console.log("End map.js");
-//})();
+});

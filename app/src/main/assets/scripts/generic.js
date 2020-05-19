@@ -184,7 +184,12 @@ function updateBreadcrumbs(breadcrumbs){
         //var breadcrumbs=["home","view"];
         var lcnt0=0;
         $('.breadcrumb').find("a").each(function(){
-            $(this).append(window.Android.translate(breadcrumbs[lcnt0]));
+            var regExp=new RegExp(breadcrumbs[lcnt0],"g")
+            console.log($(this).html());
+            var content=($(this).append(window.Android.translate(breadcrumbs[lcnt0])));
+            console.log(content);
+            //$(this).html($(this).html().replace(regExp,window.Android.translate(breadcrumbs[lcnt0])));
+            //$(this).replaceWith($(content));
             lcnt0+=1;
         });
         $('.breadcrumb').find("li").last().each(function(){
@@ -462,7 +467,7 @@ function printCurrentType(obj,cid){
             console.log(definedSqlTypes[i]["code"]);
             console.log(JSON.stringify(obj));
             if(definedSqlTypes[i]["code"]=="date" || definedSqlTypes[i]["code"]=="datetime")
-                return definedSqlTypes[i]["code"]+' <input class="form-control" type="'+definedSqlTypes[i]["code"]+'-local" name="field_'+obj["id"]+'" />';
+                return ' <input class="form-control" type="'+definedSqlTypes[i]["code"]+'-local" name="field_'+obj["id"]+'" />';
             if(definedSqlTypes[i]["code"]=="float")
                 return '<input class="form-control" type="number" name="field_'+obj["id"]+'" />';
             return definedSqlTypes[i]["code"];
@@ -504,7 +509,7 @@ function printEditionFields(obj,myRoot,cid,mid){
     editSchema[mid][obj["id"]]=JSON.parse(list1);
     console.log(list1);
     list1=JSON.parse(list1);
-    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="'+(obj["step"]==-2?'mm4me_delete ':'')+'well tab-pane" role="tabpanel">'+obj["description"]+'</div>');
+    myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="'+(obj["step"]==-2?'mm4me_delete ':'')+'well tab-pane" role="tabpanel">'+(obj["description"]?obj["description"]:"")+'</div>');
     for(var j in list1)
         if(list1[j]["edition"]>0) {
             myRoot.find(".tab-content").first().children().last().append(
@@ -1287,6 +1292,7 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
         if(!allTables[list[i]["tid"]]){
             allTables[list[i]["tid"]]={"id":list[i]["id"],"name":list[i]["tname"],"title":list[i]["name"]};
             detectInit=false;
+            if(list[i]["name"])
             $("#sub_tableContent_"+id+"").find(".mm4me_edition").find("ul").first().append('<li role="presentation" id="edition_link_'+list[i]["id"]+'"><a data-toggle="tab" href="#edition_form_'+list[i]["id"]+'">'+list[i]["name"]+'</a></li>');
             printEditionFields(list[i],$("#sub_tableContent_"+id+"").find(".mm4me_edition"),list[i]["id"],list[i]["tid"]);
             if(cnt==0){
@@ -1766,6 +1772,7 @@ function listEdit(id,name,title,init,prefix){
     for(var i in list){
         lastEdition[list[i]["id"]]=list[i];
         var cid=(i==0?list[i]["id"]+"_0":list[i]["id"]);
+        if(list[i]["name"])
         $(".mm4me_edition").find("ul").first().append('<li role="presentation" id="edition_link_'+cid+'"><a data-toggle="tab" href="#edition_form_'+cid+'">'+list[i]["name"]+'</a></li>');
         printEditionFields(list[i],$("#edition_form_edit"),cid,mainTable[id]);
     }

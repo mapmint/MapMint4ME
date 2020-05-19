@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -271,6 +272,40 @@ public class WebAppInterface {
 
         LocationManager myLocationManager;
         myLocationManager = ((MapMint4ME) mContext).getLocationManager();
+
+
+        GnssStatus.Callback mGnssStatusCallback = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            mGnssStatusCallback = new GnssStatus.Callback() {
+
+                @Override
+                public void onSatelliteStatusChanged(GnssStatus status) {
+
+                    int satelliteCount = status.getSatelliteCount();
+
+                    int usedSatellites = 0;
+                    float totalSnr = 0;
+                    int totalViewedSatellites=0;
+                    for (int i = 0; i < satelliteCount; i++){
+                        if (status.usedInFix(i)) {
+                            usedSatellites++;
+                            totalSnr += status.getCn0DbHz(i); //this method obtains the signal from each satellite
+                        }
+                        totalViewedSatellites++;
+                    }
+                    // we calculate the average of the power of the GPS signal
+                    float avgSnr = (usedSatellites > 0) ? totalSnr / usedSatellites: 0.0f;
+
+                    Log.d("GNSS", "Number used satelites: " + usedSatellites + " SNR: " + totalSnr+" avg SNR: "+avgSnr+" total viewed satellites: "+totalViewedSatellites);
+                }
+            };
+        }
+        try {
+            myLocationManager.registerGnssStatusCallback(mGnssStatusCallback);
+            Log.e("GNSS","STATUS OK");
+        } catch (SecurityException e) {
+            Log.e("GNSS","Error "+e);
+        }
 
         // getting GPS status
         isGPSEnabled = myLocationManager
