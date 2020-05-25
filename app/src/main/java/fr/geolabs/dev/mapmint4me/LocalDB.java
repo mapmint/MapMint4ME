@@ -367,26 +367,6 @@ public class LocalDB extends SQLiteOpenHelper {
         return obj.toString();
     }
 
-    public String getStringFromByteArray(byte[] settingsData) {
-
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(settingsData);
-        Reader reader = new BufferedReader(new InputStreamReader(byteArrayInputStream));
-        StringBuilder sb = new StringBuilder();
-        int byteChar;
-
-        try {
-            while((byteChar = reader.read()) != -1) {
-                sb.append((char) byteChar);
-            }
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-
-        return sb.toString();
-
-    }
-
 
 	public String getRows(String query, String[]values){
 		//JSONObject obj = new JSONObject();
