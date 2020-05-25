@@ -101,7 +101,7 @@ $(function(){
                         });
                         map.addLayer(vector);
                     }else{
-                        if(list[i]["type"]=="LINESTRING" || list[i]["type"]=="POLYGON"){
+                        if(list[i]["type"].indexOf("LINESTRING")>=0 || list[i]["type"].indexOf("POLYGON")>=0){
                             console.log("Display lines");
                             features=[];
                             for(var j=0;j<pFeatures.length;j++){
@@ -120,13 +120,13 @@ $(function(){
                             var vector = new ol.layer.Vector({
                                 source: new ol.source.Vector({
                                     features: features
-                                }),
+                                })/*,
                                 style: new ol.style.Style({
                                     stroke: new ol.style.Stroke({
                                         color: "#333333",
                                         width: 2
                                     })
-                                })
+                                })*/
 
                             });
                             map.addLayer(vector);
