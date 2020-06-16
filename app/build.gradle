@@ -7,7 +7,7 @@ android {
         applicationId "fr.geolabs.dev.mapmint4me"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 41
+        versionCode 44
         versionName "1.0"
         multiDexEnabled true
     }

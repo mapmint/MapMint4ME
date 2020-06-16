@@ -267,6 +267,25 @@ function fetchDependencies(obj,cid,changingField){
 var View_template=null;
 var currentTypes=[];
 
+function verifyValues(element){
+    var cValue=element.val();
+    var hasCValue=false;
+    element.next().find("option").each(function(){
+        if(cValue==$(this).text()){
+            $(this).prop("selected",true);
+            hasCValue=true;
+        }
+        else
+            $(this).prop("selected",false);
+    });
+    if(!hasCValue){
+        element.parent().find(".alert").remove();
+        element.parent().prepend($('<div class="alert alert-danger" role="alert">'+window.Android.translate('use_correct_value')+'</div>'));
+    }else{
+        element.parent().find(".alert").remove();
+    }
+}
+
 /*****************************************************************************
  * Display an HTML part containing the input corresponding to a given type.
  *****************************************************************************/
@@ -394,12 +413,14 @@ function printCurrentType(obj,cid){
                     //console.log(strReturn);
                     return strReturn;
             }
-            if(definedSqlTypes[i]["code"]=="ref"){
+            if(definedSqlTypes[i]["code"]=="ref" || definedSqlTypes[i]["code"]=="ref_search"){
                 var req=obj["value"];//.replace(/^\((\w+)\)$/g,"$1");
                 if(req[0]=="(")
                     req="SELECT * FROM "+req;
                 var refs=JSON.parse(window.Android.displayTable(cleanupTableName(req),[]));
-                var tmpStr='<select name="field_'+obj["id"]+'" class="form-control">';
+                var tmpStr='<select name="field_'+obj["id"]+'" class="form-control" '+(definedSqlTypes[i]["code"]=="ref_search"?'style="display: none"':'')+'>';
+                if(definedSqlTypes[i]["code"]=="ref_search")
+                    tmpStr='<input class="form-control" type="text" onchange="verifyValues($(this));" name="search_field_'+obj["id"]+'"/>'+tmpStr;
                 var cvalues=[];
                 //console.log(JSON.stringify(refs));
                 for(var j=0;j<refs.length;j++){
