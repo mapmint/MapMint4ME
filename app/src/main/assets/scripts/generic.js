@@ -1056,7 +1056,7 @@ function listTable(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step>=0 asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -1332,7 +1332,7 @@ function updateChangingFields(changingFields){
  *****************************************************************************/
 function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
     console.log("***** listInnerTable "+id+" "+vid+" "+name+" "+title+" "+init+" "+prefix+" "+clause+" "+ref+" "+" ******");
-    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" order by mm4me_editions.step asc",[]));
+    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" and mm4me_editions.step>=0 order by mm4me_editions.step asc",[]));
     var cnt=0;
     var detectInit=true;
     var tid=0;
@@ -1696,7 +1696,20 @@ function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
                 $("#value_"+j).html(editValues[i][j]);
             }
             else{
-            $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            if($('.mm4me_edition,.mm4me_delete').find("input[name=search_field_"+j+"]").length==0)
+                $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            else{
+                // In case we use Reference Search field
+                $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+j+"]").first().val(editValues[i][j]);
+                $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+j+"]").first().find("option").each(function(){
+                    if(editValues[i][j]==$(this).val()){
+                        $(this).prop("selected",true);
+                        $('.mm4me_edition,.mm4me_delete').find("input[name=search_field_"+j+"]").first().val($(this).text()).change();
+                    }
+                    else
+                        $(this).prop("selected",false);
+                });
+            }
             if($('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").attr("type")=="checkbox")
                 $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").prop('checked',(editValues[i][j]==1));
             $('.mm4me_edition,.mm4me_delete').find("textarea[name=field_"+j+"]").first().each(function(){
