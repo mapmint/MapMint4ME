@@ -66,6 +66,7 @@
     <string name="delete_success">Successfully removed</string>
     <string name="title" >MapMint4ME</string>
     <string name="description">Import, Edit, Export</string>
+    <string name="zoom_features">Zoom on features</string>
     <!-- Slides -->
     <string name="title_activity_welcome" >Home Screen</string>
     <string name="next">NEXT</string>

@@ -18,7 +18,9 @@ var langUrl=null;
 if(lang=="fr"){
     langUrl="file:///android_asset/localisation/French.json";
 }
-
+if(lang=="fi"){
+    langUrl="file:///android_asset/localisation/Finnish.json";
+}
 
 function loadWelcome(){
     window.Android.startWelcomeScreen();
@@ -1256,12 +1258,17 @@ function updateChangingFields(changingFields){
                                 console.log("DISPLAY ELEMENT IF CINDEX >=0 ");
                                 //console.log(JSON.stringify(changingField[j][ckey]));
                                 console.log('input[name="field_'+ckey+'"],select[name="field_'+ckey+'"],textarea[name="field_'+ckey+'"]');
+                                if(!$('input[name="field_'+changingField[j][ckey]["id"]+'"],select[name="field_'+changingField[j][ckey]["id"]+'"],textarea[name="field_'+changingField[j][ckey]["id"]+'"]').parent().parent().html()){
+                                    console.log("should not be treated !")
+                                    //return;
+                                }else{
                                 console.log($('input[name="field_'+changingField[j][ckey]["id"]+'"],select[name="field_'+changingField[j][ckey]["id"]+'"],textarea[name="field_'+changingField[j][ckey]["id"]+'"]').parent().parent().html());
                                 var mycKey=changingField[j][ckey]["id"];
                                 if(cIndex<0)
                                     $('input[name="field_'+mycKey+'"],select[name="field_'+mycKey+'"],textarea[name="field_'+mycKey+'"]').parent().parent().hide();
                                 else
                                     $('input[name="field_'+mycKey+'"],select[name="field_'+mycKey+'"],textarea[name="field_'+mycKey+'"]').parent().parent().show();
+                                    }
                             }
                         }
                     }
@@ -1282,6 +1289,7 @@ function updateChangingFields(changingFields){
  * Display the content of a table referencing the current edited table.
  *****************************************************************************/
 function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
+    console.log("***** listInnerTable "+id+" "+vid+" "+name+" "+title+" "+init+" "+prefix+" "+clause+" "+ref+" "+" ******");
     var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" order by mm4me_editions.step asc",[]));
     var cnt=0;
     var detectInit=true;
@@ -1361,6 +1369,8 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
             tmpData.push(list[i][columnNames[j]]);
             if(cnt==0)
                 tmpData[0]+='<input type="hidden" name="id" value="'+list1[i]["ogc_fid"]+'"/>';
+            if(tmpData[tmpData.length-1]==null)
+                tmpData[tmpData.length-1]="";
             cnt+=1;
         }
         dataSet.push(tmpData);
@@ -1391,6 +1401,7 @@ function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
             options["language"]={
                 url: langUrl
             };
+        console.log(JSON.stringify(options));
 
         $('#'+localName).DataTable( options );
         $('#'+localName+' tbody').on('click', 'tr', function () {
@@ -1440,7 +1451,7 @@ var onFormFirstLoad=null;
 /*****************************************************************************
  * Show the edit form
  *****************************************************************************/
-function displayEditForm(cid,selectedId,basic){
+function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
     if(basic && !$("#exampleTable"+(cid==mtable?"":"_"+cid)).find(".selected").find('input[type=hidden]').first().val()){
         if(cid==mtable){
             $("#main_tableContent").find(".require-select").hide();
@@ -1705,7 +1716,7 @@ function displayEditForm(cid,selectedId,basic){
         }
     }
 
-    if(cid==mtable){
+    if(cid==mtable && hasBreadcrumb!=false){
     if($(".breadcrumb").children().length==4)
         $(".breadcrumb").children().last().remove();
     $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-file" aria-hidden="true"></span> '+editValues["0"]["local_id"]+'</a></li>');
@@ -1729,21 +1740,21 @@ function editOnlyTableReact(tid){
         console.log("editOnlyTableReact("+mid+')');
     console.log(mtable);
     if(mid==mtable){
-        $('.mm4me_listing').find('ul').first().find('a').first().click();
-        var ccol=getPKey(cleanupTableName(allTables[mid].name));
-        var list=JSON.parse(window.Android.displayTable("select max("+ccol+") as val from "+cleanupTableName(allTables[mid].name),[]));
-        if(!editChangeOnce){
-            $(".mm-act-add").first().removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
-                console.log(mid);
-                console.log(JSON.stringify(mainTable));
-                console.log(JSON.stringify(allTables[mid]["id"]));
-                runUpdateQuery($(this).parent().parent(),mainTable[allTables[mid]["id"]],editOnlyTableReact);
-            });
-            editChangeOnce=true;
-        }
-        setTimeout(function(){$(".mm-edit-field").find(".require-select").hide();},500);
-        systemSelectedIndex=list[0].val;
-        displayEditForm(mid,list[0].val,false);
+            $('.mm4me_listing').find('ul').first().find('a').first().click();
+            var ccol=getPKey(cleanupTableName(allTables[mid].name));
+            var list=JSON.parse(window.Android.displayTable("select max("+ccol+") as val from "+cleanupTableName(allTables[mid].name),[]));
+            if(!editChangeOnce){
+                $(".mm-act-add").first().removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
+                    console.log(mid);
+                    console.log(JSON.stringify(mainTable));
+                    console.log(JSON.stringify(allTables[mid]["id"]));
+                    runUpdateQuery($(this).parent().parent(),mainTable[allTables[mid]["id"]],editOnlyTableReact);
+                });
+                editChangeOnce=true;
+            }
+            setTimeout(function(){$(".mm-edit-field").find(".require-select").hide();},500);
+            systemSelectedIndex=list[0].val;
+            displayEditForm(mid,list[0].val,false);
     }
 }
 
@@ -1795,10 +1806,11 @@ function listEdit(id,name,title,init,prefix){
     $(".mm-act-save").click(function(){
         runUpdateQuery($(this).parent().parent(),mainTable[id],editOnlyTableReact);
     });
-    $(".breadcrumb").children().last().remove();
-    $(".breadcrumb").append('<li><a href="edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> '+window.Android.translate('edit')+'</a></li>');
-    $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> '+tblTitle+'</a></li>');
-
+    if(init!=false){
+        $(".breadcrumb").children().last().remove();
+        $(".breadcrumb").append('<li><a href="edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> '+window.Android.translate('edit')+'</a></li>');
+        $(".breadcrumb").append('<li class="active"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> '+tblTitle+'</a></li>');
+    }
     setTimeout(function() { updateChangingFields(changingFields) }, 1500);
 
     $('.mm4me_listing').show();
@@ -1845,6 +1857,7 @@ function authenticate(url,login,passwd,func,func1){
             }
         },
         error: function(){
+            console.log(JSON.stringify(arguments[0]));
             if(func1){
                 func1();
             }
@@ -2656,3 +2669,5 @@ function reactOrientation(direction){
         window.Android.stopReportDirection();
     }
 }
+
+

@@ -62,6 +62,7 @@
     <string name="drawlm_gps">Trace GPS (manuelle)</string>
     <string name="drawpm_gps">Trace GPS (manuelle)</string>
     <string name="about_property">L\'applciation a été développée et publiée sur GooglePlay™ par GeoLabs SARL</string>
+    <string name="zoom_features">Zoomer sur les entités</string>
     <!-- Slides -->
     <string name="title_activity_welcome">Home Screen</string>
     <string name="next">Suivant</string>

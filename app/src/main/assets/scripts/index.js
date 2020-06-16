@@ -1,13 +1,7 @@
-while(true)
-try{
-start();
-break;
-}catch(e){
-console.log(e);
-}
-
 var runOnce=true;
-function start(){
+
+$(function(){
+
     if(!runOnce)
         return;
     runOnce=false;
@@ -45,4 +39,5 @@ function start(){
         }
     });
 
-}
+
+});
