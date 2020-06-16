@@ -55,7 +55,8 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
 
     function displayDependentData(){
         //try{
-        var query="select f_table_name as name, f_geometry_column as gc, (select type from mm4me_gc where mm4me_gc.f_table_name like geometry_columns.f_table_name or mm4me_gc.f_table_name like substr(geometry_columns.f_table_name,1,length(geometry_columns.f_table_name)-2) ) as type from geometry_columns where f_table_name in (select tname from mm4me_georef)";
+        var query=" select (select ogc_fid from mm4me_georef where tname=f_table_name) as id, f_table_name as name, f_geometry_column as gc, (select type from mm4me_gc where mm4me_gc.f_table_name like geometry_columns.f_table_name or mm4me_gc.f_table_name like substr(geometry_columns.f_table_name,1,length(geometry_columns.f_table_name)-2) ) as type from geometry_columns where f_table_name in (select tname from mm4me_georef) order by id desc";
+        //var query="select f_table_name as name, f_geometry_column as gc, (select type from mm4me_gc where mm4me_gc.f_table_name like geometry_columns.f_table_name or mm4me_gc.f_table_name like substr(geometry_columns.f_table_name,1,length(geometry_columns.f_table_name)-2) ) as type from geometry_columns where f_table_name in (select tname from mm4me_georef)";
         //var query="select f_table_name as name, f_geometry_column as gc, type from mm4me_gc where f_table_name in (select tname from mm4me_georef);";
         try{
         var list=JSON.parse(window.Android.displayTable(query,[]));
@@ -180,6 +181,7 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
                             map.addInteraction(select);
                             (function(tableName){
                                 select.on('select', function(e) {
+
                                     if(e.target.getFeatures().getLength()==1){
                                         console.log("Print window to access feature edition");
                                         var feature=e.target.getFeatures().item(0);
@@ -194,7 +196,7 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
                                         var res=window.Android.displayTable(sqlReq,[]);
                                         console.log(res);
                                         var list=JSON.parse(res);
-allTables={};
+                                        allTables={};
                                         sqlReq="select col from primary_keys where tbl='"+cleanupTableName(list[0]["origin_table"])+"' ;";
                                         var res0=window.Android.displayTable(sqlReq,[]);
                                         console.log(res0);
@@ -216,41 +218,29 @@ allTables={};
                                         for(var l in mainTable){
                                             console.log(l);
                                             console.log(mainTable[l]);
-
                                             if(mainTable[l]==res2[0]["id"])
                                                 index=l;
                                         }
                                         console.log(res2[0]["id"]);
 
-                                        doModal("<i class='glyphicon glyphicon-edit'></i> "+res2[0]["title"]+" "+res1[0]["id"],'<div id="edition_form_edit" class="mm4me_edition tab-pane" role="tabpanel">'+
+                                        editChangeOnce=false;
+                                        setTimeout(function(){
+                                            doModal("<i class='glyphicon glyphicon-edit'></i> "+res2[0]["title"]+" "+res1[0]["id"],'<div id="edition_form_edit" class="mm4me_edition tab-pane" role="tabpanel">'+
                                                                                                 '<ul class="nav nav-tabs">'+
                                                                                                 '</ul>'+
                                                                                                 '<div class="tab-content">'+
                                                                                                 '</div>'+
                                                                                             '</div>');
-                                        editChangeOnce=false;
-                                        listEditFromMap(index,res2[0]["name"],res2[0]["title"]);
-                                        /*$(".mm-act-add").first().removeClass("mm-act-add").addClass("mm-act-save").html(window.Android.translate("save")).off("click").click(function(){
-                                                        console.log(mid);
-                                                        console.log(JSON.stringify(mainTable));
-                                                        console.log(JSON.stringify(allTables[mid]["id"]));
-                                                        runUpdateQuery($(this).parent().parent(),mainTable[allTables[mid]["id"]],editOnlyTableReact);
-                                                    });
-                                        $(".require-select").show();
-                                        //setTimeout(function(){$(".mm-edit-field").find(".require-select").show();},500);
-                                        */
-
-                                        systemSelectedIndex=res1[0]["id"];
-                                        console.log("call editOnlyTableReactFromMap");
-                                        editOnlyTableReactFromMap(res2[0]["id"]);
-                                        /*displayEditForm(index,res1[0]["id"],true);
-                                        */
-
-
-                                        console.log( '&nbsp;' +
-                                                    e.target.getFeatures().getLength() +
-                                                    ' selected features (last operation selected ' + e.selected.length +
-                                                    ' and deselected ' + e.deselected.length + ' features)');
+                                            listEditFromMap(index,res2[0]["name"],res2[0]["title"]);
+                                            systemSelectedIndex=res1[0]["id"];
+                                            console.log("call editOnlyTableReactFromMap");
+                                            editOnlyTableReactFromMap(res2[0]["id"]);
+                                            if(MM4ME_DEBUG)
+                                            console.log( '&nbsp;' +
+                                                        e.target.getFeatures().getLength() +
+                                                        ' selected features (last operation selected ' + e.selected.length +
+                                                        ' and deselected ' + e.deselected.length + ' features)');
+                                        },100);
                                     }
                                 });
                             })(cleanupTableName(list[i]["name"]));
