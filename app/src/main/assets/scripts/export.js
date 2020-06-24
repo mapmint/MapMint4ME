@@ -1,5 +1,10 @@
+var runOnce=true;
+
 $(function(){
     console.log('run');
+    if(!runOnce)
+        return;
+    runOnce=false;
 
     updateBreadcrumbs(["home","export"]);
     addStatusControl();

@@ -21,6 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -28,7 +30,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import static android.database.Cursor.FIELD_TYPE_BLOB;
@@ -362,6 +367,7 @@ public class LocalDB extends SQLiteOpenHelper {
         return obj.toString();
     }
 
+
 	public String getRows(String query, String[]values){
 		//JSONObject obj = new JSONObject();
 		JSONArray obj = new JSONArray();
@@ -449,8 +455,13 @@ public class LocalDB extends SQLiteOpenHelper {
                                                 " ****** OK GEOMETRY 1: " + tmp + " " + tmp.contains("POINT") + " ! ");
                                         if(tmp.contains("POINT"))
                                             content=tmp.replace("POINT","").replace(" ",",");
-                                        else
-                                            content=tmp;
+                                        else {
+                                            byte[] value= cursor.getBlob(j);
+                                            String str1 = Base64.encodeToString(fileContent,0);
+                                            Log.w("LocalDB",
+                                                    " ****** OK GEOMETRY STR: " + str1 + " ! ");
+                                            content = tmp;
+                                        }
                                         ljson.put(fields[j], content);
                                         //String content=tmp.replace("POINT","").replace(" ",",");
                                         ljson.put(fields[j], content);
@@ -471,7 +482,7 @@ public class LocalDB extends SQLiteOpenHelper {
 
                                 try{
                                     byte[] value= cursor.getBlob(j);
-                                    String tmp=new String(value);
+                                    String tmp=new String(value, Charset.forName("utf-8"));
                                     String content=null;
                                     Log.w("LocalDB",
                                             " ****** OK GEOMETRY 1: " + tmp + " " + tmp.contains("POINT") + " ! ");

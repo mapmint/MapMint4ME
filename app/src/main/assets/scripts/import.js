@@ -59,10 +59,13 @@
         downloadFailed++;
     }
 
+var runOnce=true;
 $(function(){
     if(MM4ME_DEBUG)
         console.log('run');
-
+    if(!runOnce)
+        return;
+    runOnce=false;
     updateBreadcrumbs(["home","mm_import"]);
     addStatusControl();
     getCurrentStatus();

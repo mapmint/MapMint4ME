@@ -1,4 +1,8 @@
+var runOnce=true;
+
 $(function(){
+    if(!runOnce)
+        return;
     $("h2").first().append(window.Android.translate("new_server"));
     $("#inputServer").attr("placeholder",window.Android.translate("server_name"));
     $("#inputUrl").attr("placeholder",window.Android.translate("server_url"));
