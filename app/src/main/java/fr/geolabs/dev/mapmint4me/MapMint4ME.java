@@ -1,12 +1,10 @@
 package fr.geolabs.dev.mapmint4me;
 
-import android.*;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -15,8 +13,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -24,42 +20,24 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.http.SslError;
 import android.os.Build;
-import android.os.Environment;
-import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
-import android.provider.SyncStateContract;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.widget.AlertDialogLayout;
-import android.text.format.DateFormat;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -73,7 +51,6 @@ import com.google.android.gms.location.LocationServices;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,12 +61,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
-import static java.lang.Thread.sleep;
-
-
 
 
 /**
@@ -341,6 +312,11 @@ public class MapMint4ME extends Activity implements
         finish();
     }
 
+   // public void launchWelcomeScreen5() {
+     //   startActivity(new Intent(getApplicationContext(), GPSActivity_sat.class));
+       // finish();
+   // }
+
     public boolean mInternetActivated=false;
 
     public boolean isInternetActivated(){
@@ -527,6 +503,12 @@ public class MapMint4ME extends Activity implements
         // not in use
     }
 
+    public void launchWelcomeScreen7() {
+        startActivity(new Intent(getApplicationContext(), Satellite.GPSActivity.class));
+        finish();
+
+
+    }
 
 
     /**

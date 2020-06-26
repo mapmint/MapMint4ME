@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
+
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="dots_height">30dp</dimen>
     <dimen name="dots_margin_bottom">20dp</dimen>
@@ -16,5 +15,18 @@
     <dimen name="typo_large">18sp</dimen>
     <dimen name="typo_medium">14sp</dimen>
     <dimen name="typo_small">12sp</dimen>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="tab_max_width">264dp</dimen>
+    <dimen name="tab_padding_bottom">16dp</dimen>
+    <dimen name="tab_label">14sp</dimen>
+    <dimen name="custom_tab_layout_height">72dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="thumbSize">90dp</dimen>
+    <dimen name="thumbLineWidth">1.5dp</dimen>
+    <dimen name="TextAppearanceLargeNumbersSize">26sp</dimen>
+    <dimen name="TextAppearanceTextUMSize">14sp</dimen>
+    <dimen name="TextAppearanceSmallTextSize">11sp</dimen>
 
 </resources>

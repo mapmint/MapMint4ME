@@ -1,3 +1,4 @@
+
 <resources>
     <string name="app_name">MapMint4ME</string>
     <string name="table">Table</string>
@@ -111,4 +112,49 @@
     <string name="action_2_toast" translatable="false">Reorder and set this cube to the first.</string>
     <string name="action_3_toast" translatable="false">Move on x and z axis.</string>
     <string name="action_4_toast" translatable="false">Move on y axis.</string>
+    <string name="UM_mph">Um_mph</string>
+    <string name="UM_fps">UM_fps</string>
+    <string name="UM_kn">UM_kn</string>
+    <string name="UM_m">UM_m</string>
+    <string name="UM_ft">UM_ft</string>
+    <string name="north">north</string>
+    <string name="north_northeast">north_northeast</string>
+    <string name="northeast">northeast</string>
+    <string name="east_northeast">east_northeast</string>
+    <string name="UM_km_h">UM_km_h</string>
+    <string name="UM_m_s">UM_m_s</string>
+    <string name="east">east</string>
+    <string name="north_northwest">north_northwest</string>
+    <string name="northwest">northwest</string>
+    <string name="west_northwest">west_northwest</string>
+    <string name="east_southeast">east_southeast</string>
+    <string name="southeast">southeast</string>
+    <string name="south_southeast">south_southeast</string>
+    <string name="south">south</string>
+    <string name="south_southwest">south_southwest</string>
+    <string name="southwest">southwest</string>
+    <string name="west_southwest">west_southwest</string>
+    <string name="west">west</string>
+    <string name="UM_km">UM_km</string>
+    <string name="UM_mi">UM_mi</string>
+    <string name="UM_nm">UM_nm</string>
+    <string name="toast_track_finished_click_again">toast_track_finished_click_again</string>
+    <string name="dlg_app_killed">dlg_app_killed</string>
+    <string name="open_android_app_settings">open_android_app_settings</string>
+    <string name="about_ok">about_ok</string>
+    <string name="dlg_app_killed_description">dlg_app_killed_description</string>
+    <string name="toast_active_track_not_empty">toast_active_track_not_empty</string>
+    <string name="please_grant_storage_permission">please_grant_storage_permission</string>
+    <string name="toast_track_saved_into_tracklist">toast_track_saved_into_tracklist</string>
+    <string name="tab_gpsfix">tab_gpsfix</string>
+    <string name="toast_track_exported">toast_track_exported</string>
+    <string name="export_unable_to_write_file">export_unable_to_write_file</string>
+    <string name="message_exit_finalizing">message_exit_finalizing</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+    <string name="gps_disabled_with_hint">gps_disabled_with_hint</string>
+    <string name="gps_out_of_service">gps_out_of_service</string>
+    <string name="gps_searching">gps_searching</string>
+    <string name="gps_stabilizing">gps_stabilizing</string>
+    <string name="tab_gpsfix1">GPS coordinates</string>
 </resources>

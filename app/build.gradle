@@ -4,7 +4,7 @@ apply plugin: 'com.google.ar.sceneform.plugin'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '28.0.3'
+
     defaultConfig {
         applicationId "fr.geolabs.dev.mapmint4me"
         minSdkVersion 24
@@ -54,6 +54,10 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support:design:27.1.0'
     implementation 'com.google.firebase:firebase-database:11.0.0'
+    implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation 'com.android.support:preference-v7:27.0.0'
+    implementation 'com.android.support:preference-v14:27.0.0'
+
 
     implementation 'de.javagl:obj:0.2.1'
     implementation('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {

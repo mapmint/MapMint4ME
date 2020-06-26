@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3f51b5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+
     <color name="active">@android:color/holo_blue_dark</color>
     <color name="black_overlay">#66000000</color>
 
@@ -70,5 +68,30 @@
             <item>@color/dot_inactive_screen2</item>
             <item>@color/dot_inactive_screen3</item>
         </array>
+
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorPrimaryLight">#000000</color>
+    <color name="textColorPrimary">#000000</color>
+    <color name="textColorCardTitle">#000000</color>
+    <color name="textColorSecondary">#200000</color>
+    <color name="colorBackground">#000000</color>
+
+    <color name="colorRecControlBackground">#ffffff</color>
+    <color name="textColorRecControlPrimary">#111111</color>
+    <color name="textColorRecControlSecondary">#555555</color>
+    <color name="textColorRecControlPrimary_Active">#ffffff</color>
+    <color name="textColorRecControlSecondary_Active">#cccccc</color>
+
+    <color name="colorCardBackground_Title">#000000</color>
+    <color name="colorCardBackground_Line">#000000</color>
+    <color name="colorCardBackground_Data">#000000</color>
+    <color name="colorCardBackground">#000000</color>
+    <color name="colorCardBackground_Selected">#400000</color>
+
+    <color name="colorAccent">#000000</color>
+    <color name="preference_accent">#000000</color>
+
+
 
 </resources>

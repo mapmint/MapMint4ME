@@ -1,10 +1,8 @@
 package fr.geolabs.dev.mapmint4me;
 
-import android.*;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -41,25 +39,19 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -588,6 +580,14 @@ public class WebAppInterface {
             ((MapMint4ME) mContext).launchWelcomeScreen4();
             ((MapMint4ME) mContext).finish();
         }
+        if (s.equals("sat_finder")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen7();
+            ((MapMint4ME) mContext).finish();
+        }
+
+
+
         if (s.equals("help")) {
             ((MapMint4ME) mContext).launchWelcomeScreen();
             ((MapMint4ME) mContext).finish();
