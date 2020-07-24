@@ -510,6 +510,12 @@ public class MapMint4ME extends Activity implements
 
     }
 
+    public void launchWelcomeScreen8() {
+        startActivity(new Intent(getApplicationContext(), Ar_Simulation.ARSimulation.class));
+        finish();
+
+    }
+
 
     /**
      * This class is used as a substitution of the local storage in Android webviews

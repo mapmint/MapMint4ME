@@ -24,6 +24,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.BuildConfig;
 import com.crashlytics.android.Crashlytics;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
@@ -59,7 +60,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import fr.geolabs.dev.mapmint4me.BuildConfig;
 import fr.geolabs.dev.mapmint4me.R;
 import io.fabric.sdk.android.Fabric;
 

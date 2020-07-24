@@ -119,6 +119,8 @@
         <activity android:name="com.hl3hl3.arcoremeasure.ArMeasureActivity"/>
         <activity android:name="drawar.DrawAR"/>
 
+        <activity android:name="Ar_Simulation.ARSimulation"/>
+
 
 
 

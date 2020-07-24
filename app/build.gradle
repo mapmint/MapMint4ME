@@ -72,3 +72,19 @@ sceneform.asset('sampledata/model.obj',
         'default',
         'sampledata/model.sfa',
         'src/main/assets/model')
+sceneform.asset('sampledata/wheelchair.fbx',
+        'default',
+        'sampledata/wheelchair.sfa',
+        'src/main/assets/wheelchair')
+
+
+sceneform.asset('sampledata/stroller.fbx',
+        'default',
+        'sampledata/stroller.sfa',
+        'src/main/assets/stroller')
+
+
+sceneform.asset('sampledata/cart.fbx',
+        'default',
+        'sampledata/cart.sfa',
+        'src/main/assets/cart')

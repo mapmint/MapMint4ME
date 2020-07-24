@@ -586,6 +586,12 @@ public class WebAppInterface {
             ((MapMint4ME) mContext).finish();
         }
 
+        if (s.equals("ARSimulation")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen8();
+            ((MapMint4ME) mContext).finish();
+        }
+
 
 
         if (s.equals("help")) {

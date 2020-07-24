@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="Ar_Simulation.ARSimulation"
+    tools:ignore="MissingDefaultResource">
+
+
+    <fragment
+        android:id="@+id/ux_fragment"
+        android:name="com.google.ar.sceneform.ux.ArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <SeekBar
+        android:id="@+id/sb_size"
+        android:layout_width="370dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="100dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0" />
+
+
+
+
+    <TextView
+        android:id="@+id/textview1"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="156dp"
+        android:layout_marginTop="149dp"
+
+        android:textAppearance="?android:attr/textAppearanceLarge"></TextView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="#FFFFFF">
+
+        <Spinner
+            android:id="@+id/spn_model"
+            style="@style/Widget.AppCompat.DropDownItem.Spinner"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="0dp" />
+
+
+    </RelativeLayout>
+
+
+    <Button
+        android:id="@+id/accelerate"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="142dp"
+        android:layout_height="61dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="12dp"
+
+        android:padding="5dp"
+
+        android:text="Accelerate"
+        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+        android:textColor="#FFF"
+        android:textSize="15dp"
+
+
+        />
+
+    <Button
+        android:id="@+id/r_left"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="142dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="13dp"
+        android:layout_toLeftOf="@+id/accelerate"
+        android:padding="5dp"
+        android:text="Left"
+        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+        android:textColor="#FFF"
+
+        android:textSize="15dp" />
+    <Button
+        android:id="@+id/r_right"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="142dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="13dp"
+        android:layout_toRightOf="@+id/accelerate"
+
+
+
+        android:padding="5dp"
+
+        android:text="Right"
+
+        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+        android:textColor="#FFF"
+
+        android:textSize="15dp"
+
+        />
+
+
+
+
+
+
+</RelativeLayout>

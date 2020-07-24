@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Documents-MapMint4ME.iml" filepath="$PROJECT_DIR$/.idea/modules/Documents-MapMint4ME.iml" group="MapMint4ME" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Documents-MapMint4ME-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Documents-MapMint4ME-app.iml" group="MapMint4ME/app" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/MapMint4ME.iml" filepath="$PROJECT_DIR$/.idea/modules/MapMint4ME.iml" group="MapMint4ME" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/MapMint4ME-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/MapMint4ME-app.iml" group="MapMint4ME/app" />
       <module fileurl="file://$PROJECT_DIR$/MapMint4ME_final.iml" filepath="$PROJECT_DIR$/MapMint4ME_final.iml" />
