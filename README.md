@@ -1,13 +1,8 @@
-# MapMint4ME_final
-* I added the following methods which give more information regarding GPS satellites currently used to fix locations. Satellite information is required because MapMint4ME acquires data without internet
-* GPS Coordinated displayed on screen.
-* getPrn()  method returns pseudo random number for satellite
-* getAzimuth() method  returns azimuth of the satellite in degrees 
-* getElevation() method returns  elevation of the satellite in degrees
-* getSnr() method returns signal to noise ratio
-* usedInFix() method returns Returns true if the satellite was used by the GPS engine when calculating the most recent GPS fix
-* Module Integrated with existing MapMint4ME.
-* Screenshots:
-<img src = "output/op1.jpg" width = "250" height="500" />
+# MapMint4ME_GSoC2020
 
-<img src = "output/op2.jpg" width = "250" height="500" />
+Added AR Simulation module in MapMint4ME:
+* User can able to place to 3d object by selecting it from drop down menu
+* Will able to adjust size of 3d object, rotate 3d object in real world scene
+* Will able to accelerate 3d object in real world scene, left and right movement of 3d object in real world scene
+
+
