@@ -57,8 +57,8 @@ public class ARSimulation extends AppCompatActivity {
     private float mytravel=0.01f, distance_x=0f, distance_z=0f, myangle=0f;
 
 
-    int[] sfb_source = {R.raw.wheelchair, R.raw.stroller, R.raw.model};
-    String[] arr_models = {"Wheelchair", "Stroller", "Shopping cart"};
+    int[] sfb_source = {R.raw.wheelchair, R.raw.model, R.raw.stroller, R.raw.cart};
+    String[] arr_models = {"Wheelchair", "Arrow", "Stroller", "Shopping cart"};
     private ModelRenderable[] renderable_models = new ModelRenderable[sfb_source.length];
 
     @Override
