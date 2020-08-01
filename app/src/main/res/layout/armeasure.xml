@@ -17,15 +17,14 @@
         android:layout_height="50dp"
         android:layout_gravity="right"
         android:layout_margin="10dp"
-        android:background="@drawable/ic_button_small_icon"
-        android:src="@drawable/ic_share_black_40dp"
+
         />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="75dp"
-        android:background="@color/translucent_black">
+        >
         <TextView
             android:id="@+id/text"
             android:layout_width="match_parent"
@@ -60,7 +59,7 @@
             android:layout_width="150dp"
             android:layout_height="75dp"
             android:text="Width"
-            android:background="@drawable/ic_button_round_green"
+
             android:textColor="@color/white"
             android:layout_weight="1"
             android:layout_margin="10dp"
@@ -71,7 +70,7 @@
             android:layout_width="150dp"
             android:layout_height="75dp"
             android:text="Save"
-            android:background="@drawable/ic_button_round_orange"
+
             android:textColor="@color/white"
             android:layout_weight="1"
             android:layout_margin="10dp"
@@ -83,7 +82,7 @@
             android:layout_width="150dp"
             android:layout_height="75dp"
             android:text="Height"
-            android:background="@drawable/ic_button_round_green"
+
             android:textColor="@color/white"
             android:layout_weight="1"
             android:layout_margin="10dp"
