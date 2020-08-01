@@ -64,6 +64,7 @@ public class ARSimulation extends AppCompatActivity {
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     // CompletableFuture requires api level 24
+
     // FutureReturnValueIgnored is not valid
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
