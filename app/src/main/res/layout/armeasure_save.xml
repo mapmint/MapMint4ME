@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".armeasure">
+    tools:context="armeasure.Armeasure_save">
 
     <fragment
         android:id="@+id/ux_fragment"
@@ -11,20 +11,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ImageButton
+    <Button
         android:id="@+id/btn_share"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="59dp"
         android:layout_gravity="right"
         android:layout_margin="10dp"
-
-        />
+        android:text="Save to text" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="75dp"
-        >
+        android:background="@color/translucent_black">
         <TextView
             android:id="@+id/text"
             android:layout_width="match_parent"
@@ -35,7 +34,6 @@
             android:text="Select width or height"
             android:layout_marginVertical="10dp"/>
     </LinearLayout>
-
 
 
     <SeekBar
@@ -60,7 +58,7 @@
             android:layout_height="75dp"
             android:text="Width"
 
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:layout_weight="1"
             android:layout_margin="10dp"
             android:textSize="20dp"/>
@@ -71,7 +69,7 @@
             android:layout_height="75dp"
             android:text="Save"
 
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:layout_weight="1"
             android:layout_margin="10dp"
             android:textSize="20dp"
@@ -83,7 +81,7 @@
             android:layout_height="75dp"
             android:text="Height"
 
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:layout_weight="1"
             android:layout_margin="10dp"
             android:textSize="20dp"

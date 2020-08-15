@@ -120,6 +120,8 @@
         <activity android:name="drawar.DrawAR"/>
 
         <activity android:name="Ar_Simulation.ARSimulation"/>
+        <activity android:name="armeasure.Armeasure_save"/>
+
 
 
 

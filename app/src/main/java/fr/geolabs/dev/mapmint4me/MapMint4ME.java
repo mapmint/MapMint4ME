@@ -63,6 +63,8 @@ import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
+
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -511,7 +513,7 @@ public class MapMint4ME extends Activity implements
     }
 
     public void launchWelcomeScreen8() {
-        startActivity(new Intent(getApplicationContext(), Ar_Simulation.ARSimulation.class));
+        startActivity(new Intent(getApplicationContext(), armeasure.Armeasure_save.class));
         finish();
 
     }
