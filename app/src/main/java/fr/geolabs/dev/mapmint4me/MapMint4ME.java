@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-
+import armeasure.Armeasure_save;
 
 
 /**
@@ -513,6 +513,11 @@ public class MapMint4ME extends Activity implements
     }
 
     public void launchWelcomeScreen8() {
+        startActivity(new Intent(getApplicationContext(), Ar_Simulation.ARSimulation.class));
+        finish();
+
+    }
+    public void launchWelcomeScreen9() {
         startActivity(new Intent(getApplicationContext(), armeasure.Armeasure_save.class));
         finish();
 

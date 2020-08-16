@@ -592,6 +592,12 @@ public class WebAppInterface {
             ((MapMint4ME) mContext).finish();
         }
 
+        if (s.equals("ARArea")) {
+
+            ((MapMint4ME) mContext).launchWelcomeScreen9();
+            ((MapMint4ME) mContext).finish();
+        }
+
 
 
         if (s.equals("help")) {
