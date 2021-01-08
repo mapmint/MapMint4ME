@@ -1,1 +1,222 @@
-index.html
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN"
+        "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>MapMint4ME Home page</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datatables.min.css" rel="stylesheet">
+    <link href="css/summernote.css" rel="stylesheet">
+    <style>
+    .container{
+        padding-top: 15px;
+    }
+.btn-circle {
+  width: 49px;
+  height: 49px;
+  text-align: center;
+  padding: 5px 0;
+  font-size: 20px;
+  line-height: 2.00;
+  border-radius: 30px;
+}
+
+.btn-circle-micro {
+  width: 19px;
+  height: 19px;
+  text-align: center;
+  padding: 1px 0;
+  font-size: 13px;
+  line-height: 0.1;
+  border-radius: 30px;
+}
+
+.btn-circle-sm {
+  width: 35px;
+  height: 35px;
+  text-align: center;
+  padding: 2px 0;
+  font-size: 20px;
+  line-height: 1.65;
+  border-radius: 30px;
+}
+
+.btn-circle-lg {
+  width: 79px;
+  height: 79px;
+  text-align: center;
+  padding: 13px 0;
+  font-size: 30px;
+  line-height: 2.00;
+  border-radius: 70px;
+}
+
+@font-face {font-family: 'mmFont';src: url('./fonts/mmFont.ttf') format('truetype');font-weight: normal;font-style: normal;}
+
+[class^="icon-mm-"],
+[class*=" icon-mm-"] {
+  font-family: 'mmFont', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: inherit;
+  font-size: 1em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.icon-mm-logo:before{content: "\e602";}
+
+body { padding-top: 70px; }
+
+.breadcrumb>li+li.pull-right:before {
+    padding: 0 5px;
+    color: #ccc;
+    content: " ";
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                &nbsp;
+                <span></span>
+                <a class="navbar-brand" href="#">
+                    <i class="icon-mm-logo" style="font-size:2em;color:#83c849;margin-top: 0px;float:left;padding-right: 5px;"></i>
+                    MapMint4ME</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="./index.html" aria-haspopup="true" aria-expanded="true"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="./edit.html"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</a></li>
+                            <li><a href="./import.html"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span> Import</a></li>
+                            <li><a href="./view.html"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> View</a></li>
+                            <li><a href="./export.html"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span> Export</a></li>
+                            <li><a href="./map.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Map</a></li>
+
+                        </ul>
+                    </li>
+                    <li><a href="#" onclick="loadWelcome();"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Help</a></li>
+                    <li><a href="about.html"><span class="glyphicon glyphicon-copyright-mark" aria-hidden="true"></span> About</a></li>
+                    <!--
+                    <li><a href="contact.html"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> Contact</a></li>
+                    <li><a href="help.html"><span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> Help</a></li>
+                    -->
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+    </nav>
+
+
+</div> <!-- /container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script>window.jQuery || document.write('<script src="js/jquery-3.4.1.min.js"><\/script>')</script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-treeview.min.js"></script>
+<script src="js/datatables.min.js"></script>
+<script src="js/summernote.min.js"></script>
+<script src="scripts/generic.js"></script>
+<script type="text/javascript">
+
+    $(window).on('load', function() {
+    while(true)
+        try{
+    try{
+	    //we replace default localStorage with our Android Database one
+  	    window.localStorage=LocalStorage;
+    }catch(e){
+	    //LocalStorage class was not found. be sure to add it to the webview
+	    console.log("LocalStorage ERROR : can't find android class LocalStorage. switching to raw localStorage")
+    }
+        ajaxSetup();
+        getCurrentStatus();
+        var tmp=document.location+"";
+        tmp=tmp.split("/");
+        $.ajax({
+            method: "GET",
+            url: './content/'+tmp[tmp.length-1],
+            error: function(){
+                $.ajax({
+                    method: "GET",
+                    url: './content/404.html',
+                    success: function(data){
+                        $(".container").append(data);
+                    }
+                });
+            },
+            success: function(data){
+                $(".container").append(data);
+            }
+        });
+        $.ajax({
+            method: "GET",
+            url: './scripts/'+(tmp[tmp.length-1].replace(/html/g,"js")),
+            error: function(){
+                console.log("Nothing to run after");
+            },
+            success: function(data){
+                console.log("Run js after");
+                try{
+                console.log(this.url);
+                $("body").append('<script>'+data+'<\/script>');
+                console.log("ok");
+                }catch(e){
+                console.log("Unable to load");
+                console.log(data);
+                console.log("Unable to load");
+                }
+            }
+        });
+        $(".navbar").find("a").each(function(){
+            if($(this).attr("href")==tmp[tmp.length-1]){
+                $(this).parent().addClass("active");
+                var closure=$(this);
+                try{
+                $.ajax({
+                    method: "GET",
+                    url: './menus/'+closure.attr('href'),
+                    success: function(data){
+                        console.log("Load menu");
+                        $(data).insertBefore(closure.parent());
+                        closure.parent().remove();
+                    }
+                });
+                }catch(e){
+                }
+            }
+        });
+        break;
+        }catch(e){
+            console.log("Wait for loading "+e);
+        }
+    });
+</script>
+</body>
+</html>
+

@@ -1,5 +1,21 @@
 var runOnce=true;
 var hasDependencies=false;
+var layersColors=[
+    "#AA1736",
+    "#C33F46",
+    "#650478",
+    "#5B81BE",
+    "#8216A1",
+    "#A83144",
+    "#B40E3E",
+    "#D624AD",
+    "#F1E828",
+    "#10DC33"
+];
+
+var hasToCheckedRouting=true;
+var hasRouting=false;
+
 $(function(){
     if(!runOnce)
         return;
@@ -61,6 +77,8 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
         try{
         var list=JSON.parse(window.Android.displayTable(query,[]));
         }catch(e){
+            console.log(JSON.stringify($("#layerSwitcherCheck").parent().parent().parent()));
+            $(".map").append('<input id="hasFeatures" value="false" type="hdden" />');
             console.log(e);
             return;
         }
@@ -69,25 +87,74 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
         if(list.length>0){
             console.log("Display point and lines");
 
+            if(map){
             console.log("#mm4me_ls");
-            console.log($(".map").html());
+                        console.log( $(".container").find(".map").html());
 
-            console.log($("#zoomOnFeatures").html());
-            $(".zoomOnFeatures").show();
-            $("#zoomOnFeatures").parent().parent().show();
-            $(".zoomOnFeatures").on('check',function(){
-                console.log($(this).is(":checked"));
+                        console.log($(".map").parent().find("input[type=checkbox]").html());
 
-            });
-            console.log($("#mm4me_ls").find(".dropdown-menu").html());
+
+                        $(".zoomOnFeatures").show();
+                        $("#zoomOnFeatures").parent().parent().show();
+                        $(".zoomOnFeatures").on('check',function(){
+                            console.log($(this).is(":checked"));
+
+                        });
+                        console.log($("#mm4me_ls").find(".dropdown-menu").html());
+
+            }
 
             var format = new ol.format.WKT();
+
+              // a default style is good practice!
+              var defaultStyle = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                  color: layersColors[0],
+                  width: 4
+                })
+              });
+              // a javascript object literal can be used to cache
+              // previously created styles. Its very important for
+              // performance to cache styles.
+              var styleCache = {};
+
+              // the style function returns an array of styles
+              // for the given feature and resolution.
+              // Return null to hide the feature.
+              function styleFunction(feature, resolution) {
+                // get the incomeLevel from the feature properties
+                var level = feature.get('collection');
+                // if there is no level or its one we don't recognize,
+                // return the default style (in an array!)
+                if (!level) {
+                  return [defaultStyle];
+                }
+                // check the cache and create a new style for the income
+                // level if its not been created before.
+                for(var j=0;j<list.length;j++ ){
+                    if(level==cleanupTableName(list[j]["name"]) && !styleCache[level]) {
+                      styleCache[level] = new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            color: [layersColors[j]][0],
+                            width: 2
+                        })
+                      });
+                      break;
+                    }
+                }
+                // at this point, the style for the current level is in the cache
+                // so return it (as an array!)
+                return [styleCache[level]];
+              }
+
+
 
             for(var i=0;i<list.length;i++){
                 query="SELECT count(*) as cnt from "+cleanupTableName(list[i]["name"]);
                 var nb=JSON.parse(window.Android.displayTable(query,[]));
                 console.log(JSON.stringify(nb));
                 if(nb[0]["cnt"]!=0){
+                    getRoutingUI();
                     hasDependencies=true;
                     $(".zoomOnFeatures").show();
                     console.log($("#zoomOnFeatures").html());
@@ -156,18 +223,21 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
                                         console.log("Unable to parse WKT ?!"+e)
                                     }
                             }
+                            console.log(layersColors[i]);
                             var vector = new ol.layer.Vector({
                                 source: new ol.source.Vector({
                                     features: features
                                 }),
-                                style: new ol.style.Style({
+
+                                style: styleFunction/*new ol.style.Style({
                                     stroke: new ol.style.Stroke({
-                                        color: "#AA0000",
-                                        fill: "#990000",
+                                        color: layersColors[i],
+                                        fill: "#333333",
                                         opacity: 0.4,
                                         width: 2
                                     })
-                                })
+
+                                })*/
 
                             });
                             map.addLayer(vector);
@@ -183,6 +253,117 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
                                 select.on('select', function(e) {
 
                                     if(e.target.getFeatures().getLength()==1){
+                                        /*
+                                        if(hasRouting){
+                                            console.log("Print window to choose between ")
+                                            doModal("<i class='glyphicon glyphicon-cog'></i> "+window.Android.translate("choice"),'<div id="edition_form_edit" class="mm4me_edition tab-pane" role="tabpanel">'+
+                                                                                                                                            '<p class="nav nav-tabs">'+
+                                                                                                                                            window.Android.translate("routing_header")+
+                                                                                                                                            '</p>'+
+                                                                                                                                            '<div class="well">'+
+                                                                                                                                            '<ul class="list-group">'+
+                                                                                                                                            '<li class="list-group-item">'+
+                                                                                                                                            '<a href="#"><i class="glyphicon glyphicon-edit"></i> '+window.Android.translate("edit")+'</a>'+
+                                                                                                                                            '</li>'+
+                                                                                                                                            '<li class="list-group-item">'+
+                                                                                                                                            '<a href="#"><i class="glyphicon glyphicon-search"></i> '+window.Android.translate("path")+'</a>'+
+                                                                                                                                            '</li>'+
+                                                                                                                                            '</ul>'+
+                                                                                                                                            '</div>'+
+                                                                                                                                        '</div>');
+                                            var closure=e;
+                                            $("#edition_form_edit").find("a").first().off("click");
+                                            $("#edition_form_edit").find("a").first().on("click",function(e){
+                                                e.preventDefault();
+                                                $("#dynamicModal").modal('hide');
+                                                setTimeout(function() { printFeatureEditionWindow(closure); }, 500);
+
+                                            });
+                                            $("#edition_form_edit").find("a").last().off("click");
+                                            $("#edition_form_edit").find("a").last().on("click",function(e){
+                                                e.preventDefault();
+                                                $("#dynamicModal").modal('hide');
+                                                var transformer = ol.proj.getTransform('EPSG:3857', 'EPSG:4326');
+                                                var extent=ol.extent.applyTransform(closure.target.getFeatures().item(0).getGeometry().getExtent(), transformer);
+                                                var oo = ol.extent.getCenter(extent);
+                                                //var oos=oo.split(",");
+                                                console.log(oo);
+                                                window.Android.invokeNavigation(oo[1]+","+oo[0]);
+                                                var position=JSON.parse(window.Android.getFullGPS());
+                                                console.log(JSON.stringify(position));
+                                                var cap=["GPS","Network","other"];
+                                                var path="";
+                                                for(var i=0;i<cap.length;i++){
+                                                    for(var j=0;j<position.length;j++){
+                                                        if(position[j]["source"]==cap[i]){
+                                                            path+=position[j]["lon"]+","+position[j]["lat"];
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(path!="")
+                                                        break;
+                                                }
+                                                path+=";"+oo;
+                                                console.log(path);
+                                                //setTimeout(function() { printFeatureEditionWindow(closure); }, 500);
+                                               $.ajax({
+                                                    method: "GET",
+                                                    url: "./content/req.xml",
+                                                    success: function(){
+                                                        console.log("ok");
+                                                        console.log(JSON.stringify(arguments));
+                                                        var xmlBody=arguments[2].responseText.replace(/URL_PARAMS/g,path);
+                                                        $.ajax({
+                                                            method: "POST",
+                                                            url: localStorage.getItem("lastServer"),
+                                                            contentType: "text/xml",
+                                                            data: xmlBody,
+                                                            success: function(){
+                                                                console.log("OK");
+                                                                console.log(JSON.stringify(arguments));
+                                                                var fullMapUrl=$(arguments[2].responseText).find("wps\\:Reference").attr("href");
+                                                                var urlParts=fullMapUrl.split('&');
+                                                                console.log(urlParts[0]);
+                                                                routingLayer=new ol.layer.Tile({
+                                                                    visible: true,
+                                                                	source: new ol.source.TileWMS({
+                                                                        url: urlParts[0],
+                                                                        params: {'LAYERS': "Result", 'TILED': true},
+                                                                        serverType: 'mapserver'
+                                                                	})
+                                                                });
+                                                                map.addLayer(routingLayer);
+                                                            },
+                                                            error: function(){
+                                                                console.log("FAILED");
+                                                                console.log(arguments);
+                                                            }
+                                                        });
+                                                        console.log(xmlBody);
+                                                    },
+                                                    error: function(data){
+                                                        console.log("ERROR !");
+                                                        console.log(JSON.stringify(data));
+                                                    }
+                                                });
+
+                                            });
+
+                                        }else*/
+                                            printFeatureEditionWindow(e);
+                                    }
+                                });
+                            })(cleanupTableName(list[i]["name"]));
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+
+function printFeatureEditionWindow(e){
                                         console.log("Print window to access feature edition");
                                         var feature=e.target.getFeatures().item(0);
                                         if(feature==null)
@@ -225,7 +406,10 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
 
                                         editChangeOnce=false;
                                         setTimeout(function(){
-                                            doModal("<i class='glyphicon glyphicon-edit'></i> "+res2[0]["title"]+" "+res1[0]["id"],'<div id="edition_form_edit" class="mm4me_edition tab-pane" role="tabpanel">'+
+                                            var transformer = ol.proj.getTransform('EPSG:3857', 'EPSG:4326');
+                                            var extent=ol.extent.applyTransform(e.target.getFeatures().item(0).getGeometry().getExtent(), transformer);
+                                            var oo = ol.extent.getCenter(extent);
+                                            doModal("<i class='glyphicon glyphicon-edit'></i> "+res2[0]["title"]+" "+res1[0]["id"]+'<a class="btn pull-right" onclick="window.Android.invokeNavigation(\''+oo[1]+','+oo[0]+'\');" href="#"><i class="glyphicon glyphicon-search"></i></a>','<div id="edition_form_edit" class="mm4me_edition tab-pane" role="tabpanel">'+
                                                                                                 '<ul class="nav nav-tabs">'+
                                                                                                 '</ul>'+
                                                                                                 '<div class="tab-content">'+
@@ -240,18 +424,33 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
                                                         e.target.getFeatures().getLength() +
                                                         ' selected features (last operation selected ' + e.selected.length +
                                                         ' and deselected ' + e.deselected.length + ' features)');
-                                        },100);
-                                    }
-                                });
-                            })(cleanupTableName(list[i]["name"]));
-                        }
-                    }
-                }
+                                        },10);
+}
+
+    function getRoutingUI(){
+        console.log("ok");
+        console.log(localStorage.getItem("lastServer"));
+        console.log(hasToCheckedRouting);
+        if(hasToCheckedRouting){
+        console.log("ok");
+
+        $.ajax({
+            method: "GET",
+            url: localStorage.getItem("lastServer")+"?request=DescribeProcess&service=WPS&version=1.0.0&Identifier=routing.showPath",
+            success: function(data){
+                console.log("ok");
+                hasRouting=true;
+            },
+            error: function(data){
+                console.log("ERROR !");
+                console.log(JSON.stringify(data));
+                hasRouting=false;
             }
-
+        });
+        hasToCheckedRouting=false;
         }
+        console.log(localStorage.getItem("lastServer"));
     }
-
 
     function doModal(heading, formContent) {
         //if($("#dynamicModal").length==0){
@@ -527,3 +726,15 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
 
     console.log("End map.js");
 });
+
+
+    function doWhatEver(){
+        var extent = new ol.extent.createEmpty();
+        var features=map.getLayers().item(map.getLayers().getLength()-1).getSource().getFeatures();
+        for(var i=0;i<features.length;i++){
+            extent = new ol.extent.extend(extent, features[i].getGeometry().getExtent());
+        }
+            map.getView().fit(extent, map.getSize());
+        //console.log(map.getLayers().item(map.getLayers().getLength()-1).getExtent());
+    }
+

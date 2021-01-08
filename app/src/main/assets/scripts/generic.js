@@ -2607,6 +2607,9 @@ function initMapToLocation(){
     //console.log(JSON.stringify(position));
 }
 
+function getZoomOnFeatures(){
+    return $("#zoomOnFeatures");
+}
 /*****************************************************************************
  * Update the current loction of the map depending on the GPS location
  *****************************************************************************/
@@ -2647,10 +2650,13 @@ function addOptionalLocalTiles(shouldFixPosition){
                 if(MM4ME_DEBUG)
                     console.log('Display warning message on the UI !');
                 $(".map").prepend(data);
+
                 if(shouldFixPosition)
                     $("#mm4me_ls").css("margin-bottom","25px");
 
-
+                if($("#hasFeatures").val()=="false"){
+                    $("#zoomOnFeatures").parent().parent().remove();
+                }
 
                 $(".map").parent().find("input[type=range]").first().on('change',function(){
                     console.log("change to "+$(this).val());

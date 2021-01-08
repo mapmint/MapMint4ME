@@ -6,6 +6,7 @@
     <string name="delete">Delete</string>
     <string name="add">Add</string>
     <string name="edit">Edit</string>
+    <string name="path">Path</string>
     <string name="home">Home</string>
     <string name="view">View</string>
     <string name="views_header"> Below you will find a list of features you are able to view.</string>
@@ -43,6 +44,10 @@
     <string name="mm4me_welcome_txt">You are using the MapMint application for Monitoring and Evaluation called MapMint4ME.</string>
     <string name="welcome">Welcome</string>
     <string name="export_success">Export has been successful</string>
+    <string name="upload_options">Upload option</string>
+    <string name="upload_chunk">Upload chunk of 8MB</string>
+    <string name="upload_db_size">Your database size is: </string>
+    <string name="error_joinFiles">Upload chunk failed</string>
     <string name="upload_start">Uploading recorded data</string>
     <string name="view_on_map">View on map</string>
     <string name="file_create">Import a file</string>
@@ -104,4 +109,6 @@
     <string name="use_current_tiles">Use current tiles</string>
     <string name="STATUS_RUNNING">Download started, you should see the progress status in your notifications bar.</string>
     <!-- /Slides -->
+    <string name="routing_header">You can either edit or use the routing web service available on the MapMint server to compute route to the selected target.</string>
+    <string name="choice">Choice</string>
 </resources>

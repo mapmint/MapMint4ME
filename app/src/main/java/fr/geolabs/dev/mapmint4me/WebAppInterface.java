@@ -17,6 +17,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,15 +55,24 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
 
 
 public class WebAppInterface {
@@ -99,6 +109,13 @@ public class WebAppInterface {
     private NotificationManager mManager;
     private int currentId=0;
 
+    @JavascriptInterface
+    public void invokeNavigation(String path){
+        Uri gmmIntentUri = Uri.parse("google.navigation:q="+path);
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        mContext.startActivity(mapIntent);
+    }
     /**
      * Show a toast from the web page
      */
@@ -763,6 +780,7 @@ public class WebAppInterface {
             });
             return tmp[tmp.length - 1];
         } catch (Exception e) {
+            //return _downloadFile(url,id);
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             final String exceptionAsString = sw.toString();
@@ -920,17 +938,196 @@ public class WebAppInterface {
         return errorMsg;
     }
 
-    /*private class UploadFilesTask extends AsyncTask<String, Integer, String> {
+
+    /*
+    @JavascriptInterface
+    public String uploadFile(final String url,final String field,final String file) {
+        try {
+            return new UploadFilesTask().execute(url,field,file).get();
+        }catch(Exception e) {
+            return null;
+        }
+    }*/
+
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @JavascriptInterface
+    public long getSizeOfFile(String path) {
+        try {
+            String fpath = mContext.getFilesDir() + File.separator + "data" + File.separator + path;
+            File tmpFile = new File(fpath);
+            return (tmpFile.length()/1024)/1024;
+        }catch (Exception e) {
+            return 0;
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @JavascriptInterface
+    public int SplitFile(String path)
+    {
+        try {
+            File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
+            String fpath = mContext.getFilesDir()+File.separator+"data"+ File.separator + path;
+            //final long sourceSize = Files.size(Paths.get(fpath));
+            int size;
+            size = 1638400;
+            Log.w("Splited 0: ", fpath);
+            File f = new File(fpath);
+            int filesize = (int) f.length();
+            final long numSplits = filesize / size;
+            long remainingBytes = filesize % size;
+            InputStream raf = new BufferedInputStream(new FileInputStream(f));
+            //RandomAccessFile raf = new RandomAccessFile(fpath, "r");
+            int maxReadBufferSize = 8 * 1024 * 1024; //8MB
+            int data;
+            int partNum = 0;
+            long lenraf = 0;
+            long leng = 0;
+            String fname=null;
+            data = raf.read();
+            while (data != -1) {
+                fname = asset_dir.getAbsolutePath() + File.separator + "part" + partNum + "_" +  f.getName() ;
+                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(new File(fname)));
+                while (data != -1 && leng < maxReadBufferSize) {
+                    bw.write(data);
+                    leng++;
+                    data = raf.read();
+                }
+                lenraf += leng;
+                leng = 0;
+                bw.close();
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                try (InputStream is = Files.newInputStream(Paths.get(fname));
+                     DigestInputStream dis = new DigestInputStream(is, md))
+                {
+                    /* Read decorated stream (dis) to EOF as normal... */
+                }
+                byte[] digest = md.digest();
+                Log.w("WebAppInterface MD5", new BigInteger(1,digest).toString(16));
+                partNum++;
+            }
+            if(fname!=null) {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                try (InputStream is = Files.newInputStream(Paths.get(fname));
+                     DigestInputStream dis = new DigestInputStream(is, md)) {
+                    /* Read decorated stream (dis) to EOF as normal... */
+                }
+                byte[] digest = md.digest();
+                Log.w("WebAppInterface MD5", new BigInteger(1, digest).toString(16));
+            }
+            /*
+            for (; partNum < numSplits; partNum++) {
+                String fname = asset_dir.getAbsolutePath() + File.separator + "part" + partNum + "_" +  f.getName() ;
+                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(fname));
+                if (size > maxReadBufferSize) {
+                    long numReads = size / maxReadBufferSize;
+                    long numRemainingRead = size % maxReadBufferSize;
+                    for (int i = 0; i < numReads; i++) {
+                        byte[] buf = new byte[(int) maxReadBufferSize];
+                        int val = raf.read(buf);
+                        if (val != -1) {
+                            bw.write(buf);
+                        }
+                    }
+                    if (numRemainingRead > 0) {
+                        byte[] buf = new byte[(int) numRemainingRead];
+                        int val = raf.read(buf);
+                        if (val != -1) {
+                            bw.write(buf);
+                        }
+                    }
+                } else {
+                    byte[] buf = new byte[(int) size];
+                    int val = raf.read(buf);
+                    if (val != -1) {
+                        bw.write(buf);
+                    }
+                }
+                bw.close();
+            }
+            if (remainingBytes > 0) {
+                String fname = asset_dir.getAbsolutePath() + File.separator + "part" + partNum + "_" +  f.getName() ;
+                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(fname));
+                byte[] buf = new byte[(int) remainingBytes];
+                int val = raf.read(buf);
+                if (val != -1) {
+                    bw.write(buf);
+                }
+                bw.close();
+                partNum++;
+            }
+            raf.close();
+*/
+
+
+
+
+
+
+
+
+
+            /*BufferedInputStream fis = new BufferedInputStream(new FileInputStream(fpath));
+            Log.w("Splited 1: ", filesize+"" );
+
+
+            final long numSplits = sourceSize / size;
+            final long remainingBytes = sourceSize % size;
+            int position = 0;
+
+                 byte b[] = new byte[size];
+                 int ch, c = 0;
+                 int totRead = 0;
+            while (filesize > 0) {
+                Log.w("Splited 2: ", fpath);
+                ch = fis.read(b, 0, size);
+                //ch = fis.read(b);
+                filesize -= ch;
+                totRead += ch;
+                Log.w("Splited: ", filesize+"");
+                String fname = asset_dir.getAbsolutePath() + File.separator + "part" + c + "_" +  f.getName() ;
+                c++;
+                Log.w("Splited: ", fpath);
+                BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(new File(fname)));
+                //fos.write(b, 0, ch);
+                fos.write(b);
+                fos.flush();
+                fos.close();
+                Log.w("Splited: ", fpath);
+                Log.w("Splited: ", fname);
+            }
+
+            fis.close();*/
+            return partNum;
+        }
+        catch (Exception e) {
+            Log.w("WebAppInterface", e.getStackTrace().toString());
+            return 0;
+        }
+    }
+
+
+    private int ucounter=0;
+    @JavascriptInterface
+    public void reinitUCounter() {
+        ucounter=0;
+    }
+
+    private class UploadFilesTask extends AsyncTask<String, Integer, String> {
+        public int id=0;
         protected String doInBackground(String... urls) {
+            int count = urls.length;
             long totalSize = 0;
-            if(urls.length>2) {
-                String res = uploadFile(urls[0], urls[1], urls[2]);
-                if(res!=null)
-                    return "Completed";
-                else
-                    return "Failed";
-            }else
-                return null;
+            boolean res=false;
+            //for (int i = 0; i < count; i++) {
+                //totalSize += Downloader.downloadFile(urls[i]);
+                //publishProgress((int) ((i / (float) count) * 100));
+                // Escape early if cancel() is called
+                res=_uploadFile(urls[0],urls[1],urls[2]);
+                //if (isCancelled()) break;
+            //}
+            return "started";
         }
 
         public void myProgressPublication(int val){
@@ -948,27 +1145,35 @@ public class WebAppInterface {
         }
     }
 
+
     @JavascriptInterface
-    public String uploadFile(final String url,final String field,final String file) {
+    public String uploadFile(final String url,String field,String file) {
+        /*DownloadFilesTask myTask = new DownloadFilesTask();
+        myTask.execute(url);*/
         try {
-            return new UploadFilesTask().execute(url,field,file).get();
+            UploadFilesTask tmp=new UploadFilesTask();
+            tmp.id=ucounter;
+            tmp.execute(url,field,file);
+            ucounter+=1;
+            return "started";
         }catch(Exception e) {
             return null;
         }
-    }*/
+    }
+
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @JavascriptInterface
-    public boolean uploadFile(String url,String field,String file) {
+    public boolean _uploadFile(String url,String field,String file) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String[] tmp = url.split("/");
         String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
         Log.w("WebAppInterface", url);
 
-        /*NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID);
-        mBuilder.setContentTitle(tmp[tmp.length - 1].split("_")[0])
-                .setContentText(tmp[tmp.length - 1])
+        mBuilder.setContentTitle(file)
+                .setContentText(file)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
@@ -976,7 +1181,8 @@ public class WebAppInterface {
         int PROGRESS_CURRENT = 0;
         mBuilder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
         currentId++;
-        notificationManager.notify(currentId, mBuilder.build());*/
+        notificationManager.notify(currentId, mBuilder.build());
+
 
         String attachmentName = field;
         String attachmentFileName = file;
@@ -998,18 +1204,24 @@ public class WebAppInterface {
             File asset_dir1 = new File(mContext.getFilesDir()+File.separator+"data");
             String reqfile = asset_dir1.getAbsolutePath() + File.separator + "request";
 
+            try{
+                File toRemove=new File(reqfile);
+                toRemove.delete();
+            }catch (Exception e) {
+                Log.w("WebAppInterface", "Delete \n"+e.getLocalizedMessage());
+            }
             HttpURLConnection conn = (HttpURLConnection) curl.openConnection();
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(10000);
-            conn.setRequestProperty("Accept-Charset", "utf-8");
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Cookie", cookies);
-            conn.setRequestProperty("Connection", "Keep-Alive");
-            conn.setRequestProperty("Cache-Control", "no-cache");
-            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
             conn.setUseCaches(false);
             conn.setDoOutput(true);
             conn.setDoInput(true);
+            conn.setRequestMethod("POST");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.addRequestProperty("Cookie", cookies);
+            conn.addRequestProperty("Connection", "Keep-Alive");
+            conn.addRequestProperty("Cache-Control", "no-cache");
+            conn.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 
             FileOutputStream os0 = new FileOutputStream(reqfile);
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(os0, "utf-8"),
@@ -1026,7 +1238,7 @@ public class WebAppInterface {
             FileInputStream inputStream = new FileInputStream(mContext.getFilesDir()+File.separator+"data"+ File.separator + file);
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            byte [] buffer               = new byte[ 512 ];
+            byte [] buffer               = new byte[ 1 * 1024 * 1024 ];
 
             int n = 0;
             while (-1 != (n = inputStream.read(buffer))) {
@@ -1035,7 +1247,6 @@ public class WebAppInterface {
             os0.flush();
             inputStream.close();
 
-            writer.append(crlf).flush();
             writer.append(crlf).flush();
             writer.append(twoHyphens + boundary + twoHyphens + crlf);
 
@@ -1049,6 +1260,10 @@ public class WebAppInterface {
 
             //Log.w("WebAppInterface", "status: "+os.toString().length());
             conn.connect();
+            mBuilder.setContentText("Upload ...")
+                    .setProgress(PROGRESS_MAX, 50, false);
+            notificationManager.notify(currentId, mBuilder.build());
+
             OutputStream request = conn.getOutputStream();
 
             while ((n = inputStream1.read(buffer))>0) {
@@ -1059,9 +1274,17 @@ public class WebAppInterface {
             request.flush();
             request.close();
 
+            File toRemove=new File(reqfile);
+            toRemove.delete();
+
+            if(file.contains("part")) {
+                File toRemove1=new File(mContext.getFilesDir()+File.separator+"data"+ File.separator + file);
+                toRemove1.delete();
+            }
+
+
             int status = conn.getResponseCode();
-            /*mBuilder.setContentText("Upload ...")
-                    .setProgress(PROGRESS_MAX, 50, false);*/
+            Log.w("WebAppInterface", status+"");
             if(status==200) {
                 InputStream responseStream = new
                         BufferedInputStream(conn.getInputStream());
@@ -1084,8 +1307,17 @@ public class WebAppInterface {
                 conn.disconnect();
 
                 Log.w("WebAppInterface", "end 1");
-                /*mBuilder.setContentText("Completed")
-                        .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);*/
+
+                mBuilder.setContentText("Completed")
+                        .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);
+                notificationManager.notify(currentId, mBuilder.build());
+
+                ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
+                    public void run() {
+                        ((MapMint4ME)mContext).getMyWebView().loadUrl("javascript:postUpload();");
+                    }
+                });
+
                 return true;
             }else{
                 InputStream responseStream = new
@@ -1107,7 +1339,6 @@ public class WebAppInterface {
 
             }
             conn.disconnect();
-
             Log.w("WebAppInterface", "end "+status);
             return false;
         }catch (Exception e){

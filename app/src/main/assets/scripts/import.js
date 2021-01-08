@@ -42,6 +42,7 @@
             if(MM4ME_DEBUG){
                 console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+current_url+"'");
             }
+            localStorage.setItem("lastServer",current_url);
             currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
             window.Android.reinitCounter();
             chooseId=null;
