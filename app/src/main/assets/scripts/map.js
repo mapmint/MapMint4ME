@@ -28,15 +28,15 @@ $(function(){
     addOptionalLocalTiles();
     //$('.breadcrumb').append('<li>Point north <input id="followNorth" type="checkbox" /></li>');
 
-var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.id=mm4me_views.ptid ",[]));
-                                                    var tableList=list;
-                                                    var total=0;
-                                                    console.log(JSON.stringify(list))
-                                                    var index=-1;
-                                                    for(var i in list){
-                                                        mainTable[list[i]["id"]]=list[i]["tid"];
-                                                    }
-                                                contents=[];
+    var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.id=mm4me_views.ptid ",[]));
+    var tableList=list;
+    var total=0;
+    console.log(JSON.stringify(list))
+    var index=-1;
+    for(var i in list){
+        mainTable[list[i]["id"]]=list[i]["tid"];
+    }
+    contents=[];
 
 
     $("#map").css("height",($(window).height()-150)+"px");
@@ -77,9 +77,7 @@ var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,m
         try{
         var list=JSON.parse(window.Android.displayTable(query,[]));
         }catch(e){
-            console.log(JSON.stringify($("#layerSwitcherCheck").parent().parent().parent()));
             $(".map").append('<input id="hasFeatures" value="false" type="hdden" />');
-            console.log(e);
             return;
         }
         if(MM4ME_DEBUG)
@@ -734,7 +732,7 @@ function printFeatureEditionWindow(e){
         for(var i=0;i<features.length;i++){
             extent = new ol.extent.extend(extent, features[i].getGeometry().getExtent());
         }
-            map.getView().fit(extent, map.getSize());
+        map.getView().fit(extent, map.getSize());
         //console.log(map.getLayers().item(map.getLayers().getLength()-1).getExtent());
     }
 
