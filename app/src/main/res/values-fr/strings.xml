@@ -3,6 +3,7 @@
     <string name="app_name">MapMint4ME</string>
     <string name="add">Ajouter</string>
     <string name="edit">Éditer</string>
+    <string name="path">Chemin</string>
     <string name="home">Accueil</string>
     <string name="insert">Ajouter</string>
     <string name="save">Enregistrer</string>
@@ -41,6 +42,10 @@
     <string name="mm4me_welcome_txt">Vous utilisez l\'application MapMint pour la surveillance et l\'évaluation appelée MapMint4ME.</string>
     <string name="welcome">Bienvenue</string>
     <string name="export_success">L\'export s\'est réalisé avec succès</string>
+    <string name="upload_options">Option d\'envoie</string>
+    <string name="upload_db_size">Votre base de données fait : </string>
+    <string name="upload_chunk">Envoie par parties de 8MB</string>
+    <string name="error_joinFiles">Échec de l\'envoie en parties</string>
     <string name="upload_start">Émission des données enregistrées</string>
     <string name="view_on_map">Voir sur la carte</string>
     <string name="gps_track">Trace GPS</string>
@@ -63,6 +68,7 @@
     <string name="drawpm_gps">Trace GPS (manuelle)</string>
     <string name="about_property">L\'applciation a été développée et publiée sur GooglePlay™ par GeoLabs SARL</string>
     <string name="zoom_features">Zoomer sur les entités</string>
+    <string name="use_correct_value">Merci d\'utiliser une valeur acceptable</string>
     <!-- Slides -->
     <string name="title_activity_welcome">Home Screen</string>
     <string name="next">Suivant</string>
@@ -97,4 +103,6 @@
     <string name="offline_map">Cartes hors ligne</string>
     <string name="use_current_tiles">Conserver mes tuiles</string>
     <string name="STATUS_RUNNING">Le téléchargement a commencé, vous devriez voir le status d\'évolution dans votre barre de notification.</string>
+    <string name="routing_header">Vous pouvez soit éditer soit utiliser le service web de MapMint permettant de calculer un chemin vers l\'élément sélectionné.</string>
+    <string name="choice">Choix</string>
 </resources>

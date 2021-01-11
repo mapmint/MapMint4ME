@@ -1,4 +1,4 @@
-var MM4ME_DEBUG=true;
+var MM4ME_DEBUG=false;
 var EDITION_TYPE_FILE=5;
 var mainTable={};
 var mtable=null;
@@ -99,13 +99,16 @@ function displayTablesTree(func){
         var themes_0=JSON.parse(window.Android.displayTable("SELECT id,name FROM mm4me_themes where pid is null and name='Menu'",[]));
         var allThemes=[];
         var allThemes1=[];
-        console.log(JSON.stringify(themes_0));
+        if(MM4ME_DEBUG)
+            console.log(JSON.stringify(themes_0));
         for(var i=0;i<themes_0.length;i++){
             allThemes.push({text: themes_0[i]["name"]});
             fetchThemes(allThemes[allThemes.length-1],themes_0[i]["id"]);
             var hasTable=fetchTableForTheme(allThemes[allThemes.length-1],themes_0[i]["id"]);
-            console.log(JSON.stringify(allThemes));
-            console.log(JSON.stringify(allThemes[allThemes.length-1]));
+             if(MM4ME_DEBUG){
+                 console.log(JSON.stringify(allThemes));
+                 console.log(JSON.stringify(allThemes[allThemes.length-1]));
+             }
             if(!hasTable && (!allThemes[allThemes.length-1]["nodes"] || allThemes[allThemes.length-1]["nodes"].length==0)){
                 //console.log("should remove!");
                 allThemes.pop();//allThemes[allThemes.length-1]);
@@ -113,14 +116,15 @@ function displayTablesTree(func){
                 if(allThemes[allThemes.length-1]["nodes"])
                 for(var k=allThemes[allThemes.length-1]["nodes"].length-1;k>=0;k--){
                     try{
-                        console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]));
+                        if(MM4ME_DEBUG)
+                            console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]));
                         if(!allThemes[allThemes.length-1]["nodes"][k]["myId"] && (!allThemes[allThemes.length-1]["nodes"][k]["nodes"] || allThemes[allThemes.length-1]["nodes"][k]["nodes"].length==0)){
-                            console.log("To remove: "+JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]))
+                            if(MM4ME_DEBUG) console.log("To remove: "+JSON.stringify(allThemes[allThemes.length-1]["nodes"][k]))
                             if(k==allThemes[allThemes.length-1]["nodes"].length-1)
                                 allThemes[allThemes.length-1]["nodes"].pop();
                             else{
                                 allThemes[allThemes.length-1]["nodes"].splice(k,1);//,allThemes[allThemes.length-1]["nodes"][k+1]);
-                                console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"]));
+                                if(MM4ME_DEBUG) console.log(JSON.stringify(allThemes[allThemes.length-1]["nodes"]));
                                 /*for(kk=allThemes[allThemes.length-1]["nodes"].length-1;kk>=k+1;kk--){
                                     if(kk==allThemes[allThemes.length-1]["nodes"].length-1)
                                         allThemes[allThemes.length-1]["nodes"].pop();
@@ -129,16 +133,16 @@ function displayTablesTree(func){
                             //delete allThemes[allThemes.length-1]["nodes"][k];
                             //allThemes[allThemes.length-1]["nodes"].pop(allThemes[allThemes.length-1]["nodes"][k]);
                         }
-                        console.log(JSON.stringify(allThemes));
+                        if(MM4ME_DEBUG) console.log(JSON.stringify(allThemes));
                     }catch(e){
                         allThemes1.push(allThemes[allThemes.length-1]["nodes"][k]);
                         /*allThemes[allThemes.length-1]["nodes"].pop(allThemes[allThemes.length-1]["nodes"][k]);*/
-                        console.log(e);
+                        if(MM4ME_DEBUG) console.log(e);
                     }
                 }
                 //allThemes=allThemes1;
             }
-            console.log(JSON.stringify(allThemes));
+            if(MM4ME_DEBUG) console.log(JSON.stringify(allThemes));
 
         }
         $(".mm4me_content").append('<div id="tree"></div>');
@@ -149,8 +153,10 @@ function displayTablesTree(func){
                     try{
                         func(data["myId"],data["myName"],data["myTitle"],true);
                     }catch(e){
-                        console.log(JSON.stringify(data));
-                        console.log(e);
+                        if(MM4ME_DEBUG) {
+                            console.log(JSON.stringify(data));
+                            console.log(e);
+                        }
                         window.Android.showToast(e);
                         //exit();
                     }
@@ -158,8 +164,6 @@ function displayTablesTree(func){
                 else{
                     $('#tree').treeview('toggleNodeExpanded',[$("#tree").treeview('getSelected')[0], { silent: true }]);
                     $('#tree').treeview('toggleNodeSelected',[$("#tree").treeview('getSelected')[0], { silent: true }]);
-                    //console.log(JSON.stringify(data));
-                    //$(this).open();
                 }
             },
             showTags: true
@@ -168,7 +172,8 @@ function displayTablesTree(func){
         var tableList=list;
         var total=0;
         contents=[];
-        console.log(JSON.stringify(list))
+        if(MM4ME_DEBUG)
+            console.log(JSON.stringify(list))
         for(var i in list){
             mainTable[list[i]["id"]]=list[i]["tid"];
         }
@@ -187,9 +192,9 @@ function updateBreadcrumbs(breadcrumbs){
         var lcnt0=0;
         $('.breadcrumb').find("a").each(function(){
             var regExp=new RegExp(breadcrumbs[lcnt0],"g")
-            console.log($(this).html());
+            if(MM4ME_DEBUG) console.log($(this).html());
             var content=($(this).append(window.Android.translate(breadcrumbs[lcnt0])));
-            console.log(content);
+            if(MM4ME_DEBUG) onsole.log(content);
             //$(this).html($(this).html().replace(regExp,window.Android.translate(breadcrumbs[lcnt0])));
             //$(this).replaceWith($(content));
             lcnt0+=1;
@@ -256,11 +261,30 @@ function fetchDependencies(obj,cid,changingField){
 
         }
     }
-    console.log(cid+" "+JSON.stringify(changingField));
+    if(MM4ME_DEBUG) console.log(cid+" "+JSON.stringify(changingField));
 }
 
 var View_template=null;
 var currentTypes=[];
+
+function verifyValues(element){
+    var cValue=element.val();
+    var hasCValue=false;
+    element.next().find("option").each(function(){
+        if(cValue==$(this).text()){
+            $(this).prop("selected",true);
+            hasCValue=true;
+        }
+        else
+            $(this).prop("selected",false);
+    });
+    if(!hasCValue){
+        element.parent().find(".alert").remove();
+        element.parent().prepend($('<div class="alert alert-danger" role="alert">'+window.Android.translate('use_correct_value')+'</div>'));
+    }else{
+        element.parent().find(".alert").remove();
+    }
+}
 
 /*****************************************************************************
  * Display an HTML part containing the input corresponding to a given type.
@@ -289,11 +313,11 @@ function printCurrentType(obj,cid){
                         '     <li><a href="#" onclick="window.Android.queryCamera('+obj["id"]+','+cid+');"><i class="glyphicon glyphicon-camera"></i> '+window.Android.translate("take_picture")+'</a></li>'+
                         '   </ul>'+
                         '</div> <div id="value_'+obj["id"]+'"></div><script>currentTypes.push(\''+obj["id"]+'_display\');</script>';
-                console.log(tmpStr);
+                if(MM4ME_DEBUG) console.log(tmpStr);
                 return tmpStr;
             }
             if(definedSqlTypes[i]["code"]=="geometry"){
-                console.log("CID: "+cid+" select type from mm4me_gc where f_table_schema||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
+                if(MM4ME_DEBUG) console.log("CID: "+cid+" select type from mm4me_gc where f_table_schema||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
                 var geoType=getGeometryType("(select replace(name,'.','_') from mm4me_tables where id="+cid+")");
                 var viewb='<button id="field_'+obj["id"]+'_map" style="display:none" class="btn btn-default" href="#" onclick=""><i class="glyphicon glyphicon-globe"></i> '+window.Android.translate("view_on_map")+'</button>';
                 var res='<script>currentTypes.push(\''+obj["id"]+'_display\');</script> <input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).next().show();$(this).next().next().show();}else {$(this).next().hide();$(this).next().next().hide();}"/>';
@@ -343,7 +367,7 @@ function printCurrentType(obj,cid){
                             console.log("Nothing to run after");
                         },
                         success: function(data){
-                            console.log("**** \n\n Load View Template");
+                            if(MM4ME_DEBUG) console.log("**** \n\n Load View Template");
                             View_template=data;
                             var tmp=obj["value"].split(";");
                             var refs=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.name=\""+tmp[1]+"\" and mm4me_tables.id=mm4me_views.ptid",[]));
@@ -389,12 +413,14 @@ function printCurrentType(obj,cid){
                     //console.log(strReturn);
                     return strReturn;
             }
-            if(definedSqlTypes[i]["code"]=="ref"){
+            if(definedSqlTypes[i]["code"]=="ref" || definedSqlTypes[i]["code"]=="ref_search"){
                 var req=obj["value"];//.replace(/^\((\w+)\)$/g,"$1");
                 if(req[0]=="(")
                     req="SELECT * FROM "+req;
                 var refs=JSON.parse(window.Android.displayTable(cleanupTableName(req),[]));
-                var tmpStr='<select name="field_'+obj["id"]+'" class="form-control">';
+                var tmpStr='<select name="field_'+obj["id"]+'" class="form-control" '+(definedSqlTypes[i]["code"]=="ref_search"?'style="display: none"':'')+'>';
+                if(definedSqlTypes[i]["code"]=="ref_search")
+                    tmpStr='<input class="form-control" type="text" onchange="verifyValues($(this));" name="search_field_'+obj["id"]+'"/>'+tmpStr;
                 var cvalues=[];
                 //console.log(JSON.stringify(refs));
                 for(var j=0;j<refs.length;j++){
@@ -432,8 +458,10 @@ function printCurrentType(obj,cid){
                     lobj[obj["id"]]={"dep":JSON.parse(obj["dependencies"])};
                     for(var jj=0;jj<lobj[obj["id"]]["dep"].length;jj++){
                         for(var kk in lobj[obj["id"]]["dep"][jj]){
-                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
-                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]["options"]));
+                            if(MM4ME_DEBUG){
+                                console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
+                                console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]["options"]));
+                            }
                             try{
                                 if(lobj[obj["id"]]["dep"][jj][kk]["options"].length==0)
                                     lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
@@ -441,7 +469,7 @@ function printCurrentType(obj,cid){
                                 console.log(e);
                                 lobj[obj["id"]]["dep"][jj][kk]["options"]=cvalues;
                             }
-                            console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
+                            if(MM4ME_DEBUG) console.log(JSON.stringify(lobj[obj["id"]]["dep"][jj][kk]));
                         }
                     }
                     changingFields.push(lobj);
@@ -466,8 +494,10 @@ function printCurrentType(obj,cid){
                 return '<input type="checkbox" name="field_'+obj["id"]+'" checked="true" />';
                 else
                 return '<input type="checkbox" name="field_'+obj["id"]+'" />';
-            console.log(definedSqlTypes[i]["code"]);
-            console.log(JSON.stringify(obj));
+            if(MM4ME_DEBUG){
+                 console.log(definedSqlTypes[i]["code"]);
+                 console.log(JSON.stringify(obj));
+            }
             if(definedSqlTypes[i]["code"]=="date" || definedSqlTypes[i]["code"]=="datetime")
                 return ' <input class="form-control" type="'+definedSqlTypes[i]["code"]+'-local" name="field_'+obj["id"]+'" />';
             if(definedSqlTypes[i]["code"]=="float")
@@ -509,7 +539,7 @@ function printEditionFields(obj,myRoot,cid,mid){
     if(!editSchema[mid])
         editSchema[mid]={};
     editSchema[mid][obj["id"]]=JSON.parse(list1);
-    console.log(list1);
+    if(MM4ME_DEBUG) console.log(list1);
     list1=JSON.parse(list1);
     myRoot.find(".tab-content").first().append('<div id="edition_form_'+cid+'" class="'+(obj["step"]==-2?'mm4me_delete ':'')+'well tab-pane" role="tabpanel">'+(obj["description"]?obj["description"]:"")+'</div>');
     for(var j in list1)
@@ -527,22 +557,21 @@ function printEditionFields(obj,myRoot,cid,mid){
                 try{
                     editPrintedOnce.push(list1[j]["name"]);
                     console.log("JSON PARSE")
-                    console.log(list1[j]["dependencies"]);
+                    if(MM4ME_DEBUG) console.log(list1[j]["dependencies"]);
                     var objJson=JSON.parse(list1[j]["dependencies"]);
-                    console.log("JSON PARSE OK");
                     if(!refTypeId)
                         refTypeId=JSON.parse(window.Android.displayTable("select id from mm4me_ftypes where ftype='e' and code='ref'",[]))[0]["id"];
-                    console.log(refTypeId);
+                    if(MM4ME_DEBUG) console.log(refTypeId);
                     for(i in objJson){
                         if(objJson[i]["myself"]){
-                            console.log("IS MYSELF!!");
+                            if(MM4ME_DEBUG) console.log("IS MYSELF!!");
                             for(k in objJson[i]["myself"]){
                                 for(l in objJson[i]["myself"][k]){
                                     if(objJson[i]["myself"][k][l]["dependents"]){
                                         for(m in objJson[i]["myself"][k][l]["dependents"]){
                                             for(n in objJson[i]["myself"][k][l]["dependents"][m]){
-                                                console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["sql_query"]);
-                                                console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["label"]);
+                                                if(MM4ME_DEBUG) console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["sql_query"]);
+                                                if(MM4ME_DEBUG) console.log(objJson[i]["myself"][k][l]["dependents"][m][n]["label"]);
                                                 var lObj={"id": n, "ftype":refTypeId,"value":objJson[i]["myself"][k][l]["dependents"][m][n]["sql_query"]};
                                                 //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+n+'"]').length)
                                                 myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
@@ -554,17 +583,17 @@ function printEditionFields(obj,myRoot,cid,mid){
                                                         printCurrentType(lObj,mid)+
                                                         '</div>'+
                                                         '</div>');
-                                                console.log(myRoot.find('select[name="field_'+n+'"]'));
-                                                console.log(printCurrentType(lObj,mid));
+                                                if(MM4ME_DEBUG) console.log(myRoot.find('select[name="field_'+n+'"]'));
+                                                if(MM4ME_DEBUG) console.log(printCurrentType(lObj,mid));
                                                 (function(a,b){
                                                 myRoot.find('select[name="field_'+n+'"]').off('change');
                                                 myRoot.find('select[name="field_'+n+'"]').on('change',function(){
-                                                    console.log('select[name="field_'+n+'"]');
+                                                    if(MM4ME_DEBUG) console.log('select[name="field_'+n+'"]');
                                                     var req=cleanupTableName(a["value"]);
                                                     if(a["value"].indexOf("WHERE")<0){
                                                         req=req.replace(/order by/g,"where "+b["tfieldf"]+" "+b["operator"]+" "+(b["operator"]=="like"?"'":"")+$(this).val()+(b["operator"]=="like"?"'":"")+" order by")
                                                     }
-                                                    console.log(req);
+                                                    if(MM4ME_DEBUG)console.log(req);
                                                     var res=JSON.parse(window.Android.displayTable(req,[]));
                                                     myRoot.find('select[name="field_'+a["id"]+'"]').html("");
                                                     for(ij in res){
@@ -588,8 +617,10 @@ function printEditionFields(obj,myRoot,cid,mid){
                                         }
                                     }
 
-                                    console.log(objJson[i]["myself"][k][l]["sql_query"]);
-                                    console.log(objJson[i]["myself"][k][l]["label"]);
+                                    if(MM4ME_DEBUG){
+                                        console.log(objJson[i]["myself"][k][l]["sql_query"]);
+                                        console.log(objJson[i]["myself"][k][l]["label"]);
+                                    }
                                     var lObj={"id": l,"ftype":refTypeId,"value":objJson[i]["myself"][k][l]["sql_query"]};
                                     //if(!myRoot.find('select[name="field_'+list1[j]["id"]+'"]').parent().find('select[name="field_'+l+'"]').length)
                                     myRoot.find('select[name="field_'+list1[j]["id"]+'"]').last().parent().prepend(
@@ -601,11 +632,13 @@ function printEditionFields(obj,myRoot,cid,mid){
                                            printCurrentType(lObj,mid)+
                                            '</div>'+
                                            '</div>');
-                                    console.log(myRoot.find('select[name="field_'+l+'"]'));
-                                    console.log('select[name="field_'+l+'"]');
+                                    if(MM4ME_DEBUG){
+                                        console.log(myRoot.find('select[name="field_'+l+'"]'));
+                                        console.log('select[name="field_'+l+'"]');
+                                    }
                                     (function(a,b,c,d,e){
                                         myRoot.find('select[name="field_'+a+'"]').on('change',function(){
-                                            console.log('select[name="field_'+a+'"]');
+                                            if(MM4ME_DEBUG) console.log('select[name="field_'+a+'"]');
                                             if(b["dependents"]){
                                                 for(m in b["dependents"]){
                                                     for(n in b["dependents"][m]){
@@ -669,7 +702,7 @@ function printEditionFields(obj,myRoot,cid,mid){
                                                         });
                                                     }
                                                 }catch(e){console.log(e);}
-                                                console.log(req);
+                                                if(MM4ME_DEBUG) console.log(req);
                                             }
                                         });
                                     })(l,objJson[i]["myself"][k][l],list1[j],objJson[i]["myself"],k);
@@ -680,29 +713,38 @@ function printEditionFields(obj,myRoot,cid,mid){
                                 }
                             }
                         }else{
-                            console.log("Basic dependencies!");
+                            if(MM4ME_DEBUG) console.log("Basic dependencies!");
                             for(k in objJson[i]){
                                 if(objJson[i][k]["tfield"]=="none"){
-                                    console.log(k);
-                                    console.log(JSON.stringify(objJson[i][k]));
+                                   if(MM4ME_DEBUG){
+                                     console.log(k);
+                                     console.log(JSON.stringify(objJson[i][k]));
+                                   }
+
                                     for(var l=0;l<list1.length;l++){
                                         if(list1[l]["name"]==k){
-                                            console.log(JSON.stringify(list1[l]));
-                                            console.log('"edit_"'+list1[j]["id"])
+                                            if(MM4ME_DEBUG) console.log(JSON.stringify(list1[l]));
+                                            if(MM4ME_DEBUG) console.log('"edit_"'+list1[j]["id"])
                                             //(function(list1,l,myRoot,objJson,i,k){
-                                                console.log(i);
-                                                console.log(k);
+                                                if(MM4ME_DEBUG){
+                                                     console.log(i);
+                                                     console.log(k);
+                                                }
+
                                                 myRoot.find('select[name="field_'+list1[j]["id"]+'"]').off("change");
                                                 (function(obj,obj1,objJson){
                                                 myRoot.find('select[name="field_'+obj["id"]+'"]').on("change",function(){
-                                                    console.log("objJson[i][k]"+objJson);
+                                                    if(MM4ME_DEBUG) console.log("objJson[i][k]"+objJson);
                                                     if($(this).val()==objJson["options"][0] || ($.isArray($(this).val()) && $(this).val().indexOf(""+objJson["options"][0])>=0) )
                                                         myRoot.find('input[name="field_'+obj1["id"]+'"]').parent().parent().show();
                                                     else
                                                         myRoot.find('input[name="field_'+obj1["id"]+'"]').parent().parent().hide();
-                                                    console.log("objJson[i][k]"+JSON.stringify(objJson));
-                                                    console.log("obj"+JSON.stringify(obj));
-                                                    console.log("obj1"+JSON.stringify(obj1));
+                                                    if(MM4ME_DEBUG){
+                                                        console.log("objJson[i][k]"+JSON.stringify(objJson));
+                                                        console.log("obj"+JSON.stringify(obj));
+                                                        console.log("obj1"+JSON.stringify(obj1));
+                                                    }
+
                                                 });
                                                 setTimeout(function(){myRoot.find('select[name="field_'+obj["id"]+'"]').change();},1000);
 
@@ -1014,7 +1056,7 @@ function listTable(id,name,title,init,prefix){
     tblName=name;
     tblTitle=title;
 
-    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step>=0 asc",[]);
+    var list=window.Android.displayTable("select mm4me_editions.id,mm4me_editions.name,mm4me_editions.description,mm4me_editions.step from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+tblId+" and step>=0 order by mm4me_editions.step asc",[]);
     if(MM4ME_DEBUG)
         console.log(list);
     list=JSON.parse(list);
@@ -1290,7 +1332,7 @@ function updateChangingFields(changingFields){
  *****************************************************************************/
 function listInnerTable(id,vid,name,title,init,prefix,clause,ref){
     console.log("***** listInnerTable "+id+" "+vid+" "+name+" "+title+" "+init+" "+prefix+" "+clause+" "+ref+" "+" ******");
-    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" order by mm4me_editions.step asc",[]));
+    var list=JSON.parse(window.Android.displayTable("select mm4me_tables.id as tid,mm4me_tables.name as tname,mm4me_editions.id,mm4me_editions.name from mm4me_editions,mm4me_tables where mm4me_editions.ptid=mm4me_tables.id and mm4me_tables.id="+id+" and mm4me_editions.step>=0 order by mm4me_editions.step asc",[]));
     var cnt=0;
     var detectInit=true;
     var tid=0;
@@ -1654,7 +1696,20 @@ function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
                 $("#value_"+j).html(editValues[i][j]);
             }
             else{
-            $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            if($('.mm4me_edition,.mm4me_delete').find("input[name=search_field_"+j+"]").length==0)
+                $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"],select[name=field_"+j+"],textarea[name=field_"+j+"]").first().val(editValues[i][j]).change();
+            else{
+                // In case we use Reference Search field
+                $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+j+"]").first().val(editValues[i][j]);
+                $('.mm4me_edition,.mm4me_delete').find("select[name=field_"+j+"]").first().find("option").each(function(){
+                    if(editValues[i][j]==$(this).val()){
+                        $(this).prop("selected",true);
+                        $('.mm4me_edition,.mm4me_delete').find("input[name=search_field_"+j+"]").first().val($(this).text()).change();
+                    }
+                    else
+                        $(this).prop("selected",false);
+                });
+            }
             if($('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").attr("type")=="checkbox")
                 $('.mm4me_edition,.mm4me_delete').find("input[name=field_"+j+"]").prop('checked',(editValues[i][j]==1));
             $('.mm4me_edition,.mm4me_delete').find("textarea[name=field_"+j+"]").first().each(function(){
@@ -2552,6 +2607,9 @@ function initMapToLocation(){
     //console.log(JSON.stringify(position));
 }
 
+function getZoomOnFeatures(){
+    return $("#zoomOnFeatures");
+}
 /*****************************************************************************
  * Update the current loction of the map depending on the GPS location
  *****************************************************************************/
@@ -2592,10 +2650,13 @@ function addOptionalLocalTiles(shouldFixPosition){
                 if(MM4ME_DEBUG)
                     console.log('Display warning message on the UI !');
                 $(".map").prepend(data);
+
                 if(shouldFixPosition)
                     $("#mm4me_ls").css("margin-bottom","25px");
 
-
+                if($("#hasFeatures").val()=="false"){
+                    $("#zoomOnFeatures").parent().parent().remove();
+                }
 
                 $(".map").parent().find("input[type=range]").first().on('change',function(){
                     console.log("change to "+$(this).val());

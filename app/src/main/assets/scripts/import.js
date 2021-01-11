@@ -42,6 +42,7 @@
             if(MM4ME_DEBUG){
                 console.log("UPDATE mm4me_servers set last_import=strftime('%s','now') WHERE url='"+current_url+"'");
             }
+            localStorage.setItem("lastServer",current_url);
             currentServer.find('.progress-bar').parent().next().html(window.Android.translate("import_success"));
             window.Android.reinitCounter();
             chooseId=null;
@@ -259,7 +260,7 @@ function doModal(heading, formContent) {
                                     var downloadedFile=window.Android.downloadFile(curl);
                                     //myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
                                     myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
-                                    window.Android.showToast(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
+                                    //window.Android.showToast(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
                                     console.log(dbs[lcnt0]);
                                 }, (elem.attr("href").indexOf('tile')<0?2000:1500));
                                 })($(this),lcnt0);
