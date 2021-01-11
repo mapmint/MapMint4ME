@@ -260,7 +260,7 @@ function doModal(heading, formContent) {
                                     var downloadedFile=window.Android.downloadFile(curl);
                                     //myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start"));
                                     myRoot.find('.progress-bar').parent().next().html(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
-                                    window.Android.showToast(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
+                                    //window.Android.showToast(window.Android.translate("import_download_start")+" "+dbs[lcnt0]);
                                     console.log(dbs[lcnt0]);
                                 }, (elem.attr("href").indexOf('tile')<0?2000:1500));
                                 })($(this),lcnt0);
