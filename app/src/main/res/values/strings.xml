@@ -1,4 +1,5 @@
 <resources>
+    <string name="game_view_content_description" translatable="false">Game view</string>
     <string name="app_name">MapMint4ME</string>
     <string name="table">Table</string>
     <string name="save">Save</string>

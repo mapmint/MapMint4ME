@@ -1,2 +1,3 @@
 include ':app'
-
+include 'unityLibrary'
+project(':unityLibrary').projectDir=new File('..\\ARDraw-MM4ME\\ARDraw\\AndroidBuild\\unityLibrary')

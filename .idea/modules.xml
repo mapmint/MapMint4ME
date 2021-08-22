@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MapMint4ME.iml" filepath="$PROJECT_DIR$/MapMint4ME.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1131536799/AndroidBuild.MapMint4ME.unityLibrary.iml" filepath="$PROJECT_DIR$/.idea/modules/-1131536799/AndroidBuild.MapMint4ME.unityLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/MapMint4ME.iml" filepath="$PROJECT_DIR$/.idea/modules/MapMint4ME.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/MapMint4ME.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/MapMint4ME.app.iml" />
     </modules>
   </component>
