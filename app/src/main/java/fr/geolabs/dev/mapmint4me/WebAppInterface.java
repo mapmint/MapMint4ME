@@ -33,9 +33,11 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.unity3d.player.UnityPlayerActivity;
@@ -119,8 +121,9 @@ public class WebAppInterface {
     @JavascriptInterface
     public void OnButtonClick()
     {
+        Intent intent = new Intent(mContext, UnityPlayerActivity.class);
         try{
-            mContext.startActivity(new Intent(mContext, UnityPlayerActivity.class));
+            mContext.startActivity(intent);
         }
         catch (Exception e){
 

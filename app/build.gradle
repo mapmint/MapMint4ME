@@ -19,11 +19,13 @@ android {
     }
 
     aaptOptions {
-        noCompress '.unity3d', '.ress', '.resource', '.obb', '.abd'
+        noCompress = ['.unity3d', '.ress', '.resource', '.obb', 'arvideo', 'arvideo.manifest', 'streamingassets', 'streamingassets.manifest']
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 
     productFlavors {
     }
+
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
@@ -34,8 +36,7 @@ android {
 
 dependencies {
     implementation project(':unityLibrary')
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-//    implementation(name: 'androidutils-release', ext:'aar')
+//    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation  'com.android.support:appcompat-v7:27.1.0'
     implementation  'com.android.support:design:27.1.0'
     implementation 'com.android.support:support-compat:27.1.0'
