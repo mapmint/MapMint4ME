@@ -1,0 +1,18 @@
+ManifestFileVersion: 0
+CRC: 944996387
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: cf1b21667ff9b87646b25d449aa47468
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9533ec91352ac8573a011616e38420f1
+HashAppended: 0
+ClassTypes:
+- Class: 329
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/UX/Videos/findaplane.webm
+- Assets/UX/Videos/taptoplace.webm
+Dependencies: []

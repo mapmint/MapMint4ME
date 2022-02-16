@@ -1,5 +1,10 @@
 $(".mm4me_listing").hide();
 var runOnce=true;
+
+document.getElementById ("arDrawbtn").addEventListener("click", function(){
+    window.Android.OnButtonClick();
+});
+
 $(function(){
    if(!runOnce)
         return;

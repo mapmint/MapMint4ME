@@ -3,10 +3,12 @@ package fr.geolabs.dev.mapmint4me;
 import android.*;
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +24,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -30,10 +33,14 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.widget.EditText;
 import android.widget.Toast;
+
+import com.unity3d.player.UnityPlayerActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -74,6 +81,8 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static android.support.v4.content.ContextCompat.startActivity;
+
 
 public class WebAppInterface {
     private boolean mCenter = false;
@@ -108,6 +117,18 @@ public class WebAppInterface {
 
     private NotificationManager mManager;
     private int currentId=0;
+
+    @JavascriptInterface
+    public void OnButtonClick()
+    {
+        Intent intent = new Intent(mContext, UnityPlayerActivity.class);
+        try{
+            mContext.startActivity(intent);
+        }
+        catch (Exception e){
+
+        }
+    }
 
     @JavascriptInterface
     public void invokeNavigation(String path){
@@ -263,6 +284,7 @@ public class WebAppInterface {
         return (jsonArray.toString());
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @JavascriptInterface
     public String getGPS() throws Exception {
 
@@ -847,6 +869,7 @@ public class WebAppInterface {
         return ((MapMint4ME)mContext).getDownloadStatus();
     }
 
+    @SuppressLint("LongLogTag")
     @JavascriptInterface
     public boolean copyFile(String src,String dest) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
@@ -891,7 +914,8 @@ public class WebAppInterface {
         db=null;
     }
 
-    public boolean copyFileA(String src,String dest) {
+    @SuppressLint("LongLogTag")
+    public boolean copyFileA(String src, String dest) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = mContext.getExternalFilesDir(null).getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
@@ -962,7 +986,7 @@ public class WebAppInterface {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @JavascriptInterface
     public int SplitFile(String path)
     {

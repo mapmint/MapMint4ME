@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "fr.geolabs.dev.mapmint4me"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 53
         versionName "1.0"
@@ -17,8 +17,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    aaptOptions {
+        noCompress = ['.unity3d', '.ress', '.resource', '.obb', 'arvideo', 'arvideo.manifest', 'streamingassets', 'streamingassets.manifest']
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
+
     productFlavors {
     }
+
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
@@ -28,7 +35,8 @@ android {
 }
 
 dependencies {
-    //implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':unityLibrary')
+//    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation  'com.android.support:appcompat-v7:27.1.0'
     implementation  'com.android.support:design:27.1.0'
     implementation 'com.android.support:support-compat:27.1.0'
@@ -36,5 +44,6 @@ dependencies {
     api 'com.google.android.gms:play-services-gcm:9.0.2'
     api 'com.google.android.gms:play-services-location:12.0.1'
     api 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
+    implementation 'com.android.support:support-annotations:28.0.0'
     //implementation 'com.android.support:leanback-v17:26.1.0'
 }
