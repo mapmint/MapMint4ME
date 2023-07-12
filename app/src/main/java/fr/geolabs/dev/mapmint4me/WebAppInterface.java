@@ -22,10 +22,10 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.ContextCompat;
+//import android.support.v4.app.ActivityCompat;
+//import android.support.v4.app.NotificationCompat;
+//import android.support.v4.app.NotificationManagerCompat;
+//import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Display;
@@ -34,6 +34,11 @@ import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,11 +63,16 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.CookieHandler;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
@@ -107,15 +117,16 @@ public class WebAppInterface {
     }
 
     private NotificationManager mManager;
-    private int currentId=0;
+    private int currentId = 0;
 
     @JavascriptInterface
-    public void invokeNavigation(String path){
-        Uri gmmIntentUri = Uri.parse("google.navigation:q="+path);
+    public void invokeNavigation(String path) {
+        Uri gmmIntentUri = Uri.parse("google.navigation:q=" + path);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");
         mContext.startActivity(mapIntent);
     }
+
     /**
      * Show a toast from the web page
      */
@@ -126,15 +137,15 @@ public class WebAppInterface {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
 
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME)mContext).CHANNEL_ID)
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext, ((MapMint4ME) mContext).CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("My notification")
                 .setContentText(msg)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-                // Set the intent that will fire when the user taps the notification
-                //.setContentIntent(pendingIntent);
-                //.setAutoCancel(true);
+        // Set the intent that will fire when the user taps the notification
+        //.setContentIntent(pendingIntent);
+        //.setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
         currentId++;
@@ -302,8 +313,8 @@ public class WebAppInterface {
 
                     int usedSatellites = 0;
                     float totalSnr = 0;
-                    int totalViewedSatellites=0;
-                    for (int i = 0; i < satelliteCount; i++){
+                    int totalViewedSatellites = 0;
+                    for (int i = 0; i < satelliteCount; i++) {
                         if (status.usedInFix(i)) {
                             usedSatellites++;
                             totalSnr += status.getCn0DbHz(i); //this method obtains the signal from each satellite
@@ -311,17 +322,17 @@ public class WebAppInterface {
                         totalViewedSatellites++;
                     }
                     // we calculate the average of the power of the GPS signal
-                    float avgSnr = (usedSatellites > 0) ? totalSnr / usedSatellites: 0.0f;
+                    float avgSnr = (usedSatellites > 0) ? totalSnr / usedSatellites : 0.0f;
 
-                    Log.d("GNSS", "Number used satelites: " + usedSatellites + " SNR: " + totalSnr+" avg SNR: "+avgSnr+" total viewed satellites: "+totalViewedSatellites);
+                    //Log.d("GNSS", "Number used satelites: " + usedSatellites + " SNR: " + totalSnr+" avg SNR: "+avgSnr+" total viewed satellites: "+totalViewedSatellites);
                 }
             };
         }
         try {
             myLocationManager.registerGnssStatusCallback(mGnssStatusCallback);
-            Log.e("GNSS","STATUS OK");
+            Log.e("GNSS", "STATUS OK");
         } catch (SecurityException e) {
-            Log.e("GNSS","Error "+e);
+            Log.e("GNSS", "Error " + e);
         }
 
         // getting GPS status
@@ -391,7 +402,7 @@ public class WebAppInterface {
                             location = myLocationManager
                                     .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             hasPosition = true;
-                        }else{
+                        } else {
                             myLocationManager.requestLocationUpdates(
                                     LocationManager.NETWORK_PROVIDER, 1000, 0, new LocationListener() {
                                         @Override
@@ -492,26 +503,26 @@ public class WebAppInterface {
 
     /**
      * Set mTop to true/false from the web page
-
-    @JavascriptInterface
-    public String getOrientation() throws JSONException{
-        try {
-            ((MapMint4ME)mContext).updateOrientationAngles();
-            float[] res=((MapMint4ME)mContext).getOrientationAngles();
-            Log.e("Error", "" + res.toString());
-            JSONArray jsonArray = new JSONArray();
-            for(int i=0;i<3;i++)
-                jsonArray.put(i,res[i]);
-            float[] res1=((MapMint4ME)mContext).getRotationMatrix();
-            Log.e("Error", "" + res.toString());
-            for(int i=0;i<3;i++)
-                jsonArray.put(i+3,res1[i]);
-            return jsonArray.toString();
-        } catch (Exception e) {
-            Log.e("Error", "" + e.toString());
-            return e.toString();
-        }
-    }*/
+     *
+     * @JavascriptInterface public String getOrientation() throws JSONException{
+     * try {
+     * ((MapMint4ME)mContext).updateOrientationAngles();
+     * float[] res=((MapMint4ME)mContext).getOrientationAngles();
+     * Log.e("Error", "" + res.toString());
+     * JSONArray jsonArray = new JSONArray();
+     * for(int i=0;i<3;i++)
+     * jsonArray.put(i,res[i]);
+     * float[] res1=((MapMint4ME)mContext).getRotationMatrix();
+     * Log.e("Error", "" + res.toString());
+     * for(int i=0;i<3;i++)
+     * jsonArray.put(i+3,res1[i]);
+     * return jsonArray.toString();
+     * } catch (Exception e) {
+     * Log.e("Error", "" + e.toString());
+     * return e.toString();
+     * }
+     * }
+     */
 
     private LocalDB db = null;
 
@@ -597,6 +608,7 @@ public class WebAppInterface {
      */
     @JavascriptInterface
     public void queryCamera(String id, String cid) {
+        Log.e("queryCamera", "" + cid);
         ((MapMint4ME) mContext).invokeCamera(id, cid);
     }
 
@@ -615,31 +627,32 @@ public class WebAppInterface {
         return size.y;
     }
 
-    private String fileSaved=null;
+    private String fileSaved = null;
+
     @JavascriptInterface
     public void newDownloadFile(final String url) {
-        fileSaved=null;
+        fileSaved = null;
         new Thread(new Runnable() {
             public void run() {
-                fileSaved=_downloadFile(url,0);
+                fileSaved = _downloadFile(url, 0);
             }
         }).start();
     }
 
     @JavascriptInterface
     public String downloadedFile() {
-        while(fileSaved!=null);
+        while (fileSaved != null) ;
         return fileSaved;
     }
 
     @JavascriptInterface
-    public void startWelcomeScreen(){
+    public void startWelcomeScreen() {
         ((MapMint4ME) mContext).launchWelcomeScreen();
         ((MapMint4ME) mContext).finish();
     }
 
     @JavascriptInterface
-    public void keepScreenOn(){
+    public void keepScreenOn() {
         ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
             public void run() {
                 ((MapMint4ME) mContext).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -648,7 +661,7 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void screenCanGoOff(){
+    public void screenCanGoOff() {
         ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
             public void run() {
                 ((MapMint4ME) mContext).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -657,62 +670,66 @@ public class WebAppInterface {
     }
 
     private class DownloadFilesTask extends AsyncTask<String, Integer, String> {
-        public int id=0;
+        public int id = 0;
+
         protected String doInBackground(String... urls) {
             int count = urls.length;
             long totalSize = 0;
-            String res=null;
+            String res = null;
             for (int i = 0; i < count; i++) {
                 //totalSize += Downloader.downloadFile(urls[i]);
                 //publishProgress((int) ((i / (float) count) * 100));
                 // Escape early if cancel() is called
-                res=_downloadFile(urls[i],id);
+                res = _downloadFile(urls[i], id);
                 if (isCancelled()) break;
             }
             return res;
         }
 
-        public void myProgressPublication(int val){
+        public void myProgressPublication(int val) {
             publishProgress(val);
         }
+
         protected void onProgressUpdate(Integer... progress) {
             setProgressPercent(progress[0]);
         }
 
-        public void setProgressPercent(Integer... progress){
+        public void setProgressPercent(Integer... progress) {
 
         }
+
         protected void onPostExecute(Long result) {
             //showDialog("Downloaded " + result + " bytes");
         }
     }
 
-    private int counter=0;
+    private int counter = 0;
+
     @JavascriptInterface
     public void reinitCounter() {
-        counter=0;
+        counter = 0;
     }
 
     @JavascriptInterface
     public String downloadFile(final String url) {
         /*DownloadFilesTask myTask = new DownloadFilesTask();
         myTask.execute(url);*/
-        if(url.contains("tiles")) {
+        if (url.contains("tiles")) {
             File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
             String[] tmp = url.split("/");
             final String fileName = asset_dir.getAbsolutePath() + File.separator + tmp[tmp.length - 1];
-            ((MapMint4ME) mContext).beginDownload(url,tmp[tmp.length - 1]);
+            ((MapMint4ME) mContext).beginDownload(url, tmp[tmp.length - 1]);
             return "started";
-        }else
-        try {
-            DownloadFilesTask tmp=new DownloadFilesTask();
-            tmp.id=counter;
-            tmp.execute(url);
-            counter+=1;
-            return "started";
-        }catch(Exception e) {
-            return null;
-        }
+        } else
+            try {
+                DownloadFilesTask tmp = new DownloadFilesTask();
+                tmp.id = counter;
+                tmp.execute(url);
+                counter += 1;
+                return "started";
+            } catch (Exception e) {
+                return null;
+            }
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -747,18 +764,18 @@ public class WebAppInterface {
             BufferedOutputStream bout = new BufferedOutputStream(fos, 1024);
             byte[] data = new byte[1024];
             int x = 0;
-            int y=0;
-            int myCnt=0;
-            Log.w("WebAppInterface", ""+fileLenth);
-            int lTot=fileLenth/1024;
-            if(lTot==0)
-                lTot=1;
+            int y = 0;
+            int myCnt = 0;
+            Log.w("WebAppInterface", "" + fileLenth);
+            int lTot = fileLenth / 1024;
+            if (lTot == 0)
+                lTot = 1;
             while ((x = in.read(data, 0, 1024)) >= 0) {
                 bout.write(data, 0, x);
-                myCnt+=x;
-                if(myCnt==fileLenth || y%15==0){
-                    mBuilder.setContentText((myCnt/(1024*1024))+" / "+(fileLenth/(1024*1024))+" Mb")
-                            .setProgress(PROGRESS_MAX, (y*100)/lTot, false);
+                myCnt += x;
+                if (myCnt == fileLenth || y % 15 == 0) {
+                    mBuilder.setContentText((myCnt / (1024 * 1024)) + " / " + (fileLenth / (1024 * 1024)) + " Mb")
+                            .setProgress(PROGRESS_MAX, (y * 100) / lTot, false);
                     notificationManager.notify(currentId, mBuilder.build());
                     //myTask.myProgressPublication((y*100)/lTot);
                 }
@@ -775,7 +792,7 @@ public class WebAppInterface {
             ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
                 public void run() {
                     String[] tmp = fileName.split("/");
-                    ((MapMint4ME)mContext).getMyWebView().loadUrl("javascript:postUpdate('"+tmp[tmp.length - 1]+"',"+id+");");
+                    ((MapMint4ME) mContext).getMyWebView().loadUrl("javascript:postUpdate('" + tmp[tmp.length - 1] + "'," + id + ");");
                 }
             });
             return tmp[tmp.length - 1];
@@ -786,12 +803,12 @@ public class WebAppInterface {
             final String exceptionAsString = sw.toString();
             Log.w("WebAppInterface", exceptionAsString);
             mBuilder.setContentTitle("Download Failed")
-                    .setProgress(PROGRESS_MAX,PROGRESS_MAX,false);
+                    .setProgress(PROGRESS_MAX, PROGRESS_MAX, false);
             notificationManager.notify(currentId, mBuilder.build());
             ((MapMint4ME) mContext).runOnUiThread(new Runnable() {
                 public void run() {
                     String[] tmp = fileName.split("/");
-                    ((MapMint4ME)mContext).getMyWebView().loadUrl("javascript:downloadFailed('"+exceptionAsString+"',"+id+");");
+                    ((MapMint4ME) mContext).getMyWebView().loadUrl("javascript:downloadFailed('" + exceptionAsString + "'," + id + ");");
                 }
             });
             return null;
@@ -801,13 +818,13 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void startReportDirection(){
-        ((MapMint4ME)mContext).startReportDirection();
+    public void startReportDirection() {
+        ((MapMint4ME) mContext).startReportDirection();
     }
 
     @JavascriptInterface
-    public void stopReportDirection(){
-        ((MapMint4ME)mContext).stopReportDirection();
+    public void stopReportDirection() {
+        ((MapMint4ME) mContext).stopReportDirection();
     }
 
     @JavascriptInterface
@@ -815,9 +832,9 @@ public class WebAppInterface {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + "baseLayers.json";
         File fin0 = new File(srcName);
-        if(fin0.exists()) {
+        if (fin0.exists()) {
             FileInputStream fin = new FileInputStream(srcName);
-            byte[] buffer = new byte[(int)fin0.length()];
+            byte[] buffer = new byte[(int) fin0.length()];
             int r;
             while ((r = fin.read(buffer)) != -1) {
                 return new String(buffer);
@@ -830,13 +847,12 @@ public class WebAppInterface {
     public String getGNStatus() throws JSONException {
         JSONObject json = new JSONObject();
         ConnectivityManager connectivityManager
-            = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        json.put("net",(activeNetworkInfo!=null&&activeNetworkInfo.isConnected()));
-        try{
-            json.put("gps",getFullGPS());
-        }
-        catch(Exception e){
+        json.put("net", (activeNetworkInfo != null && activeNetworkInfo.isConnected()));
+        try {
+            json.put("gps", getFullGPS());
+        } catch (Exception e) {
             Log.d("BUG GPS!", e.toString());
         }
         return json.toString();
@@ -844,11 +860,11 @@ public class WebAppInterface {
 
     @JavascriptInterface
     public boolean getTilesDownloadStatus() {
-        return ((MapMint4ME)mContext).getDownloadStatus();
+        return ((MapMint4ME) mContext).getDownloadStatus();
     }
 
     @JavascriptInterface
-    public boolean copyFile(String src,String dest) {
+    public boolean copyFile(String src, String dest) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = asset_dir.getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
@@ -867,7 +883,7 @@ public class WebAppInterface {
                 fos.write(buffer, 0, read);
             }
             fin.close();
-            File srcFile= new File(srcName);
+            File srcFile = new File(srcName);
             srcFile.delete();
 
             fos.flush();
@@ -885,13 +901,13 @@ public class WebAppInterface {
     public void refreshDbs() {
         if (dbs != null)
             dbs.close();
-        dbs=null;
+        dbs = null;
         if (db != null)
             db.close();
-        db=null;
+        db = null;
     }
 
-    public boolean copyFileA(String src,String dest) {
+    public boolean copyFileA(String src, String dest) {
         File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
         String srcName = mContext.getExternalFilesDir(null).getAbsolutePath() + File.separator + src;
         String destName = asset_dir.getAbsolutePath() + File.separator + dest;
@@ -902,7 +918,7 @@ public class WebAppInterface {
         }*/
         FileInputStream fin = null;
         try {
-            if(dbt!=null)
+            if (dbt != null)
                 dbt.close();
             fin = new FileInputStream(srcName);
             FileOutputStream fos = new FileOutputStream(destName);
@@ -912,14 +928,14 @@ public class WebAppInterface {
                 fos.write(buffer, 0, read);
             }
             fin.close();
-            File srcFile= new File(srcName);
+            File srcFile = new File(srcName);
             srcFile.delete();
 
             fos.flush();
             fos.close();
             fos = null;
-            dbt=null;
-            Log.d("Copy file database","success");
+            dbt = null;
+            Log.d("Copy file database", "success");
             return true;
         } catch (Exception e) {
             Log.d("Unable to copy file database!", e.toString());
@@ -929,12 +945,12 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public Integer getCurrentAndroidOSersion(){
+    public Integer getCurrentAndroidOSersion() {
         return android.os.Build.VERSION.SDK_INT;
     }
 
     @JavascriptInterface
-    public String getErrorMsg(){
+    public String getErrorMsg() {
         return errorMsg;
     }
 
@@ -956,19 +972,18 @@ public class WebAppInterface {
         try {
             String fpath = mContext.getFilesDir() + File.separator + "data" + File.separator + path;
             File tmpFile = new File(fpath);
-            return (tmpFile.length()/1024)/1024;
-        }catch (Exception e) {
+            return (tmpFile.length() / 1024) / 1024;
+        } catch (Exception e) {
             return 0;
         }
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @JavascriptInterface
-    public int SplitFile(String path)
-    {
+    public int SplitFile(String path) {
         try {
             File asset_dir = new File(mContext.getFilesDir() + File.separator + "data");
-            String fpath = mContext.getFilesDir()+File.separator+"data"+ File.separator + path;
+            String fpath = mContext.getFilesDir() + File.separator + "data" + File.separator + path;
             //final long sourceSize = Files.size(Paths.get(fpath));
             int size;
             size = 1638400;
@@ -984,10 +999,10 @@ public class WebAppInterface {
             int partNum = 0;
             long lenraf = 0;
             long leng = 0;
-            String fname=null;
+            String fname = null;
             data = raf.read();
             while (data != -1) {
-                fname = asset_dir.getAbsolutePath() + File.separator + "part" + partNum + "_" +  f.getName() ;
+                fname = asset_dir.getAbsolutePath() + File.separator + "part" + partNum + "_" + f.getName();
                 BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(new File(fname)));
                 while (data != -1 && leng < maxReadBufferSize) {
                     bw.write(data);
@@ -999,15 +1014,14 @@ public class WebAppInterface {
                 bw.close();
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 try (InputStream is = Files.newInputStream(Paths.get(fname));
-                     DigestInputStream dis = new DigestInputStream(is, md))
-                {
+                     DigestInputStream dis = new DigestInputStream(is, md)) {
                     /* Read decorated stream (dis) to EOF as normal... */
                 }
                 byte[] digest = md.digest();
-                Log.w("WebAppInterface MD5", new BigInteger(1,digest).toString(16));
+                Log.w("WebAppInterface MD5", new BigInteger(1, digest).toString(16));
                 partNum++;
             }
-            if(fname!=null) {
+            if (fname != null) {
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 try (InputStream is = Files.newInputStream(Paths.get(fname));
                      DigestInputStream dis = new DigestInputStream(is, md)) {
@@ -1100,46 +1114,49 @@ public class WebAppInterface {
 
             fis.close();*/
             return partNum;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.w("WebAppInterface", e.getStackTrace().toString());
             return 0;
         }
     }
 
 
-    private int ucounter=0;
+    private int ucounter = 0;
+
     @JavascriptInterface
     public void reinitUCounter() {
-        ucounter=0;
+        ucounter = 0;
     }
 
     private class UploadFilesTask extends AsyncTask<String, Integer, String> {
-        public int id=0;
+        public int id = 0;
+
         protected String doInBackground(String... urls) {
             int count = urls.length;
             long totalSize = 0;
-            boolean res=false;
+            boolean res = false;
             //for (int i = 0; i < count; i++) {
-                //totalSize += Downloader.downloadFile(urls[i]);
-                //publishProgress((int) ((i / (float) count) * 100));
-                // Escape early if cancel() is called
-                res=_uploadFile(urls[0],urls[1],urls[2]);
-                //if (isCancelled()) break;
+            //totalSize += Downloader.downloadFile(urls[i]);
+            //publishProgress((int) ((i / (float) count) * 100));
+            // Escape early if cancel() is called
+            res = _uploadFile(urls[0], urls[1], urls[2]);
+            //if (isCancelled()) break;
             //}
             return "started";
         }
 
-        public void myProgressPublication(int val){
+        public void myProgressPublication(int val) {
             publishProgress(val);
         }
+
         protected void onProgressUpdate(Integer... progress) {
             setProgressPercent(progress[0]);
         }
 
-        public void setProgressPercent(Integer... progress){
+        public void setProgressPercent(Integer... progress) {
 
         }
+
         protected void onPostExecute(Long result) {
             //showDialog("Downloaded " + result + " bytes");
         }
@@ -1147,20 +1164,131 @@ public class WebAppInterface {
 
 
     @JavascriptInterface
-    public String uploadFile(final String url,String field,String file) {
+    public String uploadFile(final String url, String field, String file) {
         /*DownloadFilesTask myTask = new DownloadFilesTask();
         myTask.execute(url);*/
         try {
-            UploadFilesTask tmp=new UploadFilesTask();
-            tmp.id=ucounter;
-            tmp.execute(url,field,file);
-            ucounter+=1;
+            UploadFilesTask tmp = new UploadFilesTask();
+            tmp.id = ucounter;
+            tmp.execute(url, field, file);
+            ucounter += 1;
             return "started";
-        }catch(Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
 
+    @JavascriptInterface
+    public String authenticate(final String url){
+        try {
+            CookieManager cookieManager = ((MapMint4ME) mContext).getCookies();
+            //CookieHandler.setDefault(cookieManager.getInstance());
+            URL curl = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) curl.openConnection();
+            conn.setUseCaches(false);
+            conn.setDoOutput(false);
+            //conn.setDoInput(false);
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.connect();
+            String headerName=null;
+            for (int i=1; (headerName = conn.getHeaderFieldKey(i))!=null; i++) {
+                if (headerName.equals("Set-Cookie")) {
+                    String cookie = conn.getHeaderField(i);
+                    Log.w("WebAppInterface", cookie.toString());
+                    String[] cookieParts=cookie.toString().split(";");
+                    Log.w("WebAppInterface", curl.getProtocol()+"://"+curl.getHost());
+                    Log.w("WebAppInterface", curl.getHost());
+                    String urlParts=url.replace(curl.getQuery(),"").replace("?","");
+                    Log.w("WebAppInterface", urlParts);
+                    cookieManager.setCookie(curl.getProtocol()+"://"+curl.getHost(),cookie);
+                    ((MapMint4ME) mContext).setCurrentCookie(cookieParts[0]);
+                    return cookieParts[0];
+                }
+            }
+            return "";
+        }catch(Exception e) {
+            Log.w("WebAppInterface", e.toString());
+            return null;
+        }
+    }
+
+    @JavascriptInterface
+    public String runRequestAuth(final String url){
+        try {
+            String cookie=((MapMint4ME) mContext).getCurrentCookie();
+            Log.w("WebAppInterface Cookie", cookie);
+            URL curl = new URL(url);
+            //curl.getQuery();
+            Log.w("WebAppInterface URL", curl.getQuery());
+            HttpURLConnection conn = (HttpURLConnection) curl.openConnection();
+            conn.setUseCaches(false);
+            conn.setDoOutput(true);
+            //conn.setDoInput(false);
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.setRequestProperty("Accept", "text/xml");
+            conn.setRequestProperty("Cookie", cookie);
+            conn.connect();
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // print result
+            return response.toString();
+        }catch(Exception e) {
+            Log.w("WebAppInterface", e.toString());
+            return null;
+        }
+    }
+
+    @JavascriptInterface
+    public String runRequestAuth1(final String url,final String inputs,final String outputs){
+        try {
+            String cookie=((MapMint4ME) mContext).getCurrentCookie();
+            Log.w("WebAppInterface Cookie", cookie);
+            String encodedInputs= "DataInputs="+URLEncoder.encode(inputs, StandardCharsets.UTF_8.toString());
+            //String encodedOutputs= "ResponseDocument="+URLEncoder.encode(outputs, StandardCharsets.UTF_8.toString());
+            String tmpUrl=url+"&"+encodedInputs/*+"&"+encodedOutputs*/;
+            URL curl = new URL(tmpUrl);
+            //curl.getQuery();
+            Log.w("WebAppInterface URL", curl.getQuery());
+            HttpURLConnection conn = (HttpURLConnection) curl.openConnection();
+            conn.setUseCaches(false);
+            conn.setDoOutput(true);
+            //conn.setDoInput(false);
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.setRequestProperty("Accept", "text/xml");
+            conn.setRequestProperty("Cookie", cookie);
+            conn.connect();
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // print result
+            return response.toString();
+        }catch(Exception e) {
+            Log.w("WebAppInterface", e.toString());
+            return null;
+        }
+    }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @JavascriptInterface
@@ -1196,7 +1324,8 @@ public class WebAppInterface {
             String[] urlElements=url.split("/");
             String vurl=new String(urlElements[0]+"//"+urlElements[2]);
             String cookies = ((MapMint4ME)mContext).getCookies().getCookie(vurl);
-            Log.w("WebAppInterface", cookies);
+            //Log.w("WebAppInterface", cookies.toString());
+            Log.w("WebAppInterface", "Cookies \n"+cookies);
             //List<HttpCookie> cookies=mCookieManager.getCookieStore().getCookies();
 
             URL curl = new URL(url);

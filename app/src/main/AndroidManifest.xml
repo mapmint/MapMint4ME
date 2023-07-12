@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fr.geolabs.dev.mapmint4me="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:installLocation="auto"
-    package="fr.geolabs.dev.mapmint4me">
+    android:installLocation="auto">
 
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -13,10 +12,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+    <!-- <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" /> -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="27" />
+        android:maxSdkVersion="35" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -28,10 +27,10 @@
         android:required="false" />
 
     <supports-screens android:anyDensity="true" />
-    <permission
-        android:name="fr.meteolib.android.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-    <uses-permission android:name="fr.meteolib.android.permission.C2D_MESSAGE" />
+    <!-- <permission
+        android:name="fr.geolabs.android.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" /> -->
+    <uses-permission android:name="fr.geolabs.android.permission.C2D_MESSAGE" />
 
 
     <application
@@ -47,6 +46,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:keepScreenOn="true">
 
@@ -103,21 +103,25 @@
             android:name=".WelcomeScreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/generalnotitle"
-            android:hardwareAccelerated="true"></activity>
+            android:hardwareAccelerated="true" />
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="fr.geolabs.dev.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
-        </provider><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
+                android:resource="@xml/file_paths" />
+        </provider>
+        <!-- ATTENTION: This was auto-generated to add Google Play services to your project for
      App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
-        <meta-data
+        <!-- <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5740743445512079~5746282869"/> -->
     </application>
 
 </manifest>

@@ -290,6 +290,7 @@ public class LocalDB extends SQLiteOpenHelper {
                                         f = new FileOutputStream(toStore);
                                         byte[] bytesContent = Arrays.copyOfRange(fileContent, 512, fileContent.length);
                                         f.write(bytesContent);
+                                        f.close();
                                         //f.flush();
                                     /*int cnt = 0;
                                     while (cnt * 1024 < fileContent.length - 512) {
@@ -309,20 +310,25 @@ public class LocalDB extends SQLiteOpenHelper {
                                     toast.show();*/
 
                                         Log.w("LocalDB",
-                                                "BLOB red : > " + separated[separated.length - 1] + " < ! ");
+                                                "BLOB red 1 : > " + separated[separated.length - 1] + " < ! ");
+                                        Log.w("LocalDB",
+                                                "BLOB red 2 : > " + filename + " < ! ");
                                         //toast = Toast.makeText(mContext, "BLOB red : > " + separated[separated.length-1] + " < ! ", Toast.LENGTH_LONG);
                                         //toast.show();
                                         String value = "";
+                                        String str1 = Base64.encodeToString(bytesContent,Base64.DEFAULT);
                                         if ((separated[separated.length - 1]).length() > 12) {
                                             String dfname = separated[separated.length - 1].substring(0, 12);
                                             //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
                                             //value += "<pre>"+filename+"</pre><img src='file:///" + filename  + "' alt='" + dfname + " [...]' style='width: 90%' />";
-                                            value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                            //value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                            value += "<img src='data:image/png;base64, "+str1+"' alt='" + dfname + " [...]' style='width: 90%' />";
                                             //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
                                         } else {
                                             //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
                                             //value += "<img src='file:///" + filename /*mContext.getFilesDir() + "/" + separated[separated.length - 1]*/ + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
-                                            value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            //value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                            value += "<img src=\"data:image/png;base64, "+str1+" \" alt='" + separated[separated.length - 1] + " [...]' style='width: 90%' />";
                                             //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
                                         }
                                         ljson.put(fields[j], value);
@@ -411,7 +417,10 @@ public class LocalDB extends SQLiteOpenHelper {
                                     File toStore = new File(mContext.getFilesDir(), separated[separated.length - 1]);
                                     FileOutputStream f = new FileOutputStream(toStore);
                                     int cnt=0;
+                                    byte[] bytesFileContent;
                                     while( cnt*1024<fileContent.length-512) {
+                                        Log.w("LocalDB",
+                                                "BLOB red 11 : > " + cnt + " < ! ");
                                         if(((cnt+1)*1024)+512<=fileContent.length) {
                                             byte[] bytesContent = Arrays.copyOfRange(fileContent, (cnt * 1024) + 512, ((cnt + 1) * 1024) + 512);
                                             f.write(bytesContent);
@@ -428,21 +437,27 @@ public class LocalDB extends SQLiteOpenHelper {
                                     toast.show();*/
 
                                     Log.w("LocalDB",
-                                            "BLOB red : > " + separated[separated.length - 1] + " < ! ");
+                                            "BLOB red 11 : > " + separated[separated.length - 1] + " < ! ");
+                                    Log.w("LocalDB",
+                                            "BLOB red 12 : > " + filename + " < ! ");
                                     //toast = Toast.makeText(mContext, "BLOB red : > " + separated[separated.length-1] + " < ! ", Toast.LENGTH_LONG);
                                     //toast.show();
                                     String value = "";
+                                    byte[] bytesContent1 = Arrays.copyOfRange(fileContent, 512, fileContent.length);
+                                    String str1 = Base64.encodeToString(bytesContent1,Base64.DEFAULT);
                                     if ((separated[separated.length - 1]).length() > 12) {
                                         String dfname = separated[separated.length - 1].substring(0, 12);
                                         //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
                                         //value += "<pre>"+filename+"</pre><img src='file:///" + filename  + "' alt='" + dfname + " [...]' style='width: 90%' />";
-                                        value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
-                                        //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
+                                        //value += "<img src='file://" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + dfname + " [...]' style='width: 90%' />";
+                                        //value += "<a href='file:///" + mContext.getFilesDir().getAbsolutePath() + "/" + separated[separated.length - 1] + "'>" + dfname + " [...] </a>";
+                                        value += "<img src='data:image/png;base64, "+str1+"' alt='" + separated[separated.length - 1] + " [...]' style='width: 90%' />";
                                     } else {
                                         //value += "<pre>content://fr.geolabs.dev.fileprovider" + filename + "</pre><img src='content://fr.geolabs.dev.fileprovider/" + filename + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
                                         //value += "<img src='file:///" + filename /*mContext.getFilesDir() + "/" + separated[separated.length - 1]*/ + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
-                                        value += "<img src='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
+                                        //value += "<img src='file://" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "' alt='" + separated[separated.length - 1] + "' style='width: 90%' />";
                                         //value += "<a href='file:///" + mContext.getFilesDir() + "/" + separated[separated.length - 1] + "'>" + separated[separated.length - 1] + "</a>";
+                                        value += "<img src='data:image/png;base64, "+str1+"' alt='" + separated[separated.length - 1] + " [...]' style='width: 90%' />";
                                     }
                                     ljson.put(fields[j], value);
                                 }
@@ -591,6 +606,7 @@ public class LocalDB extends SQLiteOpenHelper {
 		//JSONObject obj = new JSONObject();
 		String[] tmp=xyz.split(",");
 		String query="SELECT data from tiles where tileset='mmTiles' and grid = 'g' and x="+tmp[0]+" and y="+tmp[1]+" and z="+tmp[2];
+        Log.w("MapMin4ME", query);
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.rawQuery(query,null);
 		int i = 0;

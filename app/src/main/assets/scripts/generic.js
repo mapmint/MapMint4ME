@@ -317,7 +317,7 @@ function printCurrentType(obj,cid){
                 return tmpStr;
             }
             if(definedSqlTypes[i]["code"]=="geometry"){
-                if(MM4ME_DEBUG) console.log("CID: "+cid+" select type from mm4me_gc where f_table_schema||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
+                if(MM4ME_DEBUG) console.log("CID: "+cid+" select type from mm4me_gc where lower(f_table_schema)||'_'||f_table_name = (select name from mm4me_tables where id="+cid+") ")
                 var geoType=getGeometryType("(select replace(name,'.','_') from mm4me_tables where id="+cid+")");
                 var viewb='<button id="field_'+obj["id"]+'_map" style="display:none" class="btn btn-default" href="#" onclick=""><i class="glyphicon glyphicon-globe"></i> '+window.Android.translate("view_on_map")+'</button>';
                 var res='<script>currentTypes.push(\''+obj["id"]+'_display\');</script> <input type="checkbox" id="'+obj["id"]+'_display" onchange="if($(this).is(\':checked\')) {$(this).next().show();$(this).next().next().show();}else {$(this).next().hide();$(this).next().next().hide();}"/>';
@@ -557,7 +557,9 @@ function printEditionFields(obj,myRoot,cid,mid){
                 try{
                     editPrintedOnce.push(list1[j]["name"]);
                     console.log("JSON PARSE")
-                    if(MM4ME_DEBUG) console.log(list1[j]["dependencies"]);
+                    /*if(MM4ME_DEBUG)*/ console.log(list1[j]["dependencies"]);
+                    if(list1[j]["dependencies"]=="[dependencies]")
+                        list1[j]["dependencies"]="[]";
                     var objJson=JSON.parse(list1[j]["dependencies"]);
                     if(!refTypeId)
                         refTypeId=JSON.parse(window.Android.displayTable("select id from mm4me_ftypes where ftype='e' and code='ref'",[]))[0]["id"];
@@ -807,9 +809,11 @@ function runInsertQuery(obj,mid,func){
                     for(var j in editSchema[mid][i]){
                         if(editSchema[mid][i][j]["id"]==cid){
                             if(editSchema[mid][i][j]["name"].indexOf("unamed")<0 && $(this).parent().is(":visible")){
+                                console.log(editSchema[mid][i][j]["id"]);
+                                console.log(editSchema[mid][i][j]["name"]);
                             if(MM4ME_DEBUG)
                                 console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
-                            queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
+                            queryAttr.push(editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry"));
                             if($(this).attr("type")=="checkbox")
                                 queryValues.push($(this).is(":checked"));
                             else
@@ -902,7 +906,7 @@ function runUpdateQuery(obj,mid,func){
                     //console.log(JSON.stringify(editSchema[mid][i][j]));
                     if(MM4ME_DEBUG)
                         console.log(editSchema[mid][i][j]["name"]+" <> "+$(this).val());
-                    query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+"=?";
+                    query+=(lcnt>0?", ":"")+editSchema[mid][i][j]["name"].replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry")+"=?";
                     queryTypes.push(parseInt(editSchema[mid][i][j]["ftype"]));
                     if($(this).attr("type")=="checkbox")
                         queryValues.push($(this).is(":checked")+"");
@@ -1020,7 +1024,7 @@ function getPKey(tbl){
  * Get the geometry type, stored in the mm4me_gc table
  *****************************************************************************/
 function getGeometryType(tbl){
-    var req0="select type from mm4me_gc where f_table_schema||'_'||f_table_name = "+tbl+"";
+    var req0="select type from mm4me_gc where lower(f_table_schema)||'_'||f_table_name = "+tbl+"";
     if(MM4ME_DEBUG)
         console.log(req0);
     var list01=JSON.parse(window.Android.displayTable(req0,[]));
@@ -1148,7 +1152,7 @@ function listTable(id,name,title,init,prefix){
         columns.push({"title":list[i]["alias"],"width":list[i]["width"]});
         if(sqlColumns!="")
             sqlColumns+=", ";
-        sqlColumns+=cleanupTableName(list[i]["value"]).replace(/wkb_geometry/g,"geometry")+" as "+list[i]["name"];
+        sqlColumns+=cleanupTableName(list[i]["value"]).replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry")+" as "+list[i]["name"];
         columnNames.push(list[i]["name"]);
         if(list[i]["class"]>0){
             orderColumn=list[i]["name"];
@@ -1516,12 +1520,12 @@ function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
         for(var j in editSchema[cid][i]){
             console.log(JSON.stringify(editSchema[cid][i][j]));
             if(editSchema[cid][i][j]["ftype"]=="5"){
-                sizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry"));
+                sizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry"));
                 sizedFieldsAlias.push(editSchema[cid][i][j]["id"]);
             }
             else{
                 if(editSchema[cid][i][j]["name"].indexOf("unamed_")<0)
-                    notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
+                    notSizedFields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
                 try{
                     var tmp=JSON.parse(editSchema[cid][i][j]["dependencies"]);
                     var sqlReq="";
@@ -1637,7 +1641,7 @@ function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
                 }
             }
             if(editSchema[cid][i][j]["name"].indexOf("unamed")<0)
-                fields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
+                fields.push(editSchema[cid][i][j]["name"].replace(/wkb_geometry/g,"wkt_geometry").replace(/Shape/g,"wkt_geometry")+" AS \""+editSchema[cid][i][j]["id"]+"\"");
         }
     }
     var ccol=getPKey(cleanupTableName(allTables[cid].name));
@@ -1692,7 +1696,7 @@ function displayEditForm(cid,selectedId,basic,hasBreadcrumb){
         for(var j in editValues[i]){
             if($("#value_"+j).length){
                 console.log("#value_"+j);
-                console.log(editValues[i][j]);
+                //console.log(editValues[i][j]);
                 $("#value_"+j).html(editValues[i][j]);
             }
             else{
@@ -1900,10 +1904,45 @@ function authenticate(url,login,passwd,func,func1){
     var curl=url+"?service=WPS&request=Execute&version=1.0.0&Identifier=authenticate.clogIn&DataInputs=login="+login+";password="+passwd+"&RawDataOutput=Result";
     if(MM4ME_DEBUG)
         console.log(curl);
+    var lCookie=window.Android.authenticate(curl);
+    console.log(lCookie);
+    console.log("document.cookies: "+lCookie);
+    if(lCookie!=null){
+        if(MM4ME_DEBUG)
+            console.log(data);
+        if(func){
+            console.log("Call func!")
+            func();
+        }
+    }else{
+        if(func1){
+            func1();
+        }
+        else{
+            disconnect(url);
+            if(MM4ME_DEBUG)
+                console.log("unable to login!");
+            var hasBeenShown=false;
+            var xml=arguments[0].responseText;
+            $(xml).find("ows\\:ExceptionText").each(function(){
+                window.Android.showToast($(this).text());
+                hasBeenShown=true;
+            });
+            if(!hasBeenShown){
+                window.Android.showToast(JSON.stringify(arguments));
+            }
+        }
+    }
+    /*
     $.ajax({
         method: "GET",
         url: curl,
-        success: function(data){
+        crossDomain: true,
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function(data,response,jqXHR){
+         console.log(jqXHR.getResponseHeader('Set-Cookie'));
             if(MM4ME_DEBUG)
                 console.log(data);
             if(func){
@@ -1933,6 +1972,7 @@ function authenticate(url,login,passwd,func,func1){
 
         }
     });
+    */
 }
 
 /*****************************************************************************

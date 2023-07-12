@@ -115,7 +115,7 @@ $(function(){
             var closure=a;
             return function(){
                 closure1=$(this);
-                authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);console.log(closure1);checkTilesList(closure1,closure["url"]);},function(){
+                authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);for(i in closure) console.log(i+' '+closure1[i]);checkTilesList(closure1,closure["url"]);},function(){
                     disconnect(closure["url"],function(){
                         authenticate(closure["url"],closure["login"],closure["password"],function(){console.log(closure['url']);console.log(closure1);checkTilesList(closure1,closure["url"]);});
                     });
@@ -327,9 +327,25 @@ function doModal(heading, formContent) {
     function createSqliteDB4ME(elem,url,cid){
         window.Android.keepScreenOn();
         window.Android.refreshDbs();
-        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=tileId="+cid+"&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true;Result3@asReference=true&storeExecuteResponse=true&status=true";
+        //var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&DataInputs=tileId="+cid+"&storeExecuteResponse=true&status=true&ResponseDocument=Result@asReference=true;Result1@asReference=true;Result2@asReference=true;Result3@asReference=true";
+        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.createSqliteDB4ME&storeExecuteResponse=true&status=true";
         if(MM4ME_DEBUG)
             console.log(curl);
+        //console.log("runRequestAuth(curl)");
+
+        var myResult=window.Android.runRequestAuth1(curl,"tileId="+cid+"","Result@asReference=true;Result1@asReference=true;Result2@asReference=true;Result3@asReference=true");
+        console.log(myResult);
+        if(myResult!=null){
+            var ldata=$.parseXML(myResult);
+            var statusLocation=$(ldata["documentElement"]["outerHTML"]).attr("statusLocation")||$(ldata["documentElement"]).attr("statusLocation");
+            if(MM4ME_DEBUG)
+                console.log(statusLocation);
+            if(statusLocation)
+                ping(elem.parent().parent().parent(),statusLocation,url);
+        }else{
+            console.log(data);
+        }
+        /*
         $.ajax({
             method: "GET",
             url: curl,
@@ -345,6 +361,7 @@ function doModal(heading, formContent) {
                 console.log(data);
             }
         });
+        */
     }
 
     var myData;

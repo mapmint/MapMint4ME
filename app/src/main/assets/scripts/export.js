@@ -231,9 +231,23 @@ function doModal(heading, formContent) {
     }
     // Invoke the mm4me.replaySqliteHistory WPS service
     function replaySqliteHistory(elem,url){
-        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.replaySqliteHistory&DataInputs=&ResponseDocument=Result@asReference=true;Log@asReference=true&storeExecuteResponse=true&status=true";
+        //var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.replaySqliteHistory&DataInputs=&ResponseDocument=Result@asReference=true;Log@asReference=true&storeExecuteResponse=true&status=true";
+        var curl=url+"?service=WPS&version=1.0.0&request=Execute&Identifier=mm4me.replaySqliteHistory&DataInputs=&storeExecuteResponse=true&status=true";
         if(MM4ME_DEBUG)
             console.log(curl);
+        var myResult=window.Android.runRequestAuth(curl);
+        if(myResult!=null){
+            var data=$.parseXML(myResult);
+            var statusLocation=$(data["documentElement"]["outerHTML"]).attr("statusLocation")||$(data["documentElement"]).attr("statusLocation");
+                            if(MM4ME_DEBUG)
+                                console.log(statusLocation);
+                            ping(elem.parent().parent(),statusLocation,url);
+                            disconnect(url);
+        }else{
+            alert("error replaySqliteHistory!");
+            mainClosure1.prop("disabled",false);
+        }
+        /*
         $.ajax({
             method: "GET",
             url: curl,
@@ -251,6 +265,7 @@ function doModal(heading, formContent) {
                 mainClosure1.prop("disabled",false);
             }
         });
+        */
     }
 
 var nbParts=0;

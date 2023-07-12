@@ -29,7 +29,9 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationRequest;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -40,16 +42,16 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.SyncStateContract;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+//import android.support.v4.app.ActivityCompat;
+//import android.support.v4.app.NotificationCompat;
+//import android.support.v4.app.NotificationManagerCompat;
+//import android.support.v4.content.ContextCompat;
+//import android.support.v4.content.FileProvider;
+//import android.support.v7.app.ActionBar;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.widget.AlertDialogLayout;
+//import android.support.v7.widget.AlertDialogLayout;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Gravity;
@@ -69,24 +71,34 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+/*import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;*
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.appindexing.AppIndexApi;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.appindexing.Thing;
+/*import com.google.firebase.appindexing.Action;
+import com.google.firebase.appindexing.Indexable;
+import com.google.firebase.appindexing.internal.Thing;*/
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -96,7 +108,9 @@ import java.util.concurrent.TimeUnit;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static java.lang.Thread.sleep;
 
-
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 
 /**
@@ -104,7 +118,7 @@ import static java.lang.Thread.sleep;
  * status bar and navigation/system bar) with user interaction.
  */
 public class MapMint4ME extends Activity implements
-        LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,SensorEventListener {
+        LocationListener,/*, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,*/SensorEventListener {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -127,7 +141,7 @@ public class MapMint4ME extends Activity implements
     private final Handler mHideHandler = new Handler();
 
     private View mContentView;
-    private GoogleApiClient mGoogleApiClient = null;
+    //private GoogleApiClient mGoogleApiClient = null;
     private WebView myWebView;
     public LocationManager myLocationManager = null;
     private Location mLastLocation;
@@ -171,12 +185,19 @@ public class MapMint4ME extends Activity implements
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
-    private GoogleApiClient client;
+    //private GoogleApiClient client;
 
     public CookieManager getCookies() {
         return CookieManager.getInstance();
     }
 
+    public String myCurrentCookie;
+    public void setCurrentCookie(String cookie){
+        myCurrentCookie=cookie;
+    }
+    public String getCurrentCookie(){
+        return myCurrentCookie;
+    }
     private ScheduledThreadPoolExecutor mDialogDaemon;
     private WebAppInterface mWebAppInterface;
 
@@ -279,6 +300,7 @@ public class MapMint4ME extends Activity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             //Fetching the download id received with the broadcast
+            Toast.makeText(MapMint4ME.this, R.string.tiles_download_success, Toast.LENGTH_SHORT).show();
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
             //Checking if the received broadcast is for our enqueued download by matching download id
             if (downloadID == id) {
@@ -374,7 +396,9 @@ public class MapMint4ME extends Activity implements
         //mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         //mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         super.onCreate(savedInstanceState);
-        mLocationRequest = LocationRequest.create();
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            mLocationRequest = new LocationRequest();
+        }
         setContentView(R.layout.activity_map_mint4_me);
         registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
@@ -385,7 +409,9 @@ public class MapMint4ME extends Activity implements
                     .addApi(LocationServices.API)
                     .build();
             mGoogleApiClient.connect();
-        }
+        }*/
+        setContentView(R.layout.activity_map_mint4_me);
+        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                 if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -425,9 +451,10 @@ public class MapMint4ME extends Activity implements
             /*myWebView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
             myWebView.setVerticalScrollBarEnabled(false);*/
             webSettings.setGeolocationEnabled(true);
-            webSettings.setAppCacheEnabled(true);
+            //webSettings.setAppCacheEnabled(true);
             webSettings.setDatabaseEnabled(true);
             webSettings.setJavaScriptEnabled(true);
+            webSettings.setAllowFileAccessFromFileURLs(true);
             webSettings.setPluginState(WebSettings.PluginState.ON);
             webSettings.setDomStorageEnabled(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -466,7 +493,7 @@ public class MapMint4ME extends Activity implements
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        //client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
         String appLinkAction = appLinkIntent.getAction();
@@ -535,11 +562,11 @@ public class MapMint4ME extends Activity implements
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+        /*LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);*/
     }
 
-    @Override
+    /*@Override
     public void onConnected(Bundle connectionHint) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MapMint4ME.MY_PERMISSIONS_REQUEST_GPS);
@@ -550,28 +577,29 @@ public class MapMint4ME extends Activity implements
         Log.d(TAG, "******** onConnected() called. " + mLastLocation + " ******");
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        Log.d(TAG, "******** onLocationChanged() called. " + mLastLocation + " ******");
-    }
 
     @Override
     public void onConnectionSuspended(int i) {
         Log.d(TAG, "onConnectionSuspended() called.");
     }
 
-    @Override
+    /*@Override
     public void onConnectionFailed(ConnectionResult result) {
         Log.d(TAG, "onConnectionFailed() called.");
+    }*/
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        Log.d(TAG, "******** onLocationChanged() called. " + mLastLocation + " ******");
     }
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
+     *
     public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
+        Thing object = (Thing) new Thing.Builder()
                 .setName("MapMint4ME Page") // TODO: Define a title for the content shown.
                 // TODO: Make sure this auto-generated URL is correct.
                 .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
@@ -593,6 +621,7 @@ public class MapMint4ME extends Activity implements
         client.connect();
         AppIndex.AppIndexApi.start(client, getIndexApiAction());
     }
+    */
 
     @Override
     public void onDestroy() {
@@ -608,8 +637,8 @@ public class MapMint4ME extends Activity implements
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
+        /*AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();*/
     }
 
     private SensorManager mSensorManager;
@@ -829,8 +858,9 @@ public class MapMint4ME extends Activity implements
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO) {
-            if (resultCode == Activity.RESULT_OK)
+            if (resultCode == Activity.RESULT_OK) {
                 myWebView.loadUrl("javascript:loadNewPicture('" + cameraPictureCid + "','" + cameraPictureId + "','" + cameraPictureName + "');");
+            }
             else {
                 myWebView.loadUrl("javascript:console.log('error ! " + resultCode + "');");
             }
@@ -881,11 +911,10 @@ public class MapMint4ME extends Activity implements
         String imageFileName = "JPEG_" + timeStamp + ".jpg";
         File storageDir = new File(getFilesDir(), "Android/data/fr.geolabs.dev.mapmint4me/files/Pictures");
 
-
         //Create directories in case they do not exist
         if (!storageDir.exists()) storageDir.mkdirs();
-        File image = new File(storageDir, imageFileName);
 
+        File image = new File(storageDir, imageFileName);
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
@@ -894,11 +923,18 @@ public class MapMint4ME extends Activity implements
 
     static final int REQUEST_TAKE_PHOTO = 1221;
     static final int PICK_IMAGE = 1222;
-
+    private Intent takePictureIntent;
+    private String camera_identifier;
+    private String camera_cidentifier;
     public void invokeCamera(String id, String cid) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        camera_identifier=id;
+        camera_cidentifier=cid;
+        Log.e("invokeCamera", "invokeCamera");
+        //startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
         // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+        /*if (takePictureIntent.resolveActivity(getPackageManager()) != null) */{
+            Log.e("invokeCamera", "takePictureIntent.resolveActivity != null ");
             // Create the File where the photo should go
             File photoFile = null;
             try {
@@ -907,6 +943,7 @@ public class MapMint4ME extends Activity implements
                 // Error occurred while creating the File
                 //...
                 //Toast.makeText(getApplicationContext(), "Error : " + ex, Toast.LENGTH_LONG).show();
+                Log.e("invokeCamera", "ioException "+ex);
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {

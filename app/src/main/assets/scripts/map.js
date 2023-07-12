@@ -28,6 +28,7 @@ $(function(){
     addOptionalLocalTiles();
     //$('.breadcrumb').append('<li>Point north <input id="followNorth" type="checkbox" /></li>');
 
+    try{
     var list=JSON.parse(window.Android.displayTable("SELECT mm4me_tables.id as tid,mm4me_views.id as id,mm4me_tables.name as name,mm4me_tables.description,mm4me_views.name as title from mm4me_tables,mm4me_views where mm4me_tables.id=mm4me_views.ptid ",[]));
     var tableList=list;
     var total=0;
@@ -35,6 +36,9 @@ $(function(){
     var index=-1;
     for(var i in list){
         mainTable[list[i]["id"]]=list[i]["tid"];
+    }
+    }catch(e){
+      console.log(e);
     }
     contents=[];
 
@@ -77,7 +81,7 @@ $(function(){
         try{
         var list=JSON.parse(window.Android.displayTable(query,[]));
         }catch(e){
-            $(".map").append('<input id="hasFeatures" value="false" type="hdden" />');
+            $(".map").append('<input id="hasFeatures" value="false" type="hidden" />');
             return;
         }
         if(MM4ME_DEBUG)
